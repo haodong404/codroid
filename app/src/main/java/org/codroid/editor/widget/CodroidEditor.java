@@ -20,22 +20,121 @@
 package org.codroid.editor.widget;
 
 import android.content.Context;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.Rect;
 import android.util.AttributeSet;
 
+import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.AppCompatEditText;
 
+import org.codroid.editor.utils.UIUtils;
+
+/**
+ * CodroidEditor is a core part of this project.
+ * It contains the function of highlight, autocomplete and etc.
+ */
+
 public class CodroidEditor extends AppCompatEditText {
+
+    private Configure mConfigure;
+
+    private Paint lineNumberPaint, backPaint;
+
+    private Rect lineNumberBackRect;
+
+
     public CodroidEditor(@NonNull Context context) {
         super(context);
+        init();
     }
 
     public CodroidEditor(@NonNull Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
+        init();
     }
 
     public CodroidEditor(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
+        init();
+    }
+
+    private void init() {
+        if (mConfigure == null) mConfigure = new Configure();
+        if (lineNumberPaint == null && mConfigure.isShowLineNumber()) {
+            lineNumberPaint = new Paint();
+            lineNumberPaint.setStyle(Paint.Style.FILL);
+            lineNumberPaint.setTextSize(getTextSize());
+            lineNumberPaint.setColor(mConfigure.getLineNumberColor());
+
+            backPaint = new Paint();
+            backPaint.setStyle(Paint.Style.FILL);
+            backPaint.setColor(mConfigure.getLineNumberBackColor());
+
+            lineNumberBackRect = new Rect();
+        }
+    }
+
+    public Configure getConfigure() {
+        return mConfigure;
+    }
+
+    public void setConfigure(Configure mConfigure) {
+        this.mConfigure = mConfigure;
+    }
+
+    @Override
+    protected void onDraw(Canvas canvas) {
+        super.onDraw(canvas);
+        //Drawing line number
+        if (mConfigure.isShowLineNumber()) {
+            int gap = UIUtils.get().dip2px(getContext(),4);
+            int paddingLeft = (int) lineNumberPaint.measureText(String.valueOf(getLineCount())) + gap * 2;
+            lineNumberBackRect.set(0, 0, paddingLeft, getHeight());
+            setPadding(paddingLeft + gap, 0,0,0);
+            canvas.drawRect(lineNumberBackRect, backPaint);
+            for(int i = 0; i < getLineCount(); i ++){
+                int baseLine = getLineBounds(i, null);
+                canvas.drawText(String.valueOf(i + 1), gap, baseLine, lineNumberPaint);
+            }
+        }
+    }
+
+
+    public class Configure {
+        private boolean lineNumber = true;
+        private @ColorInt int lineNumberColor = Color.BLACK;
+        private @ColorInt int lineNumberBackColor = Color.GRAY;
+
+        public boolean isShowLineNumber() {
+            return lineNumber;
+        }
+
+        public Configure showLineNumber(boolean lineNumber) {
+            this.lineNumber = lineNumber;
+            return this;
+        }
+
+        public @ColorInt
+        int getLineNumberColor() {
+            return lineNumberColor;
+        }
+
+        public Configure setLineNumberColor(@ColorInt int lineNumberColor) {
+            this.lineNumberColor = lineNumberColor;
+            return this;
+        }
+
+        public @ColorInt int getLineNumberBackColor() {
+            return lineNumberBackColor;
+        }
+
+        public Configure setLineNumberBackColor(@ColorInt int lineNumberBackColor) {
+            this.lineNumberBackColor = lineNumberBackColor;
+            return this;
+        }
     }
 }

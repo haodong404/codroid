@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Codroid</string>
+    <string name="app_setting">Settings</string>
+    <string name="app_plugin_manager">Plugin Manager</string>
 </resources>
