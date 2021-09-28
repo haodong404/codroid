@@ -2,4 +2,10 @@
     <string name="app_name">Codroid</string>
     <string name="app_setting">Settings</string>
     <string name="app_plugin_manager">Plugin Manager</string>
+    <string name="file_icon_description">The icon of a file or directory</string>
+    <string name="storage_permission_denied">The external storage access permission is denied.</string>
+    <string name="permission_dialog_message">Codroid requires all of your device\'s storage permission.</string>
+    <string name="dialog_accept">Accept</string>
+    <string name="dialog_cancel">Cancel</string>
+    <string name="addon_manager_title">Addon Manager</string>
 </resources>

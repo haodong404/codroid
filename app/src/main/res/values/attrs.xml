@@ -1,4 +1,5 @@
-<?xml version="1.0" encoding="utf-8"?><!--
+<?xml version="1.0" encoding="utf-8"?>
+<!--
   ~     Copyright (c) 2021 Zachary. All rights reserved.
   ~
   ~     This file is part of Codroid.
@@ -16,12 +17,8 @@
   ~     You should have received a copy of the GNU General Public License
   ~     along with Codroid.  If not, see <https://www.gnu.org/licenses/>.
   -->
-<selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <item>
-        <objectAnimator
-            android:duration="500"
-            android:propertyName="elevation"
-            android:valueTo="8dp"
-            android:valueType="floatType" />
-    </item>
-</selector>
+<resources>
+    <declare-styleable name="Divider">
+        <attr name="backgroundColor" format="color"/>
+    </declare-styleable>
+</resources>

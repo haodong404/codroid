@@ -16,6 +16,8 @@
   ~     You should have received a copy of the GNU General Public License
   ~     along with Codroid.  If not, see <https://www.gnu.org/licenses/>.
   -->
+
+
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -25,43 +27,63 @@
 
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/activity_main_app_bar_layout"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
         android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:stateListAnimator="@animator/appbar_elevation"
-        android:layout_height="wrap_content">
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/activity_main_toolbar"
-            app:title="@string/app_name"
-            app:titleTextColor="@color/design_default_color_on_secondary"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content"
+            app:title="@string/app_name"
+            app:titleTextColor="@color/design_default_color_on_secondary" />
 
     </com.google.android.material.appbar.AppBarLayout>
 
-    <ScrollView
+    <androidx.drawerlayout.widget.DrawerLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:background="@null"
-        android:fillViewport="true"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/activity_main_app_bar_layout"
-        app:layout_constraintBottom_toBottomOf="parent">
+        app:layout_constraintTop_toBottomOf="@id/activity_main_app_bar_layout">
 
-        <HorizontalScrollView
+        <ScrollView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:background="@null"
             android:fillViewport="true">
 
-            <org.codroid.editor.widget.CodroidEditor
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:background="@android:color/transparent"
-                android:focusable="true"
-                android:gravity="start|top" />
+            <HorizontalScrollView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@null"
+                android:fillViewport="true">
 
-        </HorizontalScrollView>
-    </ScrollView>
+                <org.codroid.editor.widget.CodroidEditor
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:background="@android:color/transparent"
+                    android:focusable="true"
+                    android:gravity="start|top" />
+
+            </HorizontalScrollView>
+        </ScrollView>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/project_structure_rv"
+            android:layout_width="230dp"
+            android:layout_height="match_parent"
+            android:layout_gravity="start"
+            android:background="@color/design_default_color_surface" />
+
+    </androidx.drawerlayout.widget.DrawerLayout>
+
+    <org.codroid.editor.widget.BottomPanel
+        android:id="@+id/activity_main_bottom_panel"
+        app:layout_constraintTop_toBottomOf="parent"
+        android:background="@color/pink_500"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"/>
 </androidx.constraintlayout.widget.ConstraintLayout>

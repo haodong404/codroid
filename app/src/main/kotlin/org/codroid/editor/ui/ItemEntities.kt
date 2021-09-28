@@ -17,20 +17,19 @@
  *     along with Codroid.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.codroid.editor.ui.pluginmanager
+package org.codroid.editor.ui
 
-import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
-import org.codroid.editor.databinding.ActivityPluginManagerBinding
+import androidx.annotation.DrawableRes
 
-class PluginManagerActivity: AppCompatActivity() {
+data class FileItem(
+    val name: String,
+    @DrawableRes val icon: Int,
+    val textColor: Int
+)
 
-    private lateinit var binding: ActivityPluginManagerBinding
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        binding = ActivityPluginManagerBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-    }
-
-}
+data class AddonItem(
+    val name: String,
+    val version: String,
+    val description: String,
+    val author: String,
+    val link: String)

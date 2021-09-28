@@ -2,13 +2,20 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="org.codroid.editor">
 
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
+
     <application
-        android:allowBackup="true"
+        android:name=".Codroid"
+        android:requestLegacyExternalStorage="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.Codroid">
+        android:theme="@style/Theme.Codroid"
+        android:fullBackupContent="@xml/backup_descriptor"
+        android:allowBackup="false">
         <activity
             android:name=".ui.main.MainActivity"
             android:exported="true">
@@ -18,7 +25,7 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".ui.pluginmanager.PluginManagerActivity"/>
+        <activity android:name=".ui.addonmanager.AddonManagerActivity"/>
 
     </application>
 
