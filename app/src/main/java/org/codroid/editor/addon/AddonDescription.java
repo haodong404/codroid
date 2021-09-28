@@ -23,6 +23,8 @@ import android.text.TextUtils;
 
 import java.lang.reflect.Field;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 import me.grison.jtoml.annotations.SerializedName;
@@ -51,10 +53,11 @@ public class AddonDescription {
      */
     public Set<String> checkIntegrity() {
         Class<? extends Entity> entityClass = entity.getClass();
-        Set<String> brokenField = Collections.emptySet();
+        Set<String> brokenField = new HashSet<>();
         for (Field field : entityClass.getDeclaredFields()) {
             try {
-                if (field.get(entityClass) == null) {
+                field.setAccessible(true);
+                if (Objects.isNull(field.get(entity))) {
                     brokenField.add(field.getName());
                 }
             } catch (IllegalAccessException e) {

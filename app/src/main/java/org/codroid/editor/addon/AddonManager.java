@@ -22,7 +22,7 @@ package org.codroid.editor.addon;
 import android.content.Context;
 import android.text.TextUtils;
 
-import org.codroid.editor.addon.exception.InCompleteAddonDescription;
+import org.codroid.editor.addon.exception.IncompleteAddonDescription;
 import org.codroid.editor.addon.exception.NoAddonDescriptionFoundException;
 
 import java.io.File;
@@ -32,7 +32,6 @@ import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
 public class AddonManager {
 
@@ -67,7 +66,7 @@ public class AddonManager {
             for (var it : pluginFile.list()) {
                 try {
                     String path = pluginFile + File.separator + it;
-                    AddonDescription description = AddonDescription.test();
+                    AddonDescription description = loader.getAddonDescription(path);
                     if (!isLoaded(description)) {
                         AddonBase addon = null;
                         addon = loader.loadAddon(description, path, pluginFile.getCanonicalPath());
@@ -75,6 +74,8 @@ public class AddonManager {
                     }
                 } catch (IOException | InstantiationException | InvocationTargetException | IllegalAccessException | NoAddonDescriptionFoundException | ClassNotFoundException e) {
                     e.printStackTrace();
+                    return new Result(Result.FAILED, e.getMessage());
+                } catch (IncompleteAddonDescription e) {
                     return new Result(Result.FAILED, e.getMessage());
                 }
             }

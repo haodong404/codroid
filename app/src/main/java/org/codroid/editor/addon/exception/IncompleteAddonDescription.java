@@ -24,11 +24,11 @@ import androidx.annotation.Nullable;
 import java.util.Collections;
 import java.util.Set;
 
-public class InCompleteAddonDescription extends Exception {
+public class IncompleteAddonDescription extends Exception {
 
     private Set<String> brokenFields;
 
-    public InCompleteAddonDescription(Set<String> brokenFields) {
+    public IncompleteAddonDescription(Set<String> brokenFields) {
         this.brokenFields = brokenFields;
         if (brokenFields == null) this.brokenFields = Collections.emptySet();
     }

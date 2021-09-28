@@ -19,9 +19,7 @@
 
 package org.codroid.editor.addon;
 
-import android.util.Log;
-
-import org.codroid.editor.addon.exception.InCompleteAddonDescription;
+import org.codroid.editor.addon.exception.IncompleteAddonDescription;
 import org.codroid.editor.addon.exception.NoAddonDescriptionFoundException;
 
 import java.io.IOException;
@@ -46,7 +44,7 @@ public class AddonLoader {
         return addon;
     }
 
-    public AddonDescription getAddonDescription(String filePath) throws IOException, NoAddonDescriptionFoundException, InCompleteAddonDescription {
+    public AddonDescription getAddonDescription(String filePath) throws IOException, NoAddonDescriptionFoundException, IncompleteAddonDescription {
         JarFile jarFile = new JarFile(filePath);
         JarEntry jarEntry = jarFile.getJarEntry("addon-des.toml");
         if (jarEntry == null) {
@@ -57,7 +55,7 @@ public class AddonLoader {
         inputStream.read(bytes);
         AddonDescription description = new AddonDescription(new String(bytes));
         if(!description.checkIntegrity().isEmpty()) {
-            throw new InCompleteAddonDescription(description.checkIntegrity());
+            throw new IncompleteAddonDescription(description.checkIntegrity());
         }
         return description;
     }
