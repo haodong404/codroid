@@ -17,28 +17,12 @@
  *     along with Codroid.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.codroid.editor
+package org.codroid.editor.log;
 
-import android.app.Application
-import android.util.Log
-import org.codroid.editor.addon.AddonManager
-import org.codroid.editor.log.LogStream
+public class Logger {
 
-class Codroid: Application() {
+    public void error() {
 
-    override fun onCreate() {
-        super.onCreate()
-        val result = AddonManager.get().loadAddons(this)
-        if(!result.isSucceed) {
-            Log.i("Zac", result.message?: "Failed")
-        } else {
-            Log.i("Zac", "Succeed")
-        }
-
-        val a = "This is my logger."
-        val l = LogStream(this)
-        l.write(a.toByteArray())
-        l.write(a.toByteArray())
-        l.write(a.toByteArray())
     }
+
 }

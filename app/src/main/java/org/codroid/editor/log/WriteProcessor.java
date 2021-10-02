@@ -17,28 +17,27 @@
  *     along with Codroid.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.codroid.editor
+package org.codroid.editor.log;
 
-import android.app.Application
-import android.util.Log
-import org.codroid.editor.addon.AddonManager
-import org.codroid.editor.log.LogStream
+import java.io.IOException;
 
-class Codroid: Application() {
+public abstract class WriteProcessor implements Runnable {
 
-    override fun onCreate() {
-        super.onCreate()
-        val result = AddonManager.get().loadAddons(this)
-        if(!result.isSucceed) {
-            Log.i("Zac", result.message?: "Failed")
-        } else {
-            Log.i("Zac", "Succeed")
-        }
+    private byte[] bytes;
 
-        val a = "This is my logger."
-        val l = LogStream(this)
-        l.write(a.toByteArray())
-        l.write(a.toByteArray())
-        l.write(a.toByteArray())
+    @Override
+    public void run() {
+        process();
     }
+
+    public WriteProcessor put(byte[] bytes) {
+        this.bytes = bytes;
+        return this;
+    }
+
+    public byte[] getBytes() {
+        return bytes;
+    }
+
+    protected abstract void process();
 }

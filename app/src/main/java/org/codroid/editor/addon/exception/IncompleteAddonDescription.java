@@ -24,6 +24,9 @@ import androidx.annotation.Nullable;
 import java.util.Collections;
 import java.util.Set;
 
+/**
+ * This exception raised when a description lack of necessary fields.
+ */
 public class IncompleteAddonDescription extends Exception {
 
     private Set<String> brokenFields;
@@ -31,6 +34,10 @@ public class IncompleteAddonDescription extends Exception {
     public IncompleteAddonDescription(Set<String> brokenFields) {
         this.brokenFields = brokenFields;
         if (brokenFields == null) this.brokenFields = Collections.emptySet();
+    }
+
+    public Set<String> brokenFields(){
+        return brokenFields;
     }
 
     @Nullable

@@ -33,6 +33,9 @@ import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * This class manages all the addons, include importing and loading.
+ */
 public class AddonManager {
 
     private static AddonManager mInstance = null;
@@ -47,6 +50,13 @@ public class AddonManager {
     public static String ADDON_DIR_NAME = "plugins";
     private int addonLoadedCount;
 
+    /**
+     * Import an addon from external storage.
+     *
+     * @param context context
+     * @param file    the File requires to import.
+     * @return the result of processing.
+     */
     public Result importExternalAddon(Context context, File file) {
         try {
             File externalAddon = new File(getAddonDir(context), file.getName());
@@ -58,6 +68,14 @@ public class AddonManager {
         return new Result(Result.SUCCESS);
     }
 
+    /**
+     * There is the core function of loading addons,
+     * which will scan the directory 'org.codroid.editor/files/plugins'.
+     * The addon will not be loaded if it has been loaded or caused some error while loading.
+     *
+     * @param context context
+     * @return the result of processing.
+     */
     public Result loadAddons(Context context) {
         File pluginFile = context.getExternalFilesDir(ADDON_DIR_NAME);
         if (!pluginFile.exists()) pluginFile.mkdir();
@@ -68,8 +86,8 @@ public class AddonManager {
                     String path = pluginFile + File.separator + it;
                     AddonDescription description = loader.getAddonDescription(path);
                     if (!isLoaded(description)) {
-                        AddonBase addon = null;
-                        addon = loader.loadAddon(description, path, pluginFile.getCanonicalPath());
+                        AddonBase addon = loader.loadAddon(description, path, pluginFile.getCanonicalPath());
+                        addon.onLoading();
                         addons.put(description, addon);
                     }
                 } catch (IOException | InstantiationException | InvocationTargetException | IllegalAccessException | NoAddonDescriptionFoundException | ClassNotFoundException e) {
@@ -84,22 +102,38 @@ public class AddonManager {
         return new Result(Result.FAILED, "No addon exists.");
     }
 
-    public int getAddonLoadedCount() {
+    /**
+     * The number of addons loaded.
+     *
+     * @return counts
+     */
+    public int getAddonCountLoaded() {
         return addons.size();
+    }
+
+    public int getAddonCountImported(Context context) {
+        File temp = getAddonDir(context);
+        return temp.list() != null ? temp.list().length : 0;
     }
 
     public Map<AddonDescription, Addon> loadedAddons() {
         return addons;
     }
 
+
+    public void terminateAllAddons() {
+        loadedAddons().values().forEach(Addon::onAppExited);
+    }
+
     private boolean isLoaded(AddonDescription description) {
         for (var it : addons.keySet()) {
-            if (TextUtils.equals(it.get().getPackage(), description.get().getPackage())) return true;
+            if (TextUtils.equals(it.get().getPackage(), description.get().getPackage()))
+                return true;
         }
         return false;
     }
 
-    private File getAddonDir(Context context){
+    private File getAddonDir(Context context) {
         return context.getExternalFilesDir(ADDON_DIR_NAME);
     }
 

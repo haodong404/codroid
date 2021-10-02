@@ -39,14 +39,12 @@ public class AddonLoader {
         DexClassLoader classLoader = new DexClassLoader(dexPath, optimizedDirectory, null, Thread.currentThread().getContextClassLoader());
         Class<?> addonBaseClass = null;
         addonBaseClass = classLoader.loadClass(description.get().getPackage() + "." + description.get().getEnterPoint());
-        AddonBase addon = (AddonBase) addonBaseClass.getConstructors()[0].newInstance();
-        addon.onLoading();
-        return addon;
+        return (AddonBase) addonBaseClass.getConstructors()[0].newInstance();
     }
 
     public AddonDescription getAddonDescription(String filePath) throws IOException, NoAddonDescriptionFoundException, IncompleteAddonDescription {
         JarFile jarFile = new JarFile(filePath);
-        JarEntry jarEntry = jarFile.getJarEntry("addon-des.toml");
+        JarEntry jarEntry = jarFile.getJarEntry(ADDON_DESCRIPTION_FILE_NAME);
         if (jarEntry == null) {
             throw new NoAddonDescriptionFoundException(filePath);
         }
