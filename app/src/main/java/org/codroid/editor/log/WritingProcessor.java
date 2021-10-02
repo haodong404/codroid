@@ -17,35 +17,39 @@
  *     along with Codroid.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.codroid.editor.addon;
+package org.codroid.editor.log;
 
-import org.codroid.editor.log.Loggable;
-import org.codroid.editor.log.Logger;
+import android.util.Log;
 
-public class AddonBase implements Addon, Loggable {
+import java.util.Queue;
+import java.util.concurrent.LinkedBlockingQueue;
 
-    private Logger logger;
+public abstract class WritingProcessor implements Runnable {
 
-    public AddonBase() {
+    // Using a buffer to store the inputs that will be logged in.
+    private Queue<LogStructure> inputBuffer;
 
+    public WritingProcessor(){
+        inputBuffer = new LinkedBlockingQueue<>();
     }
 
     @Override
-    public void onLoading() {
-
+    public void run() {
+        process();
     }
 
-    @Override
-    public void onAppExited() {
-
+    public WritingProcessor put(LogStructure structure) {
+        this.inputBuffer.offer(structure);
+        return this;
     }
 
-    public void assignLogger(Logger logger){
-        this.logger = logger;
+    public LogStructure obtain() {
+        return inputBuffer.poll();
     }
 
-    @Override
-    public Logger getLogger() {
-        return logger;
-    }
+    /**
+     * This abstract method will be implemented by subclasses
+     * They can log what or where they want.
+     */
+    protected abstract void process();
 }

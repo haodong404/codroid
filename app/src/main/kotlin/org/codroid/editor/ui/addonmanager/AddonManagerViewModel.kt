@@ -62,11 +62,11 @@ class AddonManagerViewModel : ViewModel() {
         return addonSet
     }
 
-    fun importAddon(context: Context, addonUri: Uri): LiveData<Boolean> {
+    fun importAddon(addonUri: Uri): LiveData<Boolean> {
         viewModelScope.launch {
             getRealPath(addonUri)?.let {
                 val file = File(it)
-                AddonManager.get().importExternalAddon(context, file).let { it2 ->
+                AddonManager.get().importExternalAddon(file).let { it2 ->
                     importAddon.postValue(it2.isSucceed)
                 }
             }

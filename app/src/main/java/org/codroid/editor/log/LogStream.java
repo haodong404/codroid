@@ -24,10 +24,13 @@ import android.content.Context;
 import org.codroid.editor.addon.AddonManager;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -39,17 +42,17 @@ public class LogStream {
 
     private ExecutorService mExecutorService;
 
-    private List<WriteProcessor> outputs;
+    private List<WritingProcessor> outputs;
 
     public LogStream(Context context) {
         if (mExecutorService == null) {
-            initialize(context);
-            mExecutorService = new ThreadPoolExecutor(mCorePoolSize, mMaximumPoolSize, mKeepAliveTime, TimeUnit.SECONDS, new ArrayBlockingQueue<>(mMaximumPoolSize));
+            initialize();
+            mExecutorService = new ThreadPoolExecutor(mCorePoolSize, mMaximumPoolSize, mKeepAliveTime, TimeUnit.SECONDS, new LinkedBlockingDeque<>());
         }
         outputs = new ArrayList<>(3);
-        outputs.add(new Write2SystemOut());
+        outputs.add(new Writing2SystemOut());
         try {
-            outputs.add(new Write2File(context));
+            outputs.add(new Writing2File(context));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -58,11 +61,11 @@ public class LogStream {
     /**
      * Initialize the thread pool
      * Compute each arguments roughly base on cpu and addons that imported.
-     * @param context app context
+     *
      */
-    private void initialize(Context context) {
+    private void initialize() {
         int cpuProcessor = Runtime.getRuntime().availableProcessors();
-        int addonCount = AddonManager.get().getAddonCountImported(context);
+        int addonCount = AddonManager.get().getAddonCountImported();
         float factor = 0.8f;
         if (cpuProcessor < 4) {
             factor = 1.2f;
@@ -73,12 +76,42 @@ public class LogStream {
     }
 
     /**
-     * Write bytes to different outputs.
-     * @param bytes input
+     * Write a log structure to different outputs.
+     *
+     * @param structure input
      */
-    public void write(byte[] bytes) {
+    private void write(LogStructure structure) {
         for (var i : outputs) {
-            mExecutorService.submit(i.put(bytes));
+            try {
+                mExecutorService.submit(i.put(structure));
+            } catch (RejectedExecutionException e) {
+                e.printStackTrace();
+            }
         }
+    }
+
+    /**
+     * Write bytes to different outputs directly,
+     * without formatting.
+     * @param bytes input bytes;
+     */
+    public void writeDirectly(byte[] bytes){
+        write(new LogStructure.Builder().setRawBytes(bytes).build());
+    }
+
+    /**
+     * Writing with formatting.
+     * @param level log level, from LogStream.
+     * @param origin where the log is from.
+     * @param content input bytes.
+     */
+    public void writeFormat(int level, String origin, String content) {
+        LogStructure structure = new LogStructure.Builder()
+                .setLevel(level)
+                .setContent(content)
+                .setCalendar(Calendar.getInstance())
+                .setOrigin(origin)
+                .build();
+        write(structure);
     }
 }

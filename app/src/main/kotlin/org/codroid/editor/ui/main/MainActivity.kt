@@ -37,6 +37,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import org.codroid.editor.R
+import org.codroid.editor.addon.AddonManager
 import org.codroid.editor.databinding.ActivityMainBinding
 import org.codroid.editor.ui.addonmanager.AddonManagerActivity
 import org.codroid.editor.ui.projectstruct.ProjectStructureAdapter
@@ -68,6 +69,8 @@ class MainActivity : AppCompatActivity() {
         binding.projectStructureRv.adapter = projectStructAdapter
         binding.projectStructureRv.layoutManager = LinearLayoutManager(this)
         binding.activityMainBottomPanel.y = 100f
+
+        AddonManager.get().logger.i("Hello Logger");
     }
 
     private fun permissionAsk() {

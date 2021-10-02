@@ -24,6 +24,7 @@ import org.codroid.editor.addon.exception.NoAddonDescriptionFoundException;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;

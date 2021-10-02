@@ -17,27 +17,21 @@
  *     along with Codroid.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.codroid.editor
+package org.codroid.editor.log;
 
-import android.app.Application
-import android.content.Context
-import android.util.Log
-import org.codroid.editor.addon.AddonManager
-import org.codroid.editor.log.LogStream
-import org.codroid.editor.log.Logger
+import android.util.Log;
 
-class Codroid: Application() {
+import java.nio.charset.StandardCharsets;
 
-    lateinit var context: Context;
+public class Writing2SystemOut extends WritingProcessor {
 
-    override fun onCreate() {
-        super.onCreate()
-        AddonManager.get().initialize(this);
-        val result = AddonManager.get().loadAddons()
-        if(!result.isSucceed) {
-            Log.i("Zac", result.message?: "Failed")
+    @Override
+    protected void process(){
+        LogStructure logStructure = obtain(); // Sava a copy to avoid duplicate fetching.
+        if (logStructure.getRawBytes() == null) {
+            Log.println(Log.INFO, logStructure.getOrigin(), logStructure.getContent());
         } else {
-            Log.i("Zac", "Succeed")
+            Log.println(Log.INFO, "RAW", new String(logStructure.getRawBytes(), StandardCharsets.UTF_8));
         }
     }
 }

@@ -38,7 +38,7 @@ class AddonManagerActivity : AppCompatActivity(), View.OnClickListener {
 
     private val getContent = registerForActivityResult(ActivityResultContracts.GetContent()) {
         it?.let {
-            viewModel.importAddon(this, it).observe(this) {
+            viewModel.importAddon(it).observe(this) {
                 if (!it) {
                     Snackbar.make(binding.root, "Import Failed", Snackbar.LENGTH_SHORT).show();
                 } else {

@@ -23,7 +23,9 @@ import android.content.Context;
 import android.text.TextUtils;
 
 import org.codroid.editor.addon.exception.IncompleteAddonDescription;
+import org.codroid.editor.log.Loggable;
 import org.codroid.editor.addon.exception.NoAddonDescriptionFoundException;
+import org.codroid.editor.log.Logger;
 
 import java.io.File;
 import java.io.IOException;
@@ -36,7 +38,7 @@ import java.util.Map;
 /**
  * This class manages all the addons, include importing and loading.
  */
-public class AddonManager {
+public class AddonManager implements Loggable {
 
     private static AddonManager mInstance = null;
 
@@ -47,19 +49,19 @@ public class AddonManager {
 
     private Map<AddonDescription, Addon> addons = new HashMap<>();
 
-    public static String ADDON_DIR_NAME = "plugins";
-    private int addonLoadedCount;
+    private Context context;
+    private static Logger logger;
+    public static String ADDON_DIR_NAME = "addons";
 
     /**
      * Import an addon from external storage.
      *
-     * @param context context
-     * @param file    the File requires to import.
+     * @param file the File requires to import.
      * @return the result of processing.
      */
-    public Result importExternalAddon(Context context, File file) {
+    public Result importExternalAddon(File file) {
         try {
-            File externalAddon = new File(getAddonDir(context), file.getName());
+            File externalAddon = new File(getAddonDir(), file.getName());
             Files.copy(file.toPath(), externalAddon.toPath(), StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e) {
             e.printStackTrace();
@@ -73,10 +75,9 @@ public class AddonManager {
      * which will scan the directory 'org.codroid.editor/files/plugins'.
      * The addon will not be loaded if it has been loaded or caused some error while loading.
      *
-     * @param context context
      * @return the result of processing.
      */
-    public Result loadAddons(Context context) {
+    public Result loadAddons() {
         File pluginFile = context.getExternalFilesDir(ADDON_DIR_NAME);
         if (!pluginFile.exists()) pluginFile.mkdir();
         AddonLoader loader = new AddonLoader();
@@ -87,6 +88,7 @@ public class AddonManager {
                     AddonDescription description = loader.getAddonDescription(path);
                     if (!isLoaded(description)) {
                         AddonBase addon = loader.loadAddon(description, path, pluginFile.getCanonicalPath());
+                        addon.assignLogger(new Logger(context, description.get().getName() + "/" + description.get().getPackage()));
                         addon.onLoading();
                         addons.put(description, addon);
                     }
@@ -111,8 +113,8 @@ public class AddonManager {
         return addons.size();
     }
 
-    public int getAddonCountImported(Context context) {
-        File temp = getAddonDir(context);
+    public int getAddonCountImported() {
+        File temp = getAddonDir();
         return temp.list() != null ? temp.list().length : 0;
     }
 
@@ -120,6 +122,14 @@ public class AddonManager {
         return addons;
     }
 
+    /**
+     * Initialize the AddonManager
+     * It must be called at Application
+     * @param context app context
+     */
+    public void initialize(Context context) {
+        this.context = context;
+    }
 
     public void terminateAllAddons() {
         loadedAddons().values().forEach(Addon::onAppExited);
@@ -133,8 +143,15 @@ public class AddonManager {
         return false;
     }
 
-    private File getAddonDir(Context context) {
+    private File getAddonDir() {
         return context.getExternalFilesDir(ADDON_DIR_NAME);
+    }
+
+
+    @Override
+    public Logger getLogger() {
+        if (logger == null) logger = new Logger(context, "Codroid");
+        return logger;
     }
 
     public static class Result {

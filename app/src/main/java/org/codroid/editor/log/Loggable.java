@@ -19,25 +19,9 @@
 
 package org.codroid.editor.log;
 
-import java.io.IOException;
+import org.codroid.editor.log.Logger;
 
-public abstract class WriteProcessor implements Runnable {
+public interface Loggable {
 
-    private byte[] bytes;
-
-    @Override
-    public void run() {
-        process();
-    }
-
-    public WriteProcessor put(byte[] bytes) {
-        this.bytes = bytes;
-        return this;
-    }
-
-    public byte[] getBytes() {
-        return bytes;
-    }
-
-    protected abstract void process();
+    Logger getLogger();
 }

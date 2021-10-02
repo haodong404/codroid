@@ -22,11 +22,10 @@ package org.codroid.editor.log;
 import android.content.Context;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
-public class Write2File extends WriteProcessor{
+public class Writing2File extends WritingProcessor {
 
     public static String LOG_FILE_NAME = "codroid.log";
 
@@ -34,21 +33,21 @@ public class Write2File extends WriteProcessor{
     private File logFile;
     private FileOutputStream outputStream;
 
-    public Write2File(String filePath) throws IOException {
+    public Writing2File(String filePath) throws IOException {
         this.filePath = filePath;
         initLogFile();
     }
 
-    public Write2File (Context context) throws IOException {
+    public Writing2File(Context context) throws IOException {
         filePath = context.getExternalFilesDir("logs").getPath();
         initLogFile();
     }
 
     private void initLogFile() throws IOException {
         logFile = new File(filePath + File.separator + LOG_FILE_NAME);
-        outputStream = new FileOutputStream(logFile);
-        if(!logFile.exists()) {
-            if(!logFile.createNewFile()){
+        outputStream = new FileOutputStream(logFile, true);
+        if (!logFile.exists()) {
+            if (!logFile.createNewFile()) {
                 throw new IOException("Log file created Failed!");
             }
         }
@@ -56,11 +55,13 @@ public class Write2File extends WriteProcessor{
 
 
     @Override
-    protected void process() {
+    protected synchronized void process() {
+        LogStructure structure = obtain(); // Sava a copy to avoid duplicate fetching.
         try {
-            synchronized (this) {
-                outputStream.write(getBytes());
-                outputStream.close();
+            if (structure.getRawBytes() != null) {
+                outputStream.write(structure.getRawBytes());
+            } else {
+                outputStream.write(structure.toStandardOutput());
             }
         } catch (IOException e) {
             e.printStackTrace();

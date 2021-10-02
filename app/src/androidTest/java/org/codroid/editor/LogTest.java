@@ -17,12 +17,27 @@
  *     along with Codroid.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.codroid.editor.log;
+package org.codroid.editor;
 
-public class Write2SystemOut extends WriteProcessor {
 
-    @Override
-    protected void process(){
-        System.out.println(new String(getBytes()));
+import android.content.Context;
+
+import androidx.test.ext.junit.runners.AndroidJUnit4;
+import androidx.test.platform.app.InstrumentationRegistry;
+
+import org.codroid.editor.log.LogStream;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+@RunWith(AndroidJUnit4.class)
+public class LogTest {
+    @Test(timeout = 100)
+    public void profileTest(){
+        Context context = InstrumentationRegistry.getInstrumentation().getContext();
+        LogStream stream = new LogStream(context);
+        for(int i = 0; i < 100 ;i ++) {
+            String temp = "This is " + i;
+            stream.writeFormat(i % 3, "Codroid", temp);
+        }
     }
 }
