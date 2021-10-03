@@ -27,11 +27,18 @@ import java.util.Set;
 import me.grison.jtoml.annotations.SerializedName;
 import me.grison.jtoml.impl.Toml;
 
-public class AddonDescription {
+/**
+ * This file serializes the addon's description.
+ */
+public final class AddonDescription {
     public static Toml toml;
 
     private Entity entity;
 
+    /**
+     * Serializing the content.
+     * @param content input.
+     */
     public AddonDescription(String content) {
         if (toml == null) {
             toml = new Toml();
@@ -64,21 +71,6 @@ public class AddonDescription {
         return brokenField;
     }
 
-    public static AddonDescription test() {
-        AddonDescription description = new AddonDescription("");
-        Entity entity = new Entity();
-        entity.setName("Zachary");
-        entity.setDescription("This is description!");
-        entity.setAuthor("Zachary");
-        entity.setEnterPoint("Main");
-        entity.setLink("https://codroid.org");
-        entity.setPackage("com.zachary.base");
-        entity.setSupportVersion("11.20");
-        entity.setVersionCode(Long.valueOf(1));
-        entity.setVersionDes("v1.1.1");
-        description.entity = entity;
-        return description;
-    }
 
     public Entity get() {
         return entity;

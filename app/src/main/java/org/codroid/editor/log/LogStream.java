@@ -34,6 +34,9 @@ import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * This file is responsible for writing inputs to different outputs.
+ */
 public class LogStream {
 
     private int mCorePoolSize = 2;
@@ -59,9 +62,8 @@ public class LogStream {
     }
 
     /**
-     * Initialize the thread pool
+     * Initialize the thread pool.
      * Compute each arguments roughly base on cpu and addons that imported.
-     *
      */
     private void initialize() {
         int cpuProcessor = Runtime.getRuntime().availableProcessors();
@@ -93,16 +95,18 @@ public class LogStream {
     /**
      * Write bytes to different outputs directly,
      * without formatting.
+     *
      * @param bytes input bytes;
      */
-    public void writeDirectly(byte[] bytes){
+    public void writeDirectly(byte[] bytes) {
         write(new LogStructure.Builder().setRawBytes(bytes).build());
     }
 
     /**
      * Writing with formatting.
-     * @param level log level, from LogStream.
-     * @param origin where the log is from.
+     *
+     * @param level   log level, from LogStream.
+     * @param origin  where the log is from.
      * @param content input bytes.
      */
     public void writeFormat(int level, String origin, String content) {

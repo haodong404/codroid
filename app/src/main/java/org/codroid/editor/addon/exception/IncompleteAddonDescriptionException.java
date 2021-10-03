@@ -21,16 +21,33 @@ package org.codroid.editor.addon.exception;
 
 import androidx.annotation.Nullable;
 
-public class NoAddonDescriptionFoundException extends AddonException {
-    public String name;
+import java.util.Collections;
+import java.util.Set;
 
-    public NoAddonDescriptionFoundException(String name) {
-        this.name = name;
+/**
+ * This exception raised when a description lack of necessary fields.
+ */
+public class IncompleteAddonDescriptionException extends AddonException {
+
+    private Set<String> brokenFields;
+
+    public IncompleteAddonDescriptionException(Set<String> brokenFields) {
+        this.brokenFields = brokenFields;
+        if (brokenFields == null) this.brokenFields = Collections.emptySet();
+    }
+
+    public Set<String> brokenFields(){
+        return brokenFields;
     }
 
     @Nullable
     @Override
     public String getMessage() {
-        return name + " : No description found";
+        StringBuilder builder = new StringBuilder();
+        for (var i : brokenFields) {
+            builder.append(i);
+            builder.append(" ");
+        }
+        return builder.toString();
     }
 }

@@ -25,8 +25,9 @@ import android.util.Log
 import org.codroid.editor.addon.AddonManager
 import org.codroid.editor.log.LogStream
 import org.codroid.editor.log.Logger
+import java.lang.Exception
 
-class Codroid: Application() {
+class Codroid : Application() {
 
     lateinit var context: Context;
 
@@ -34,8 +35,8 @@ class Codroid: Application() {
         super.onCreate()
         AddonManager.get().initialize(this);
         val result = AddonManager.get().loadAddons()
-        if(!result.isSucceed) {
-            Log.i("Zac", result.message?: "Failed")
+        if (!result.isSucceed) {
+            Log.i("Zac", result.message ?: "Failed")
         } else {
             Log.i("Zac", "Succeed")
         }

@@ -40,6 +40,11 @@ public class AddonBase implements Addon, Loggable {
 
     }
 
+    /**
+     * The logger of an Addon should be assigned by AddonManager.
+     *
+     * @param logger created by AddonManager
+     */
     public void assignLogger(Logger logger){
         this.logger = logger;
     }

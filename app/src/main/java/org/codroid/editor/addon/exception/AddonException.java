@@ -17,17 +17,27 @@
  *     along with Codroid.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.codroid.editor.log;
+package org.codroid.editor.addon.exception;
+
+import org.codroid.editor.log.Logger;
 
 /**
- * If a class could be logged, it should implement this interface.
+ * This is a superclass that should only be inherited by the exceptions about addon.
  */
-public interface Loggable {
+public class AddonException extends Exception {
 
     /**
-     * Each addon or class could have it's own logger,
-     * which can identify itself.
-     * @return the logger you created or assigned by others.
+     * Print the stack trace by addon logger.
+     *
+     * @param logger which logger you want to use.
      */
-    Logger getLogger();
+    public void printStackTrace(Logger logger) {
+        StringBuilder builder = new StringBuilder();
+        builder.append(this.toString());
+        for (var i : getStackTrace()) {
+            builder.append("\n\tat ");
+            builder.append(i.toString());
+        }
+        logger.e(builder.toString());
+    }
 }

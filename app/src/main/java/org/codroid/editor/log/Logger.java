@@ -21,6 +21,12 @@ package org.codroid.editor.log;
 
 import android.content.Context;
 
+/**
+ * This file is addons' log system.
+ * Different addons could obtain their specific logger,
+ * which contains the identifier of an addon.
+ * But all of the loggers are log messages through a single LogStream.
+ */
 public final class Logger {
 
     public static final int LEVEL_INFO = 1;
@@ -53,8 +59,36 @@ public final class Logger {
         i(String.valueOf(content));
     }
 
-    public void e() {
+    public void w(String content) {
+        log(LEVEL_WARNING, origin, content);
+    }
 
+    public void w(int content){
+        w(String.valueOf(content));
+    }
+
+    public void w(double content) {
+        w(String.valueOf(content));
+    }
+
+    public void w(float content) {
+        w(String.valueOf(content));
+    }
+
+    public void e(String content) {
+        log(LEVEL_ERROR, origin, content);
+    }
+
+    public void e(int content) {
+        e(String.valueOf(content));
+    }
+
+    public void e(double content) {
+        e(String.valueOf(content));
+    }
+
+    public void e(float content) {
+        e(String.valueOf(content));
     }
 
     public void log(int level, String origin, String content) {

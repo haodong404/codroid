@@ -22,14 +22,14 @@ package org.codroid.editor.addon;
 import android.content.Context;
 import android.text.TextUtils;
 
-import org.codroid.editor.addon.exception.IncompleteAddonDescription;
+import org.codroid.editor.addon.exception.AddonClassLoadException;
+import org.codroid.editor.addon.exception.IncompleteAddonDescriptionException;
 import org.codroid.editor.log.Loggable;
 import org.codroid.editor.addon.exception.NoAddonDescriptionFoundException;
 import org.codroid.editor.log.Logger;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
@@ -38,7 +38,7 @@ import java.util.Map;
 /**
  * This class manages all the addons, include importing and loading.
  */
-public class AddonManager implements Loggable {
+public final class AddonManager implements Loggable {
 
     private static AddonManager mInstance = null;
 
@@ -81,6 +81,7 @@ public class AddonManager implements Loggable {
         File pluginFile = context.getExternalFilesDir(ADDON_DIR_NAME);
         if (!pluginFile.exists()) pluginFile.mkdir();
         AddonLoader loader = new AddonLoader();
+        getLogger().i("Start loading addons.");
         if (pluginFile.list() != null) {
             for (var it : pluginFile.list()) {
                 try {
@@ -91,12 +92,14 @@ public class AddonManager implements Loggable {
                         addon.assignLogger(new Logger(context, description.get().getName() + "/" + description.get().getPackage()));
                         addon.onLoading();
                         addons.put(description, addon);
+                    } else {
+                        getLogger().w(description.get().getName() + " was loaded before, so this loading is invalid.");
                     }
-                } catch (IOException | InstantiationException | InvocationTargetException | IllegalAccessException | NoAddonDescriptionFoundException | ClassNotFoundException e) {
+                } catch (NoAddonDescriptionFoundException | AddonClassLoadException | IncompleteAddonDescriptionException e) {
+                    e.printStackTrace(getLogger());
+                } catch (IOException e) {
                     e.printStackTrace();
-                    return new Result(Result.FAILED, e.getMessage());
-                } catch (IncompleteAddonDescription e) {
-                    return new Result(Result.FAILED, e.getMessage());
+                    getLogger().e(it + " not found");
                 }
             }
             return new Result(Result.SUCCESS);
@@ -125,6 +128,7 @@ public class AddonManager implements Loggable {
     /**
      * Initialize the AddonManager
      * It must be called at Application
+     *
      * @param context app context
      */
     public void initialize(Context context) {
@@ -161,6 +165,7 @@ public class AddonManager implements Loggable {
 
         private int mCode;
         private String message;
+        private int loadedCount;
 
         public Result(int code) {
             this.mCode = code;
@@ -170,6 +175,14 @@ public class AddonManager implements Loggable {
         public Result(int code, String message) {
             this.mCode = code;
             this.message = message;
+        }
+
+        public int getLoadedCount() {
+            return loadedCount;
+        }
+
+        public void setLoadedCount(int loadedCount) {
+            this.loadedCount = loadedCount;
         }
 
         public boolean isSucceed() {
