@@ -17,7 +17,7 @@
  *     along with Codroid.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.codroid.editor.log;
+package org.codroid.interfaces.log;
 
 import android.content.Context;
 

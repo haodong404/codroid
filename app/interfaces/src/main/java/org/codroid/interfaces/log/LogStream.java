@@ -17,14 +17,14 @@
  *     along with Codroid.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.codroid.editor.log;
+package org.codroid.interfaces.log;
 
 import android.content.Context;
 
-import org.codroid.editor.addon.AddonManager;
+
+import org.codroid.interfaces.addon.AddonManager;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;

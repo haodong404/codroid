@@ -17,11 +17,41 @@
  *     along with Codroid.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.codroid.editor.addon;
+package org.codroid.interfaces.addon;
 
-public interface Addon {
 
-    void onLoading();
+import org.codroid.interfaces.log.Loggable;
+import org.codroid.interfaces.log.Logger;
 
-    void onAppExited();
+public class AddonBase implements Addon, Loggable {
+
+    private Logger logger;
+
+    public AddonBase() {
+
+    }
+
+    @Override
+    public void onLoading() {
+
+    }
+
+    @Override
+    public void onAppExited() {
+
+    }
+
+    /**
+     * The logger of an Addon should be assigned by AddonManager.
+     *
+     * @param logger created by AddonManager
+     */
+    public void assignLogger(Logger logger){
+        this.logger = logger;
+    }
+
+    @Override
+    public Logger getLogger() {
+        return logger;
+    }
 }

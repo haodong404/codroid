@@ -17,25 +17,20 @@
  *     along with Codroid.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.codroid.editor
+package org.codroid.interfaces.addon.exception;
 
-import android.app.Application
-import android.content.Context
-import android.util.Log
-import org.codroid.interfaces.addon.AddonManager
+import androidx.annotation.Nullable;
 
-class Codroid : Application() {
+public class NoAddonDescriptionFoundException extends AddonException {
+    public String name;
 
-    lateinit var context: Context;
+    public NoAddonDescriptionFoundException(String name) {
+        this.name = name;
+    }
 
-    override fun onCreate() {
-        super.onCreate()
-        AddonManager.get().initialize(this);
-        val result = AddonManager.get().loadAddons()
-        if (!result.isSucceed) {
-            Log.i("Zac", result.message ?: "Failed")
-        } else {
-            Log.i("Zac", "Succeed")
-        }
+    @Nullable
+    @Override
+    public String getMessage() {
+        return name + " : No description found";
     }
 }

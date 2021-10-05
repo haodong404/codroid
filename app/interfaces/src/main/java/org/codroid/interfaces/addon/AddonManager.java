@@ -17,16 +17,16 @@
  *     along with Codroid.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.codroid.editor.addon;
+package org.codroid.interfaces.addon;
 
 import android.content.Context;
 import android.text.TextUtils;
 
-import org.codroid.editor.addon.exception.AddonClassLoadException;
-import org.codroid.editor.addon.exception.IncompleteAddonDescriptionException;
-import org.codroid.editor.log.Loggable;
-import org.codroid.editor.addon.exception.NoAddonDescriptionFoundException;
-import org.codroid.editor.log.Logger;
+import org.codroid.interfaces.addon.exception.AddonClassLoadException;
+import org.codroid.interfaces.addon.exception.IncompleteAddonDescriptionException;
+import org.codroid.interfaces.addon.exception.NoAddonDescriptionFoundException;
+import org.codroid.interfaces.log.Loggable;
+import org.codroid.interfaces.log.Logger;
 
 import java.io.File;
 import java.io.IOException;
@@ -37,6 +37,7 @@ import java.util.Map;
 
 /**
  * This class manages all the addons, include importing and loading.
+ * DO NOT USE IT IN ADDONS !!
  */
 public final class AddonManager implements Loggable {
 

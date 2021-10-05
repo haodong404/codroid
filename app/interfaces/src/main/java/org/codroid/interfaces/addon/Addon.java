@@ -17,20 +17,11 @@
  *     along with Codroid.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.codroid.editor.addon.exception;
+package org.codroid.interfaces.addon;
 
-import androidx.annotation.Nullable;
+public interface Addon {
 
-public class NoAddonDescriptionFoundException extends AddonException {
-    public String name;
+    void onLoading();
 
-    public NoAddonDescriptionFoundException(String name) {
-        this.name = name;
-    }
-
-    @Nullable
-    @Override
-    public String getMessage() {
-        return name + " : No description found";
-    }
+    void onAppExited();
 }

@@ -17,40 +17,20 @@
  *     along with Codroid.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.codroid.editor.addon;
+package org.codroid.interfaces;
 
-import org.codroid.editor.log.Loggable;
-import org.codroid.editor.log.Logger;
+import org.junit.Test;
 
-public class AddonBase implements Addon, Loggable {
+import static org.junit.Assert.*;
 
-    private Logger logger;
-
-    public AddonBase() {
-
-    }
-
-    @Override
-    public void onLoading() {
-
-    }
-
-    @Override
-    public void onAppExited() {
-
-    }
-
-    /**
-     * The logger of an Addon should be assigned by AddonManager.
-     *
-     * @param logger created by AddonManager
-     */
-    public void assignLogger(Logger logger){
-        this.logger = logger;
-    }
-
-    @Override
-    public Logger getLogger() {
-        return logger;
+/**
+ * Example local unit test, which will execute on the development machine (host).
+ *
+ * @see <a href="http://d.android.com/tools/testing">Testing documentation</a>
+ */
+public class ExampleUnitTest {
+    @Test
+    public void addition_isCorrect() {
+        assertEquals(4, 2 + 2);
     }
 }

@@ -17,9 +17,7 @@
  *     along with Codroid.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.codroid.editor.log;
-
-import android.util.Log;
+package org.codroid.interfaces.log;
 
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;

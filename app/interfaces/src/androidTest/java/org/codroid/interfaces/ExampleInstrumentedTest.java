@@ -17,25 +17,29 @@
  *     along with Codroid.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.codroid.editor
+package org.codroid.interfaces;
 
-import android.app.Application
-import android.content.Context
-import android.util.Log
-import org.codroid.interfaces.addon.AddonManager
+import android.content.Context;
 
-class Codroid : Application() {
+import androidx.test.platform.app.InstrumentationRegistry;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
-    lateinit var context: Context;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
-    override fun onCreate() {
-        super.onCreate()
-        AddonManager.get().initialize(this);
-        val result = AddonManager.get().loadAddons()
-        if (!result.isSucceed) {
-            Log.i("Zac", result.message ?: "Failed")
-        } else {
-            Log.i("Zac", "Succeed")
-        }
+import static org.junit.Assert.*;
+
+/**
+ * Instrumented test, which will execute on an Android device.
+ *
+ * @see <a href="http://d.android.com/tools/testing">Testing documentation</a>
+ */
+@RunWith(AndroidJUnit4.class)
+public class ExampleInstrumentedTest {
+    @Test
+    public void useAppContext() {
+        // Context of the app under test.
+        Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
+        assertEquals("org.codroid.interfaces.test", appContext.getPackageName());
     }
 }

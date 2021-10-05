@@ -17,21 +17,37 @@
  *     along with Codroid.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.codroid.editor.addon.exception;
+package org.codroid.interfaces.addon.exception;
 
 import androidx.annotation.Nullable;
 
-public class AddonClassLoadException extends AddonException{
+import java.util.Collections;
+import java.util.Set;
 
-    private String cause;
+/**
+ * This exception raised when a description lack of necessary fields.
+ */
+public class IncompleteAddonDescriptionException extends AddonException {
 
-    public AddonClassLoadException(String cause){
-        this.cause = cause;
+    private Set<String> brokenFields;
+
+    public IncompleteAddonDescriptionException(Set<String> brokenFields) {
+        this.brokenFields = brokenFields;
+        if (brokenFields == null) this.brokenFields = Collections.emptySet();
+    }
+
+    public Set<String> brokenFields(){
+        return brokenFields;
     }
 
     @Nullable
     @Override
     public String getMessage() {
-        return cause;
+        StringBuilder builder = new StringBuilder();
+        for (var i : brokenFields) {
+            builder.append(i);
+            builder.append(" ");
+        }
+        return builder.toString();
     }
 }

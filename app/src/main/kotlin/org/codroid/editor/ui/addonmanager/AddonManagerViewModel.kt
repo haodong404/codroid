@@ -19,18 +19,15 @@
 
 package org.codroid.editor.ui.addonmanager
 
-import android.content.Context
 import android.net.Uri
 import android.os.Environment.getExternalStorageDirectory
 import android.provider.DocumentsContract
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
-import org.codroid.editor.addon.AddonLoader
-import org.codroid.editor.addon.AddonManager
+import org.codroid.interfaces.addon.AddonManager
 import org.codroid.editor.ui.AddonItem
 import org.codroid.editor.ui.Response
 import java.io.File
@@ -47,7 +44,7 @@ class AddonManagerViewModel : ViewModel() {
 
     fun listAddons(): LiveData<Response<List<AddonItem>>> {
         viewModelScope.launch {
-            AddonManager.get().loadedAddons()?.keys?.map {
+            org.codroid.interfaces.addon.AddonManager.get().loadedAddons()?.keys?.map {
                 AddonItem(
                     it.get().name,
                     it.get().versionDes,
@@ -66,7 +63,7 @@ class AddonManagerViewModel : ViewModel() {
         viewModelScope.launch {
             getRealPath(addonUri)?.let {
                 val file = File(it)
-                AddonManager.get().importExternalAddon(file).let { it2 ->
+                org.codroid.interfaces.addon.AddonManager.get().importExternalAddon(file).let { it2 ->
                     importAddon.postValue(it2.isSucceed)
                 }
             }

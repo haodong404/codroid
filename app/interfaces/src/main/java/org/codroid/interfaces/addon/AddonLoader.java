@@ -17,11 +17,11 @@
  *     along with Codroid.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.codroid.editor.addon;
+package org.codroid.interfaces.addon;
 
-import org.codroid.editor.addon.exception.AddonClassLoadException;
-import org.codroid.editor.addon.exception.IncompleteAddonDescriptionException;
-import org.codroid.editor.addon.exception.NoAddonDescriptionFoundException;
+import org.codroid.interfaces.addon.exception.AddonClassLoadException;
+import org.codroid.interfaces.addon.exception.IncompleteAddonDescriptionException;
+import org.codroid.interfaces.addon.exception.NoAddonDescriptionFoundException;
 
 import java.io.IOException;
 import java.io.InputStream;

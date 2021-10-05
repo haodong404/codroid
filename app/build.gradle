@@ -62,7 +62,7 @@ dependencies {
     implementation 'androidx.constraintlayout:constraintlayout:2.1.1'
 
     implementation 'com.github.CymChad:BaseRecyclerViewAdapterHelper:3.0.6'
-    implementation files('libs/jtoml-1.1.1.jar')
+    implementation project(path: ':app:interfaces')
 
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'

@@ -17,7 +17,7 @@
  *     along with Codroid.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.codroid.editor.addon;
+package org.codroid.interfaces.addon;
 
 import java.lang.reflect.Field;
 import java.util.HashSet;
@@ -26,6 +26,7 @@ import java.util.Set;
 
 import me.grison.jtoml.annotations.SerializedName;
 import me.grison.jtoml.impl.Toml;
+
 
 /**
  * This file serializes the addon's description.
