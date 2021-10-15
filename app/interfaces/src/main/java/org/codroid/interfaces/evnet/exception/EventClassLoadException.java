@@ -17,24 +17,16 @@
  *     along with Codroid.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.codroid.interfaces.addon.exception;
+package org.codroid.interfaces.evnet.exception;
 
-import androidx.annotation.Nullable;
+import org.codroid.interfaces.addon.exception.AddonClassLoadException;
 
 /**
- * Thrown to indicated an addon's class loaded failed.
+ * Thrown to indicate a event class loaded failed
  */
-public class AddonClassLoadException extends AddonException{
+public class EventClassLoadException extends AddonClassLoadException {
 
-    private String cause;
-
-    public AddonClassLoadException(String cause){
-        this.cause = cause;
-    }
-
-    @Nullable
-    @Override
-    public String getMessage() {
-        return cause;
+    public EventClassLoadException(String cause) {
+        super(cause);
     }
 }

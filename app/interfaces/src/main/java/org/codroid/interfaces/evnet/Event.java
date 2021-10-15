@@ -17,24 +17,20 @@
  *     along with Codroid.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.codroid.interfaces.addon.exception;
+package org.codroid.interfaces.evnet;
 
-import androidx.annotation.Nullable;
+import org.codroid.interfaces.addon.Addon;
 
 /**
- * Thrown to indicated an addon's class loaded failed.
+ * This class is the superclass of all events in Codroid.
  */
-public class AddonClassLoadException extends AddonException{
+public interface Event {
 
-    private String cause;
+    /**
+     * Invoked when the event is loaded.
+     *
+     * @param addon It is the addon that the event belongs to.
+     */
+    void init(Addon addon);
 
-    public AddonClassLoadException(String cause){
-        this.cause = cause;
-    }
-
-    @Nullable
-    @Override
-    public String getMessage() {
-        return cause;
-    }
 }

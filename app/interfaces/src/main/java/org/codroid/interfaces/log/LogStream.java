@@ -21,7 +21,6 @@ package org.codroid.interfaces.log;
 
 import android.content.Context;
 
-
 import org.codroid.interfaces.addon.AddonManager;
 
 import java.io.IOException;

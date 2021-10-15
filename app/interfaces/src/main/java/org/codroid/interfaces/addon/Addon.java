@@ -19,7 +19,9 @@
 
 package org.codroid.interfaces.addon;
 
-public interface Addon {
+import org.codroid.interfaces.log.Loggable;
+
+public interface Addon extends Loggable {
 
     void onLoading();
 

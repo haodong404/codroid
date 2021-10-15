@@ -19,8 +19,10 @@
 
 package org.codroid.interfaces.addon;
 
+import java.io.File;
 import java.lang.reflect.Field;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
@@ -29,35 +31,54 @@ import me.grison.jtoml.impl.Toml;
 
 
 /**
- * This file serializes the addon's description.
+ * This class manages the property file of addons.
+ * Serializing and defining
  */
 public final class AddonDescription {
     public static Toml toml;
 
-    private Entity entity;
+    private Addon entity;
+
+    private String dirPath;
+    private String fileName;
 
     /**
      * Serializing the content.
+     *
      * @param content input.
      */
-    public AddonDescription(String content) {
+    public AddonDescription(String dirPath, String fileName, String content) {
         if (toml == null) {
             toml = new Toml();
         }
+        if (dirPath == null) this.dirPath = "";
+        this.dirPath = dirPath;
+        this.fileName = fileName;
         toml.parseString(content);
-        entity = toml.getAs("", Entity.class);
+        entity = toml.getAs("addon", Addon.class);
         if (entity == null) {
-            entity = new Entity();
+            entity = new Addon();
         }
     }
 
+    public String getDirPath() {
+        return dirPath;
+    }
+
+    public String getFileName() {
+        return fileName;
+    }
+
+    public String getFilePath(){
+        return dirPath + File.separator + fileName;
+    }
     /**
      * Check integrity of the description
      *
      * @return empty set if it's not broken.
      */
     public Set<String> checkIntegrity() {
-        Class<? extends Entity> entityClass = entity.getClass();
+        Class<? extends Addon> entityClass = entity.getClass();
         Set<String> brokenField = new HashSet<>();
         for (Field field : entityClass.getDeclaredFields()) {
             try {
@@ -73,11 +94,11 @@ public final class AddonDescription {
     }
 
 
-    public Entity get() {
+    public Addon get() {
         return entity;
     }
 
-    public static class Entity {
+    public static class Addon {
         private String name;
 
         @SerializedName("package")
@@ -90,6 +111,7 @@ public final class AddonDescription {
         private String supportVersion;
         private String description;
         private String link;
+        private List<String> events;
 
         public String getName() {
             return name;
@@ -161,6 +183,14 @@ public final class AddonDescription {
 
         public void setLink(String link) {
             this.link = link;
+        }
+
+        public List<String> getEvents() {
+            return events;
+        }
+
+        public void setEvents(List<String> events) {
+            this.events = events;
         }
     }
 }

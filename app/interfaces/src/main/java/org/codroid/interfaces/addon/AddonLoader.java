@@ -22,38 +22,62 @@ package org.codroid.interfaces.addon;
 import org.codroid.interfaces.addon.exception.AddonClassLoadException;
 import org.codroid.interfaces.addon.exception.IncompleteAddonDescriptionException;
 import org.codroid.interfaces.addon.exception.NoAddonDescriptionFoundException;
+import org.codroid.interfaces.evnet.Event;
+import org.codroid.interfaces.evnet.EventCenter;
+import org.codroid.interfaces.evnet.exception.EventClassLoadException;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
-
-import dalvik.system.DexClassLoader;
 
 public class AddonLoader {
 
     public static String ADDON_DESCRIPTION_FILE_NAME = "addon-des.toml";
 
 
-    public AddonBase loadAddon(AddonDescription description, String dexPath, String optimizedDirectory) throws AddonClassLoadException {
-        DexClassLoader classLoader = new DexClassLoader(dexPath, optimizedDirectory, null, Thread.currentThread().getContextClassLoader());
+    public AddonBase loadAddon(AddonDexClassLoader classLoader) throws AddonClassLoadException {
         try {
-            Class<?> addonBaseClass = classLoader.loadClass(description.get().getPackage() + "." + description.get().getEnterPoint());
+            Class<?> addonBaseClass = classLoader.loadClass(classLoader.addonMainClass());
             return (AddonBase) addonBaseClass.getConstructors()[0].newInstance();
         } catch (IllegalAccessException | InstantiationException | InvocationTargetException e) {
             e.printStackTrace();
             throw new AddonClassLoadException("Cannot create the instance of " +
-                    description.get().getPackage() + "." + description.get().getEnterPoint() +
+                    classLoader.addonMainClass() +
                     ": " + e.getMessage());
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
-            throw new AddonClassLoadException("Main class(" + description.get().getPackage() + "." + description.get().getName() +
+            throw new AddonClassLoadException("Main class(" + classLoader.addonMainClass() +
                     ") not found, please ensure that you have filled the field of package and enterPoint correctly in addon-des.toml");
         }
     }
 
-    public AddonDescription getAddonDescription(String filePath) throws NoAddonDescriptionFoundException, IncompleteAddonDescriptionException {
+    public AddonDexClassLoader generateClassLoader(AddonDescription description) {
+        return new AddonDexClassLoader(description, Thread.currentThread().getContextClassLoader());
+    }
+
+    public void loadEvents(AddonDexClassLoader classLoader, Addon addon) throws EventClassLoadException {
+        for (var i : classLoader.addonEvents()) {
+            try {
+                Class<?> eventClass = classLoader.loadClass(i);
+                Event event = (Event) eventClass.getConstructors()[0].newInstance();
+                event.init(addon);
+                Arrays.stream(eventClass.getInterfaces())
+                        .filter(aClass -> AddonManager.get().eventCenter().isAnAddonEvent(aClass))
+                        .forEach(it -> AddonManager.get().eventCenter().register(EventCenter.EventsEnum.getEnumByClass(it), event));
+            } catch (ClassNotFoundException e) {
+                throw new EventClassLoadException("Event class: " + i + " cannot found.");
+            } catch (IllegalAccessException | InstantiationException | InvocationTargetException e) {
+                throw new EventClassLoadException("Cannot create the instance of the event: " + i);
+            }
+        }
+    }
+
+    public AddonDescription getAddonDescription(String dirPath, String name) throws NoAddonDescriptionFoundException, IncompleteAddonDescriptionException {
+        String filePath = dirPath + File.separator + name;
         try {
             JarFile jarFile = new JarFile(filePath);
             JarEntry jarEntry = jarFile.getJarEntry(ADDON_DESCRIPTION_FILE_NAME);
@@ -63,8 +87,8 @@ public class AddonLoader {
             }
             byte[] bytes = new byte[inputStream.available()];
             inputStream.read(bytes);
-            AddonDescription description = new AddonDescription(new String(bytes));
-            if(!description.checkIntegrity().isEmpty()) {
+            AddonDescription description = new AddonDescription(dirPath, name, new String(bytes));
+            if (!description.checkIntegrity().isEmpty()) {
                 throw new IncompleteAddonDescriptionException(description.checkIntegrity());
             }
             return description;

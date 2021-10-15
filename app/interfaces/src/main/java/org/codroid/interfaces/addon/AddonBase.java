@@ -20,10 +20,9 @@
 package org.codroid.interfaces.addon;
 
 
-import org.codroid.interfaces.log.Loggable;
 import org.codroid.interfaces.log.Logger;
 
-public class AddonBase implements Addon, Loggable {
+public abstract class AddonBase implements Addon {
 
     private Logger logger;
 

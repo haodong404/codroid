@@ -25,6 +25,8 @@ import android.text.TextUtils;
 import org.codroid.interfaces.addon.exception.AddonClassLoadException;
 import org.codroid.interfaces.addon.exception.IncompleteAddonDescriptionException;
 import org.codroid.interfaces.addon.exception.NoAddonDescriptionFoundException;
+import org.codroid.interfaces.evnet.BeforeAddonLoadingEvent;
+import org.codroid.interfaces.evnet.EventCenter;
 import org.codroid.interfaces.log.Loggable;
 import org.codroid.interfaces.log.Logger;
 
@@ -54,6 +56,14 @@ public final class AddonManager implements Loggable {
     private static Logger logger;
     public static String ADDON_DIR_NAME = "addons";
 
+    private static EventCenter eventCenter;
+
+    public AddonManager() {
+        if (eventCenter == null) {
+            eventCenter = new EventCenter();
+        }
+    }
+
     /**
      * Import an addon from external storage.
      *
@@ -81,18 +91,20 @@ public final class AddonManager implements Loggable {
     public Result loadAddons() {
         File pluginFile = context.getExternalFilesDir(ADDON_DIR_NAME);
         if (!pluginFile.exists()) pluginFile.mkdir();
+
         AddonLoader loader = new AddonLoader();
         getLogger().i("Start loading addons.");
         if (pluginFile.list() != null) {
             for (var it : pluginFile.list()) {
                 try {
-                    String path = pluginFile + File.separator + it;
-                    AddonDescription description = loader.getAddonDescription(path);
+                    AddonDescription description = loader.getAddonDescription(pluginFile.getCanonicalPath(), it);
+                    AddonDexClassLoader classLoader = loader.generateClassLoader(description);
                     if (!isLoaded(description)) {
-                        AddonBase addon = loader.loadAddon(description, path, pluginFile.getCanonicalPath());
-                        addon.assignLogger(new Logger(context, description.get().getName() + "/" + description.get().getPackage()));
+                        AddonBase addon = loader.loadAddon(classLoader);
+                        addon.assignLogger(new Logger(context, classLoader.addonMainClass()));
                         addon.onLoading();
                         addons.put(description, addon);
+                        loader.loadEvents(classLoader, addon);
                     } else {
                         getLogger().w(description.get().getName() + " was loaded before, so this loading is invalid.");
                     }
@@ -103,6 +115,8 @@ public final class AddonManager implements Loggable {
                     getLogger().e(it + " not found");
                 }
             }
+            eventCenter.<BeforeAddonLoadingEvent>execute(EventCenter.EventsEnum.BEFORE_ADDON_LOADING_EVENT)
+                    .forEach(BeforeAddonLoadingEvent::beforeLoading);
             return new Result(Result.SUCCESS);
         }
         return new Result(Result.FAILED, "No addon exists.");
@@ -152,7 +166,9 @@ public final class AddonManager implements Loggable {
         return context.getExternalFilesDir(ADDON_DIR_NAME);
     }
 
-
+    public EventCenter eventCenter(){
+        return eventCenter;
+    }
     @Override
     public Logger getLogger() {
         if (logger == null) logger = new Logger(context, "Codroid");

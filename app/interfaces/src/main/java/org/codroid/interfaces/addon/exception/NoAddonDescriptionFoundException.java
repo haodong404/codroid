@@ -21,6 +21,9 @@ package org.codroid.interfaces.addon.exception;
 
 import androidx.annotation.Nullable;
 
+/**
+ * Thrown to indicate no addon's description file found.
+ */
 public class NoAddonDescriptionFoundException extends AddonException {
     public String name;
 
