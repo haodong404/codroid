@@ -17,28 +17,24 @@
  *     along with Codroid.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.codroid.interfaces.addon.exception;
+package org.codroid.interfaces.exceptions;
 
-
-import org.codroid.interfaces.log.Logger;
+import androidx.annotation.Nullable;
 
 /**
- * This is a superclass that should only be inherited by the exceptions about addon.
+ * Thrown to indicated an addon's class loaded failed.
  */
-public class AddonException extends Exception {
+public class AddonClassLoadException extends AddonException{
 
-    /**
-     * Print the stack trace by addon logger.
-     *
-     * @param logger which logger you want to use.
-     */
-    public void printStackTrace(Logger logger) {
-        StringBuilder builder = new StringBuilder();
-        builder.append(this.toString());
-        for (var i : getStackTrace()) {
-            builder.append("\n\tat ");
-            builder.append(i.toString());
-        }
-        logger.e(builder.toString());
+    private String cause;
+
+    public AddonClassLoadException(String cause){
+        this.cause = cause;
+    }
+
+    @Nullable
+    @Override
+    public String getMessage() {
+        return cause;
     }
 }

@@ -23,13 +23,12 @@ import android.content.Context;
 import android.text.TextUtils;
 
 import org.codroid.interfaces.CodroidEnv;
-import org.codroid.interfaces.addon.exception.AddonClassLoadException;
-import org.codroid.interfaces.addon.exception.IncompleteAddonDescriptionException;
-import org.codroid.interfaces.addon.exception.NoAddonDescriptionFoundException;
+import org.codroid.interfaces.exceptions.AddonClassLoadException;
+import org.codroid.interfaces.exceptions.IncompleteAddonDescriptionException;
+import org.codroid.interfaces.exceptions.NoAddonDescriptionFoundException;
 import org.codroid.interfaces.evnet.AddonImportEvent;
 import org.codroid.interfaces.evnet.EventCenter;
 import org.codroid.interfaces.log.Loggable;
-import org.codroid.interfaces.log.Logger;
 
 import java.io.File;
 import java.io.IOException;
@@ -37,7 +36,6 @@ import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Consumer;
 
 /**
  * This class manages all the addons, include importing and loading.

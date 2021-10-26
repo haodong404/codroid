@@ -17,24 +17,23 @@
  *     along with Codroid.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.codroid.interfaces.addon.exception;
+package org.codroid.interfaces.exceptions;
 
 import androidx.annotation.Nullable;
 
 /**
- * Thrown to indicated an addon's class loaded failed.
+ * Thrown to indicate no addon's description file found.
  */
-public class AddonClassLoadException extends AddonException{
+public class NoAddonDescriptionFoundException extends AddonException {
+    public String name;
 
-    private String cause;
-
-    public AddonClassLoadException(String cause){
-        this.cause = cause;
+    public NoAddonDescriptionFoundException(String name) {
+        this.name = name;
     }
 
     @Nullable
     @Override
     public String getMessage() {
-        return cause;
+        return name + " : No description found";
     }
 }

@@ -19,12 +19,12 @@
 
 package org.codroid.interfaces.addon;
 
-import org.codroid.interfaces.addon.exception.AddonClassLoadException;
-import org.codroid.interfaces.addon.exception.IncompleteAddonDescriptionException;
-import org.codroid.interfaces.addon.exception.NoAddonDescriptionFoundException;
+import org.codroid.interfaces.exceptions.AddonClassLoadException;
+import org.codroid.interfaces.exceptions.IncompleteAddonDescriptionException;
+import org.codroid.interfaces.exceptions.NoAddonDescriptionFoundException;
 import org.codroid.interfaces.evnet.Event;
 import org.codroid.interfaces.evnet.EventCenter;
-import org.codroid.interfaces.evnet.exception.EventClassLoadException;
+import org.codroid.interfaces.exceptions.EventClassLoadException;
 
 import java.io.File;
 import java.io.IOException;

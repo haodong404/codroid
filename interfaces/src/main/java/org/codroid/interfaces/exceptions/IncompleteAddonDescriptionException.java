@@ -17,7 +17,7 @@
  *     along with Codroid.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.codroid.interfaces.addon.exception;
+package org.codroid.interfaces.exceptions;
 
 import androidx.annotation.Nullable;
 
