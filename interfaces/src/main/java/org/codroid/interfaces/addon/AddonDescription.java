@@ -69,9 +69,10 @@ public final class AddonDescription {
         return fileName;
     }
 
-    public String getFilePath(){
+    public String getFilePath() {
         return dirPath + File.separator + fileName;
     }
+
     /**
      * Check integrity of the description
      *

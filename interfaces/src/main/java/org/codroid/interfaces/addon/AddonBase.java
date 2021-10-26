@@ -20,11 +20,9 @@
 package org.codroid.interfaces.addon;
 
 
-import org.codroid.interfaces.log.Logger;
+import org.codroid.interfaces.CodroidEnv;
 
-public abstract class AddonBase implements Addon {
-
-    private Logger logger;
+public class AddonBase extends CodroidEnv implements Addon {
 
     public AddonBase() {
 
@@ -40,17 +38,4 @@ public abstract class AddonBase implements Addon {
 
     }
 
-    /**
-     * The logger of an Addon should be assigned by AddonManager.
-     *
-     * @param logger created by AddonManager
-     */
-    public void assignLogger(Logger logger){
-        this.logger = logger;
-    }
-
-    @Override
-    public Logger getLogger() {
-        return logger;
-    }
 }

@@ -19,10 +19,14 @@
 
 package org.codroid.interfaces.log;
 
+import androidx.annotation.NonNull;
+
 import java.nio.charset.StandardCharsets;
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Locale;
 
 public class LogStructure {
 
@@ -61,20 +65,21 @@ public class LogStructure {
     }
 
     public byte[] toStandardOutput() {
-        StringBuilder builder = new StringBuilder()
+        SimpleDateFormat simpleDateFormat = (SimpleDateFormat) SimpleDateFormat.getDateTimeInstance();
+        simpleDateFormat.applyPattern("yyyy-MM-dd HH:mm:ss");
+        return new StringBuilder()
                 .append("[")
-                .append(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(calendar.getTime()))
+                .append(simpleDateFormat.format(calendar.getTime()))
                 .append("] ")
                 .append(origin)
                 .append(" ")
                 .append(levelConvert(level))
                 .append(" : ")
                 .append(content)
-                .append("\n");
-        return builder.toString().getBytes(StandardCharsets.UTF_8);
+                .append("\n").toString().getBytes(StandardCharsets.UTF_8);
     }
 
-    public String levelConvert(int level){
+    public String levelConvert(int level) {
         switch (level) {
             case 1:
                 return "I";
@@ -87,6 +92,7 @@ public class LogStructure {
         }
     }
 
+    @NonNull
     @Override
     public String toString() {
         return "LogStructure{" +

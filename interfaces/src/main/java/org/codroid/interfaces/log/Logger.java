@@ -43,6 +43,23 @@ public final class Logger {
         this.origin = origin;
     }
 
+    public Logger(Context context) {
+        if (logStream == null) {
+            logStream = new LogStream(context);
+        }
+        this.origin = "No origin";
+    }
+
+    /**
+     * Log message with specific origin.
+     * @param origin origin
+     * @return itself
+     */
+    public Logger with(String origin){
+        this.origin = origin;
+        return this;
+    }
+
     public void i(String content) {
         log(LEVEL_INFO, origin, content);
     }

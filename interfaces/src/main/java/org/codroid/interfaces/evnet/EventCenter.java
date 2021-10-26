@@ -40,7 +40,7 @@ public final class EventCenter {
      * It must be registered in this class before adding a new event.
      */
     public enum EventsEnum {
-        BEFORE_ADDON_LOADING_EVENT(BeforeAddonLoadingEvent.class);
+        ADDON_IMPORT(AddonImportEvent.class);
 
         private Class<?> clazz;
 
@@ -96,20 +96,34 @@ public final class EventCenter {
         }
     }
 
+
     /**
      * Execute the events
+     *
+     * @param eventsEnum What the event type you want to trigger.
+     * @param <T> Class type
+     * @return a list contains addons of the same type.
+     */
+    @NonNull
+    public <T extends Event> LinkedList<T> execute(EventsEnum eventsEnum) {
+        var temp = registeredEvents.get(eventsEnum);
+        if (temp == null) {
+            temp = new LinkedList<>();
+        }
+
+        return (LinkedList<T>) temp;
+    }
+
+    /**
+     * Execute the events by parallel stream.
      *
      * @param eventsEnum What the event type you want to trigger.
      * @param <T> Class type
      * @return a stream contains addons of the same type.
      */
     @NonNull
-    public <T extends Event> Stream<T> execute(EventsEnum eventsEnum) {
-        var temp = registeredEvents.get(eventsEnum);
-        if (temp == null) {
-            temp = new LinkedList<>();
-        }
-        return temp.stream().parallel().map(event -> (T) event);
+    public <T extends Event> Stream<T> executeStream(EventsEnum eventsEnum) {
+        return execute(eventsEnum).stream().parallel().map(event -> (T) event);
     }
 
     /**
