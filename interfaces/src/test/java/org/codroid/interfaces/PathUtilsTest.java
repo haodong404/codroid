@@ -17,15 +17,22 @@
  *     along with Codroid.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.codroid.editor.ui.utils
+package org.codroid.interfaces;
 
-import android.Manifest
-import android.content.Context
-import android.content.pm.PackageManager
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
+import org.codroid.interfaces.utils.PathUtils;
+import org.junit.Test;
 
-fun isStoragePermissionGranted(ctx: Context): Boolean {
-    return ActivityCompat.checkSelfPermission(ctx, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED &&
-            ContextCompat.checkSelfPermission(ctx, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
+import org.junit.Assert;
+
+public class PathUtilsTest {
+
+    @Test
+    public void StringAndString() {
+        String first = "\\mnt\\sdcard";
+        String second = "test.txt";
+        Assert.assertEquals( first + "\\" + second, PathUtils.splice(first, second).toString());
+
+        Assert.assertEquals("\\mnt\\d\\sdcard\\Downloads",
+                PathUtils.splice("\\mnt\\", "\\d", "\\sdcard\\Downloads").toString());
+    }
 }

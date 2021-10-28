@@ -17,15 +17,14 @@
  *     along with Codroid.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.codroid.editor.ui.utils
+package org.codroid.interfaces.addon;
 
-import android.Manifest
-import android.content.Context
-import android.content.pm.PackageManager
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-fun isStoragePermissionGranted(ctx: Context): Boolean {
-    return ActivityCompat.checkSelfPermission(ctx, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED &&
-            ContextCompat.checkSelfPermission(ctx, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.FIELD)
+public @interface OptionalEntry {
 }

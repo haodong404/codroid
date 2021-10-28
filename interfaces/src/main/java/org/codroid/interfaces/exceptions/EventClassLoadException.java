@@ -19,8 +19,6 @@
 
 package org.codroid.interfaces.exceptions;
 
-import org.codroid.interfaces.exceptions.AddonClassLoadException;
-
 /**
  * Thrown to indicate a event class loaded failed
  */

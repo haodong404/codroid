@@ -22,7 +22,7 @@ package org.codroid.interfaces.exceptions;
 import androidx.annotation.Nullable;
 
 /**
- * Thrown to indicated an addon's class loaded failed.
+ * Thrown to indicate an addon's class loaded failed.
  */
 public class AddonClassLoadException extends AddonException{
 

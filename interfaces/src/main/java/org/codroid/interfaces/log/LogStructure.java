@@ -27,6 +27,7 @@ import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Locale;
+import java.util.TimeZone;
 
 public class LogStructure {
 
@@ -66,17 +67,17 @@ public class LogStructure {
 
     public byte[] toStandardOutput() {
         SimpleDateFormat simpleDateFormat = (SimpleDateFormat) SimpleDateFormat.getDateTimeInstance();
+        simpleDateFormat.setTimeZone(TimeZone.getDefault());
         simpleDateFormat.applyPattern("yyyy-MM-dd HH:mm:ss");
-        return new StringBuilder()
-                .append("[")
-                .append(simpleDateFormat.format(calendar.getTime()))
-                .append("] ")
-                .append(origin)
-                .append(" ")
-                .append(levelConvert(level))
-                .append(" : ")
-                .append(content)
-                .append("\n").toString().getBytes(StandardCharsets.UTF_8);
+        return ("[" +
+                simpleDateFormat.format(calendar.getTime()) +
+                "] " +
+                origin +
+                " " +
+                levelConvert(level) +
+                " : " +
+                content +
+                "\n").getBytes(StandardCharsets.UTF_8);
     }
 
     public String levelConvert(int level) {

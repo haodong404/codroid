@@ -21,21 +21,31 @@ package org.codroid.interfaces.addon;
 
 import android.content.Context;
 import android.text.TextUtils;
+import android.util.Log;
 
 import org.codroid.interfaces.CodroidEnv;
-import org.codroid.interfaces.exceptions.AddonClassLoadException;
-import org.codroid.interfaces.exceptions.IncompleteAddonDescriptionException;
-import org.codroid.interfaces.exceptions.NoAddonDescriptionFoundException;
 import org.codroid.interfaces.evnet.AddonImportEvent;
 import org.codroid.interfaces.evnet.EventCenter;
+import org.codroid.interfaces.exceptions.AddonClassLoadException;
+import org.codroid.interfaces.exceptions.AddonImportException;
+import org.codroid.interfaces.exceptions.IncompleteAddonDescriptionException;
+import org.codroid.interfaces.exceptions.NoAddonDescriptionFoundException;
+import org.codroid.interfaces.exceptions.PropertyInitException;
 import org.codroid.interfaces.log.Loggable;
+import org.codroid.interfaces.utils.PathUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 
 /**
  * This class manages all the addons, include importing and loading.
@@ -68,13 +78,37 @@ public final class AddonManager extends CodroidEnv implements Loggable {
      */
     public Result importExternalAddon(File file) {
         try {
-            File externalAddon = new File(getAddonsDir(), file.getName());
-            for (var it : eventCenter().<AddonImportEvent>execute(EventCenter.EventsEnum.ADDON_IMPORT)) {
-                externalAddon = it.beforeImport(externalAddon);
+            File temp = file;
+            JarFile jarFile = new JarFile(temp);
+            AddonDescription description = AddonLoader.loadAddonDescriptionInJar(temp);
+            var entries = jarFile.entries();
+            while (entries.hasMoreElements()) {
+                JarEntry it = entries.nextElement();
+                if (!it.isDirectory() && !it.getName().endsWith(".class")) {
+                    InputStream inputStream = jarFile.getInputStream(it);
+                    var compressedPath = PathUtils.splice(getAddonRoot(description.get().getPackage()), it.getName());
+                    if (!Files.exists(compressedPath, LinkOption.NOFOLLOW_LINKS)) {
+                        Files.createDirectories(compressedPath.getParent());
+                    }
+                    File compressed = compressedPath.toFile();
+                    if (!compressed.exists()) compressed.createNewFile();
+                    Files.copy(inputStream,
+                            compressed.toPath(),
+                            StandardCopyOption.REPLACE_EXISTING);
+                }
             }
-            Files.copy(file.toPath(), externalAddon.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            for (var it : eventCenter().<AddonImportEvent>execute(EventCenter.EventsEnum.ADDON_IMPORT)) {
+                temp = it.beforeImport(temp);
+            }
+
+            Files.copy(temp.toPath(),
+                    PathUtils.splice(getAddonRoot(description.get().getPackage()), AddonDexClassLoader.DEX_FILE),
+                    StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e) {
             e.printStackTrace();
+            return new Result(Result.FAILED, e.getMessage());
+        } catch (NoAddonDescriptionFoundException | AddonImportException | IncompleteAddonDescriptionException e) {
+            e.printStackTrace(getLogger());
             return new Result(Result.FAILED, e.getMessage());
         }
         return new Result(Result.SUCCESS);
@@ -91,28 +125,26 @@ public final class AddonManager extends CodroidEnv implements Loggable {
         File pluginFile = getAddonsDir();
         if (!pluginFile.exists()) pluginFile.mkdir();
 
-        AddonLoader loader = new AddonLoader();
         getLogger().i("Start loading addons.");
         if (pluginFile.list() != null) {
             for (var it : pluginFile.list()) {
                 try {
-                    AddonDescription description = loader.getAddonDescription(pluginFile.getCanonicalPath(), it);
-                    AddonDexClassLoader classLoader = loader.generateClassLoader(description);
+                    AddonDescription description = AddonLoader.getAddonDescription(PathUtils.splice(getAddonRoot(it),
+                            AddonDescription.ADDON_DESCRIPTION_FILE_NAME));
+                    AddonDexClassLoader classLoader = AddonLoader.generateClassLoader(description);
                     if (!isLoaded(description)) {
-                        AddonBase addon = loader.loadAddon(classLoader);
+                        AddonBase addon = AddonLoader.loadAddon(classLoader);
                         addon.createCodroidEnv(this);
-                        addon.setIdentify(description.get().getName() + "/" + description.get().getPackage());
+                        addon.setIdentify(description.get().getPackage());
                         addon.onLoading();
                         addons.put(description, addon);
-                        loader.loadEvents(classLoader, addon);
+                        AddonLoader.loadEvents(classLoader, addon);
                     } else {
                         getLogger().w(description.get().getName() + " was loaded before, so this loading is invalid.");
                     }
-                } catch (NoAddonDescriptionFoundException | AddonClassLoadException | IncompleteAddonDescriptionException e) {
+                } catch (NoAddonDescriptionFoundException | AddonClassLoadException |
+                        IncompleteAddonDescriptionException | PropertyInitException e) {
                     e.printStackTrace(getLogger());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    getLogger().e(it + " not found");
                 }
             }
             return new Result(Result.SUCCESS);
@@ -146,7 +178,6 @@ public final class AddonManager extends CodroidEnv implements Loggable {
      */
     public void initialize(Context context) {
         initContext(context);
-        setIdentify("Codroid");
     }
 
     public void terminateAllAddons() {

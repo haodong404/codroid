@@ -20,13 +20,9 @@
 package org.codroid.interfaces.addon;
 
 
-import org.codroid.interfaces.CodroidEnv;
+import org.codroid.interfaces.AddonEnv;
 
-public class AddonBase extends CodroidEnv implements Addon {
-
-    public AddonBase() {
-
-    }
+public class AddonBase extends AddonEnv implements Addon {
 
     @Override
     public void onLoading() {

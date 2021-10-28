@@ -27,7 +27,6 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
-import org.codroid.interfaces.addon.AddonManager
 import org.codroid.editor.ui.AddonItem
 import org.codroid.editor.ui.Response
 import java.io.File

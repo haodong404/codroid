@@ -19,7 +19,7 @@
 
 package org.codroid.interfaces.evnet;
 
-import org.codroid.interfaces.addon.Addon;
+import org.codroid.interfaces.AddonEnv;
 
 /**
  * This class is the superclass of all events in Codroid.
@@ -31,6 +31,6 @@ public interface Event {
      *
      * @param addon It is the addon that the event belongs to.
      */
-    void init(Addon addon);
+    void init(AddonEnv addon);
 
 }

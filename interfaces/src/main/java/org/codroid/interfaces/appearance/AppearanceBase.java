@@ -17,15 +17,23 @@
  *     along with Codroid.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.codroid.editor.ui.utils
+package org.codroid.interfaces.appearance;
 
-import android.Manifest
-import android.content.Context
-import android.content.pm.PackageManager
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
+import org.codroid.interfaces.CodroidEnv;
+import org.codroid.interfaces.addon.Addon;
 
-fun isStoragePermissionGranted(ctx: Context): Boolean {
-    return ActivityCompat.checkSelfPermission(ctx, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED &&
-            ContextCompat.checkSelfPermission(ctx, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
+public abstract class AppearanceBase extends CodroidEnv implements Addon {
+
+    @Override
+    public void onLoading() {
+
+    }
+
+    protected abstract AppearanceProperty loadTheme();
+
+    @Override
+    public void onAppExited() {
+
+    }
+
 }

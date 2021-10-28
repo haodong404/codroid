@@ -19,6 +19,9 @@
 
 package org.codroid.interfaces.addon;
 
+import org.codroid.interfaces.utils.PathUtils;
+
+import java.io.File;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -28,9 +31,11 @@ import dalvik.system.DexClassLoader;
 public class AddonDexClassLoader extends DexClassLoader {
 
     private AddonDescription addonDescription;
+    public static final String DEX_FILE = "classes.dex";
 
     public AddonDexClassLoader(AddonDescription description, ClassLoader parent) {
-        super(description.getFilePath(), description.getFilePath(), null, parent);
+        super(PathUtils.splice(AddonManager.get().getAddonRoot(description.get().getPackage()), DEX_FILE).toString(), AddonManager.get().getAddonsDir().getPath(),
+                null, parent);
         this.addonDescription = description;
     }
 

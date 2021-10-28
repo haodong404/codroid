@@ -19,58 +19,53 @@
 
 package org.codroid.interfaces.addon;
 
+import org.codroid.interfaces.Property;
+import org.codroid.interfaces.exceptions.PropertyInitException;
+
 import java.io.File;
+import java.lang.reflect.Array;
 import java.lang.reflect.Field;
+import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
 import me.grison.jtoml.annotations.SerializedName;
-import me.grison.jtoml.impl.Toml;
 
 
 /**
  * This class manages the property file of addons.
  * Serializing and defining
  */
-public final class AddonDescription {
-    public static Toml toml;
-
+public final class AddonDescription extends Property {
     private Addon entity;
 
-    private String dirPath;
-    private String fileName;
+    public static String ADDON_DESCRIPTION_FILE_NAME = "addon-des.toml";
 
     /**
      * Serializing the content.
      *
      * @param content input.
      */
-    public AddonDescription(String dirPath, String fileName, String content) {
-        if (toml == null) {
-            toml = new Toml();
-        }
-        if (dirPath == null) this.dirPath = "";
-        this.dirPath = dirPath;
-        this.fileName = fileName;
-        toml.parseString(content);
+    public AddonDescription(String content) {
+        super(null);
+        open(content);
+        serialize();
+    }
+
+    private void serialize() {
         entity = toml.getAs("addon", Addon.class);
         if (entity == null) {
             entity = new Addon();
         }
     }
 
-    public String getDirPath() {
-        return dirPath;
-    }
-
-    public String getFileName() {
-        return fileName;
-    }
-
-    public String getFilePath() {
-        return dirPath + File.separator + fileName;
+    public AddonDescription(Path file) throws PropertyInitException {
+        super(file);
+        open();
+        serialize();
     }
 
     /**
@@ -84,8 +79,10 @@ public final class AddonDescription {
         for (Field field : entityClass.getDeclaredFields()) {
             try {
                 field.setAccessible(true);
-                if (Objects.isNull(field.get(entity))) {
-                    brokenField.add(field.getName());
+                if (!field.isAnnotationPresent(OptionalEntry.class)){
+                    if (Objects.isNull(field.get(entity))) {
+                        brokenField.add(field.getName());
+                    }
                 }
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
@@ -111,7 +108,10 @@ public final class AddonDescription {
         private String versionDes;
         private String supportVersion;
         private String description;
+
         private String link;
+
+        @OptionalEntry
         private List<String> events;
 
         public String getName() {

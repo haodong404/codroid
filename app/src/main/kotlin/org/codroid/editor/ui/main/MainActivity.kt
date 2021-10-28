@@ -37,7 +37,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import org.codroid.editor.R
-import org.codroid.interfaces.addon.AddonManager
 import org.codroid.editor.databinding.ActivityMainBinding
 import org.codroid.editor.ui.addonmanager.AddonManagerActivity
 import org.codroid.editor.ui.projectstruct.ProjectStructureAdapter
