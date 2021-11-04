@@ -19,20 +19,17 @@
 
 package org.codroid.interfaces.addon;
 
-import org.codroid.interfaces.Property;
-import org.codroid.interfaces.exceptions.PropertyInitException;
+import org.codroid.interfaces.env.Property;
 
-import java.io.File;
-import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
 import me.grison.jtoml.annotations.SerializedName;
+import me.grison.jtoml.impl.Toml;
 
 
 /**
@@ -44,16 +41,6 @@ public final class AddonDescription extends Property {
 
     public static String ADDON_DESCRIPTION_FILE_NAME = "addon-des.toml";
 
-    /**
-     * Serializing the content.
-     *
-     * @param content input.
-     */
-    public AddonDescription(String content) {
-        super(null);
-        open(content);
-        serialize();
-    }
 
     private void serialize() {
         entity = toml.getAs("addon", Addon.class);
@@ -62,10 +49,21 @@ public final class AddonDescription extends Property {
         }
     }
 
-    public AddonDescription(Path file) throws PropertyInitException {
+    public AddonDescription(){
+        super(null);
+    }
+
+    public AddonDescription(Path file) {
         super(file);
         open();
         serialize();
+    }
+
+    public static AddonDescription parseString(String content) {
+        AddonDescription description = new AddonDescription();
+        description.toml = Toml.parse(content);
+        description.serialize();
+        return description;
     }
 
     /**
@@ -79,7 +77,7 @@ public final class AddonDescription extends Property {
         for (Field field : entityClass.getDeclaredFields()) {
             try {
                 field.setAccessible(true);
-                if (!field.isAnnotationPresent(OptionalEntry.class)){
+                if (!field.isAnnotationPresent(OptionalField.class)) {
                     if (Objects.isNull(field.get(entity))) {
                         brokenField.add(field.getName());
                     }
@@ -111,8 +109,19 @@ public final class AddonDescription extends Property {
 
         private String link;
 
-        @OptionalEntry
+        @OptionalField
         private List<String> events;
+
+        @OptionalField
+        private String theme;
+
+        public String getTheme() {
+            return theme;
+        }
+
+        public void setTheme(String theme) {
+            this.theme = theme;
+        }
 
         public String getName() {
             return name;

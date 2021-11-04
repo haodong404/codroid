@@ -17,13 +17,26 @@
  *     along with Codroid.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.codroid.interfaces.evnet;
+package org.codroid.interfaces.env;
 
-import org.codroid.interfaces.Attachment;
+import org.codroid.interfaces.appearance.AppearanceProperty;
 
-/**
- * This class is the superclass of all events in Codroid.
- */
-public interface Event extends Attachment {
+public class ResourceFactory {
 
+    public static final int RAW_RESOURCE = 0;
+    public static final int RAW_PROPERTY = 1;
+    public static final int APPEARANCE_PROPERTY = 2;
+
+    public Resource createResource(AddonEnv addonEnv, String path, int type) {
+        switch (type) {
+            case RAW_RESOURCE:
+                return new ResourceRaw(addonEnv, path);
+            case RAW_PROPERTY:
+                return new Property(addonEnv, path);
+            case APPEARANCE_PROPERTY:
+                return new AppearanceProperty(addonEnv, path);
+            default:
+                return null;
+        }
+    }
 }

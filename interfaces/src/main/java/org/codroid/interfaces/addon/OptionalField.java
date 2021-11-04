@@ -17,13 +17,19 @@
  *     along with Codroid.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.codroid.interfaces.evnet;
+package org.codroid.interfaces.addon;
 
-import org.codroid.interfaces.Attachment;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * This class is the superclass of all events in Codroid.
+ * This annotation is responsible for ignoring the optional field
+ * in the addon's description.
  */
-public interface Event extends Attachment {
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.FIELD)
+public @interface OptionalField {
 
 }

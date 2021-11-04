@@ -69,7 +69,7 @@ class MainActivity : AppCompatActivity() {
         binding.projectStructureRv.layoutManager = LinearLayoutManager(this)
         binding.activityMainBottomPanel.y = 100f
 
-        org.codroid.interfaces.addon.AddonManager.get().logger.i("Hello Logger");
+
     }
 
     private fun permissionAsk() {
@@ -94,7 +94,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.main_tool_bar_menu, menu)
         return true
     }

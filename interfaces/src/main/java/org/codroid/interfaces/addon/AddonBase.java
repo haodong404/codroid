@@ -20,7 +20,7 @@
 package org.codroid.interfaces.addon;
 
 
-import org.codroid.interfaces.AddonEnv;
+import org.codroid.interfaces.env.AddonEnv;
 
 public class AddonBase extends AddonEnv implements Addon {
 

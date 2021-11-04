@@ -19,19 +19,23 @@
 
 package org.codroid.editor.widget;
 
+import static org.codroid.editor.UIUtilsKt.dip2px;
+
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.util.AttributeSet;
+import android.util.Log;
 
 import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.AppCompatEditText;
 
-import org.codroid.editor.utils.UIUtils;
+import org.codroid.interfaces.addon.AddonManager;
+import org.codroid.interfaces.appearance.AppearanceProperty;
 
 /**
  * CodroidEditor is a core part of this project.
@@ -76,6 +80,10 @@ public class CodroidEditor extends AppCompatEditText {
 
             lineNumberBackRect = new Rect();
         }
+        if(AddonManager.get().getColor(AppearanceProperty.Attribute.EDITOR_BACKGROUND) != null) {
+            setBackgroundColor(AddonManager.get().getColor(AppearanceProperty.Attribute.EDITOR_BACKGROUND).toArgb());
+            Log.i("Zac", AddonManager.get().getColor(AppearanceProperty.Attribute.EDITOR_BACKGROUND).toArgb() + "");
+        }
     }
 
     public Configure getConfigure() {
@@ -91,7 +99,7 @@ public class CodroidEditor extends AppCompatEditText {
         super.onDraw(canvas);
         //Drawing line number
         if (mConfigure.isShowLineNumber()) {
-            int gap = UIUtils.get().dip2px(getContext(),4);
+            int gap = dip2px(getContext(),4);
             int paddingLeft = (int) lineNumberPaint.measureText(String.valueOf(getLineCount())) + gap * 2;
             lineNumberBackRect.set(0, 0, paddingLeft, getHeight());
             setPadding(paddingLeft + gap, 0,0,0);

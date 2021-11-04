@@ -66,7 +66,7 @@ public class LogStream {
      */
     private void initialize() {
         int cpuProcessor = Runtime.getRuntime().availableProcessors();
-        int addonCount = AddonManager.get().getAddonCountImported();
+        int addonCount = AddonManager.get().addonLoadedCount();
         float factor = 0.8f;
         if (cpuProcessor < 4) {
             factor = 1.2f;

@@ -29,7 +29,12 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
 import org.codroid.editor.ui.AddonItem
 import org.codroid.editor.ui.Response
+import org.codroid.interfaces.addon.AddonDescription
+import org.codroid.interfaces.addon.AddonLoader
+import org.codroid.interfaces.addon.AddonManager
+import org.codroid.interfaces.utils.PathUtils
 import java.io.File
+import java.lang.Exception
 
 class AddonManagerViewModel : ViewModel() {
 
@@ -43,13 +48,24 @@ class AddonManagerViewModel : ViewModel() {
 
     fun listAddons(): LiveData<Response<List<AddonItem>>> {
         viewModelScope.launch {
-            org.codroid.interfaces.addon.AddonManager.get().loadedAddons()?.keys?.map {
+            AddonManager.get().addonDao.findAll()?.mapNotNull {
+                try {
+                    AddonLoader.findAddonDescription(
+                        PathUtils.splice(
+                            it.addonPath,
+                            AddonDescription.ADDON_DESCRIPTION_FILE_NAME
+                        )
+                    ).get()
+                } catch (e: Exception) {
+                    null
+                }
+            }?.map {
                 AddonItem(
-                    it.get().name,
-                    it.get().versionDes,
-                    it.get().description,
-                    it.get().author,
-                    it.get().link
+                    it.name,
+                    it.versionDes,
+                    it.description,
+                    it.author,
+                    it.link
                 )
             }?.apply {
                 addonSet.postValue(Response(Response.SUCCEED, this))
@@ -60,10 +76,27 @@ class AddonManagerViewModel : ViewModel() {
 
     fun importAddon(addonUri: Uri): LiveData<Boolean> {
         viewModelScope.launch {
-            getRealPath(addonUri)?.let {
-                val file = File(it)
-                org.codroid.interfaces.addon.AddonManager.get().importExternalAddon(file).let { it2 ->
-                    importAddon.postValue(it2.isSucceed)
+            getRealPath(addonUri)?.let { it ->
+                File(it).let {
+                    AddonManager.get().importExternalAddonAsync(it, object: AddonManager.ProgressCallback<AddonManager.ImportStage, String> {
+                        override fun progress(
+                            total: Int,
+                            now: Int,
+                            stage: AddonManager.ImportStage?,
+                            attachment: String?
+                        ) {
+
+                        }
+
+                        override fun done() {
+                            importAddon.postValue(true)
+                        }
+
+                        override fun error(e: Throwable?) {
+                            importAddon.postValue(false)
+                        }
+
+                    })
                 }
             }
         }

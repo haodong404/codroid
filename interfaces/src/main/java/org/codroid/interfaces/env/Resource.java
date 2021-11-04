@@ -17,13 +17,29 @@
  *     along with Codroid.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.codroid.interfaces.evnet;
+package org.codroid.interfaces.env;
 
-import org.codroid.interfaces.Attachment;
+import org.codroid.interfaces.utils.PathUtils;
 
-/**
- * This class is the superclass of all events in Codroid.
- */
-public interface Event extends Attachment {
+import java.io.File;
+import java.nio.file.Path;
 
+public abstract class Resource {
+    private Path path;
+
+    public Resource(AddonEnv addonEnv, String path) {
+        this.path = PathUtils.splice(addonEnv.getAddonRootDir(), path);
+    }
+
+    public Resource(Path path){
+        this.path = path;
+    }
+
+    public Path toPath() {
+        return this.path;
+    }
+
+    public File toFile(){
+        return path.toFile();
+    }
 }

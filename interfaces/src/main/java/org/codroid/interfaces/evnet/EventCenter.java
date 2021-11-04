@@ -21,6 +21,8 @@ package org.codroid.interfaces.evnet;
 
 import androidx.annotation.NonNull;
 
+import org.codroid.interfaces.Attachment;
+
 import java.util.EnumMap;
 import java.util.LinkedList;
 import java.util.stream.Stream;
@@ -71,7 +73,7 @@ public final class EventCenter {
     }
 
     // It stores the events registered.
-    private static EnumMap<EventsEnum, LinkedList<Event>> registeredEvents;
+    private static EnumMap<EventsEnum, LinkedList<Attachment>> registeredEvents;
 
     public EventCenter() {
         if (registeredEvents == null) {
@@ -85,9 +87,9 @@ public final class EventCenter {
      * @param type What the event type is
      * @param event new event
      */
-    public void register(EventsEnum type, Event event) {
+    public void register(EventsEnum type, Attachment event) {
         if (!registeredEvents.containsKey(type)) {
-            LinkedList<Event> linkedList = new LinkedList<>();
+            LinkedList<Attachment> linkedList = new LinkedList<>();
             linkedList.add(event);
             registeredEvents.put(type, linkedList);
         } else {
@@ -105,7 +107,7 @@ public final class EventCenter {
      * @return a list contains addons of the same type.
      */
     @NonNull
-    public <T extends Event> LinkedList<T> execute(EventsEnum eventsEnum) {
+    public <T extends Attachment> LinkedList<T> execute(EventsEnum eventsEnum) {
         var temp = registeredEvents.get(eventsEnum);
         if (temp == null) {
             temp = new LinkedList<>();
@@ -122,19 +124,19 @@ public final class EventCenter {
      * @return a stream contains addons of the same type.
      */
     @NonNull
-    public <T extends Event> Stream<T> executeStream(EventsEnum eventsEnum) {
+    public <T extends Attachment> Stream<T> executeStream(EventsEnum eventsEnum) {
         return execute(eventsEnum).stream().parallel().map(event -> (T) event);
     }
 
     /**
      * Whether a giving class is an addon event.
      *
-     * @param cls what class you want to check.
+     * @param clazz what class you want to check.
      * @return true if it is.
      */
-    public boolean isAnAddonEvent(Class<?> cls) {
+    public boolean isAnAddonEvent(Class<?> clazz) {
         for (var i : EventsEnum.values()) {
-            if (i.getClazz() == cls) {
+            if (i.getClazz() == clazz) {
                 return true;
             }
         }

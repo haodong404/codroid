@@ -26,6 +26,7 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.snackbar.Snackbar
+import org.codroid.editor.Codroid
 import org.codroid.editor.databinding.ActivityAddonManagerBinding
 
 class AddonManagerActivity : AppCompatActivity(), View.OnClickListener {

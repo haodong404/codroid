@@ -21,21 +21,36 @@ package org.codroid.editor
 
 import android.app.Application
 import android.content.Context
-import android.util.Log
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.preferencesDataStore
+import androidx.room.Room
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import org.codroid.interfaces.addon.AddonManager
+import org.codroid.interfaces.database.AddonDatabase
 
 class Codroid : Application() {
 
+    val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
+
     lateinit var context: Context;
+    lateinit var THEME: Preferences.Key<String>
+
+    companion object {
+        lateinit var addonDb: AddonDatabase
+    }
 
     override fun onCreate() {
         super.onCreate()
-        AddonManager.get().initialize(this);
-        val result = AddonManager.get().loadAddons()
-        if (!result.isSucceed) {
-            Log.i("Zac", result.message ?: "Failed")
-        } else {
-            Log.i("Zac", "Succeed")
-        }
+        context = this;
+        addonDb =
+            Room.databaseBuilder(this, AddonDatabase::class.java, "addon-database")
+                .allowMainThreadQueries()
+                .build()
+        THEME = stringPreferencesKey("theme")
+        AddonManager.get().initialize(this, addonDb);
+        AddonManager.get().loadAddons()
     }
 }

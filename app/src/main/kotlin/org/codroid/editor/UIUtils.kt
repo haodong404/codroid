@@ -17,13 +17,28 @@
  *     along with Codroid.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.codroid.interfaces.evnet;
+package org.codroid.editor
 
-import org.codroid.interfaces.Attachment;
+import android.content.Context
 
 /**
- * This class is the superclass of all events in Codroid.
+ * Convert dip to px
+ *
+ * @param context context
+ * @param dpValue value of dp
  */
-public interface Event extends Attachment {
+fun dip2px(context: Context, dpValue: Float): Int {
+    val scale = context.resources.displayMetrics.density;
+    return (dpValue * scale + 0.5f).toInt()
+}
 
+/**
+ * Convert px to dip
+ *
+ * @param context context
+ * @param pxValue value of px
+ */
+fun px2dip(context: Context, pxValue: Float): Int {
+    val scale = context.resources.displayMetrics.density;
+    return (pxValue / scale + 0.5f).toInt()
 }

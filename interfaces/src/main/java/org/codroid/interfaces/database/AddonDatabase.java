@@ -17,13 +17,13 @@
  *     along with Codroid.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.codroid.interfaces.evnet;
+package org.codroid.interfaces.database;
 
-import org.codroid.interfaces.Attachment;
+import androidx.room.Database;
+import androidx.room.RoomDatabase;
 
-/**
- * This class is the superclass of all events in Codroid.
- */
-public interface Event extends Attachment {
+@Database(entities = {AddonsEntity.class}, version = 1, exportSchema = false)
+public abstract class AddonDatabase extends RoomDatabase {
+    public abstract AddonDao addonDao();
 
 }

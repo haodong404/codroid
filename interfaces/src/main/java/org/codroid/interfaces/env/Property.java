@@ -17,13 +17,30 @@
  *     along with Codroid.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.codroid.interfaces.evnet;
+package org.codroid.interfaces.env;
 
-import org.codroid.interfaces.Attachment;
+import java.nio.file.Path;
 
-/**
- * This class is the superclass of all events in Codroid.
- */
-public interface Event extends Attachment {
+import me.grison.jtoml.impl.Toml;
+
+public class Property extends Resource {
+
+    protected Toml toml;
+
+    public Property(Path path) {
+        super(path);
+    }
+
+    public Property(AddonEnv addonEnv, String relativePathStr) {
+        super(addonEnv, relativePathStr);
+    }
+
+    public void open() {
+        toml = Toml.parse(toPath().toFile());
+    }
+
+    public void close(){
+        toml = null;
+    }
 
 }

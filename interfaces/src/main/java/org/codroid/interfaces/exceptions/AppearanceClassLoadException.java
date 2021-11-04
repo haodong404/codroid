@@ -17,13 +17,10 @@
  *     along with Codroid.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.codroid.interfaces.evnet;
+package org.codroid.interfaces.exceptions;
 
-import org.codroid.interfaces.Attachment;
-
-/**
- * This class is the superclass of all events in Codroid.
- */
-public interface Event extends Attachment {
-
+public class AppearanceClassLoadException extends AddonClassLoadException {
+    public AppearanceClassLoadException(String cause) {
+        super(cause);
+    }
 }

@@ -17,13 +17,27 @@
  *     along with Codroid.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.codroid.interfaces.evnet;
+package org.codroid.interfaces.database;
 
-import org.codroid.interfaces.Attachment;
+import androidx.room.Dao;
+import androidx.room.Insert;
+import androidx.room.OnConflictStrategy;
+import androidx.room.Query;
 
-/**
- * This class is the superclass of all events in Codroid.
- */
-public interface Event extends Attachment {
+import java.util.List;
 
+@Dao
+public interface AddonDao {
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    void insertAddon(AddonsEntity addonsEntity);
+
+    @Query("SELECT * FROM addonsentity ORDER BY imported_date DESC")
+    List<AddonsEntity> findAll();
+
+    @Query("SELECT COUNT(*) FROM addonsentity")
+    int countAll();
+
+    @Query("SELECT COUNT(*) FROM AddonsEntity WHERE status=1")
+    int countLoaded();
 }

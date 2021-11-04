@@ -17,13 +17,20 @@
  *     along with Codroid.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.codroid.interfaces.evnet;
+package org.codroid.interfaces.exceptions;
 
-import org.codroid.interfaces.Attachment;
+import androidx.annotation.Nullable;
 
-/**
- * This class is the superclass of all events in Codroid.
- */
-public interface Event extends Attachment {
+public class UnknownColorException extends AddonException {
+    private String message;
 
+    public UnknownColorException(String message){
+        this.message = message;
+    }
+
+    @Nullable
+    @Override
+    public String getMessage() {
+        return message;
+    }
 }

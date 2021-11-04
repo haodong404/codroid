@@ -17,13 +17,12 @@
  *     along with Codroid.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.codroid.interfaces.evnet;
+package org.codroid.interfaces.appearance;
 
 import org.codroid.interfaces.Attachment;
 
-/**
- * This class is the superclass of all events in Codroid.
- */
-public interface Event extends Attachment {
+public abstract class ThemeBase implements Attachment {
+
+    public abstract AppearanceProperty loadTheme();
 
 }
