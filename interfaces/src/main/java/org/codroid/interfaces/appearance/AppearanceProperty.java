@@ -1,10 +1,8 @@
 package org.codroid.interfaces.appearance;
 
-import android.graphics.Color;
-
 import org.codroid.interfaces.env.AddonEnv;
 import org.codroid.interfaces.env.Property;
-import org.codroid.interfaces.exceptions.UnknownColorException;
+import org.codroid.interfaces.exceptions.AttributeNotFoundException;
 
 public class AppearanceProperty extends Property {
 
@@ -12,33 +10,29 @@ public class AppearanceProperty extends Property {
         super(addonEnv, relativePathStr);
     }
 
-    public enum Attribute {
-
-        EDITOR_BACKGROUND("editor_background");
+    public enum PartEnum {
+        EDITOR("editor");
 
         private String str;
 
-        Attribute(String str) {
+        PartEnum(String str) {
             this.str = str;
         }
-    }
 
-    public Color getColor(Attribute attribute) throws UnknownColorException {
-        String value = get(attribute);
-        if (!value.startsWith("#")) {
-            throw new UnknownColorException("Color string must start with # (number sign)! ");
-        }
-        try {
-            return Color.valueOf(Color.parseColor(value));
-        } catch (Exception e) {
-            throw new UnknownColorException("Unknown color string: " + value);
+        public String value(){
+            return this.str;
         }
     }
 
-    public String get(Attribute attribute) {
+    public Part part(PartEnum partEnum) throws IllegalArgumentException, AttributeNotFoundException {
         if (toml == null) {
             open();
         }
-        return toml.getString(attribute.str);
+        switch (partEnum) {
+            case EDITOR:
+                return new EditorPart(this.toml);
+            default:
+                throw new AttributeNotFoundException("Part: " + partEnum.value() + " not found!");
+        }
     }
 }

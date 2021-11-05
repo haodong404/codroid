@@ -20,24 +20,24 @@
 package org.codroid.interfaces.env;
 
 import android.content.Context;
-import android.graphics.Color;
 import android.text.TextUtils;
 
 import org.codroid.interfaces.appearance.AppearanceProperty;
-import org.codroid.interfaces.exceptions.UnknownColorException;
+import org.codroid.interfaces.appearance.Part;
+import org.codroid.interfaces.exceptions.AttributeNotFoundException;
 import org.codroid.interfaces.log.Loggable;
-import org.codroid.interfaces.utils.LoadSequence;
 import org.codroid.interfaces.utils.PathUtils;
 
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * The basic environment of Codroid addon,
  * which contains global information about addons and provided by Codroid.
- *
+ * <p>
  * It allows to access specific directories, loggers, theme, etc.
  */
 public abstract class CodroidEnv implements Loggable {
@@ -80,20 +80,25 @@ public abstract class CodroidEnv implements Loggable {
         return false;
     }
 
-    public Color getColor(AppearanceProperty.Attribute attribute) {
-        LoadSequence<AppearanceProperty> loadSequence = new LoadSequence<>(activeAppearances);
-        for (var i : loadSequence.ordered()) {
-            Color c = null;
+
+    public Optional<Part> appearancePart(AppearanceProperty.PartEnum partEnum) {
+        if (activeAppearances.keySet().stream().findFirst().isPresent()) {
+            return appearancePart(activeAppearances.keySet().stream().findFirst().get(),
+                    partEnum);
+        }
+        return Optional.empty();
+    }
+
+    private Optional<Part> appearancePart(String which, AppearanceProperty.PartEnum partEnum) {
+        AppearanceProperty appearanceProperty = activeAppearances.get(which);
+        if (appearanceProperty != null) {
             try {
-                c = i.getColor(attribute);
-            } catch (UnknownColorException e) {
+                return Optional.of(appearanceProperty.part(partEnum));
+            } catch (AttributeNotFoundException e) {
                 e.printStackTrace(getLogger());
             }
-            if (c != null) {
-                return c;
-            }
         }
-        return null;
+        return Optional.empty();
     }
 
     public File getAddonsDir() {

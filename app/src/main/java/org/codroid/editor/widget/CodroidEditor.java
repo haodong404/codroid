@@ -27,7 +27,6 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.util.AttributeSet;
-import android.util.Log;
 
 import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
@@ -36,6 +35,10 @@ import androidx.appcompat.widget.AppCompatEditText;
 
 import org.codroid.interfaces.addon.AddonManager;
 import org.codroid.interfaces.appearance.AppearanceProperty;
+import org.codroid.interfaces.appearance.EditorPart;
+import org.codroid.interfaces.appearance.Part;
+
+import java.util.Optional;
 
 /**
  * CodroidEditor is a core part of this project.
@@ -49,6 +52,8 @@ public class CodroidEditor extends AppCompatEditText {
     private Paint lineNumberPaint, backPaint;
 
     private Rect lineNumberBackRect;
+
+    private Optional<Part> part;
 
 
     public CodroidEditor(@NonNull Context context) {
@@ -78,11 +83,15 @@ public class CodroidEditor extends AppCompatEditText {
             backPaint.setStyle(Paint.Style.FILL);
             backPaint.setColor(mConfigure.getLineNumberBackColor());
 
+            part = AddonManager.get().appearancePart(AppearanceProperty.PartEnum.EDITOR);
+
+            if (part.isPresent()
+                    && part.get().getColor(EditorPart.Attribute.BACKGROUND).isPresent()){
+                setBackgroundColor(part.get()
+                        .getColor(EditorPart.Attribute.BACKGROUND).get()
+                        .toArgb());
+            }
             lineNumberBackRect = new Rect();
-        }
-        if(AddonManager.get().getColor(AppearanceProperty.Attribute.EDITOR_BACKGROUND) != null) {
-            setBackgroundColor(AddonManager.get().getColor(AppearanceProperty.Attribute.EDITOR_BACKGROUND).toArgb());
-            Log.i("Zac", AddonManager.get().getColor(AppearanceProperty.Attribute.EDITOR_BACKGROUND).toArgb() + "");
         }
     }
 

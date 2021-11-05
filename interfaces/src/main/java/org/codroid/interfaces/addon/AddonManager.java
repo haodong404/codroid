@@ -70,6 +70,7 @@ public final class AddonManager extends CodroidEnv {
     private AddonDatabase database;
     private Logger logger;
 
+    // It stores all instances of loaded addons.
     public Map<String, Addon> addons = new HashMap<>();
 
     public AddonManager() {
@@ -151,7 +152,11 @@ public final class AddonManager extends CodroidEnv {
 
             // Invoke all the events from addons.
             for (var it : eventCenter().<AddonImportEvent>execute(EventCenter.EventsEnum.ADDON_IMPORT)) {
-                temp = it.beforeImport(temp);
+                try {
+                    temp = it.beforeImport(temp);
+                } catch (Exception e){
+                    getLogger().e("Event: " + it.getClass().getName() + ", calls failed! (" + e.toString() + ")");
+                }
             }
 
             // Copy the addon file to specific directory.
