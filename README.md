@@ -8,7 +8,7 @@ Codroid is a highly customized editor on Android.
 
 ## Goals
 
-- [ ] ##### Add-on module
+- [ ] **Add-on module**
   - [x] Logger
 
   - [ ] Appearance configuration
@@ -17,9 +17,9 @@ Codroid is a highly customized editor on Android.
 
   - [ ] ...
 
-- [ ] ##### Editor widget
+- [ ] **Editor widget**
   - [ ] Code suggestion (Lsp perhaps)
   - [ ] Code high light
   - [ ] ...
 
-- [ ] ##### Project window
+- [ ] **Project window**

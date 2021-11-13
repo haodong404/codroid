@@ -37,6 +37,10 @@ public abstract class Part {
 
     private Toml toml;
 
+    public interface OnFound<T>{
+        void found(T value);
+    }
+
     /**
      * Construct it with a instance of Toml.
      *
@@ -67,6 +71,14 @@ public abstract class Part {
             AddonManager.get().getLogger().e("Unknown color: " + value);
         }
         return Optional.empty();
+    }
+
+    public void findColor(String attr, OnFound<Color> callback) {
+        if(getColor(attr).isPresent()){
+            if (callback != null) {
+                callback.found(getColor(attr).get());
+            }
+        }
     }
 
     /**

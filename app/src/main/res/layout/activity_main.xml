@@ -49,27 +49,51 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/activity_main_app_bar_layout">
 
-        <ScrollView
+        <androidx.coordinatorlayout.widget.CoordinatorLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="@null"
-            android:fillViewport="true">
+            android:layout_height="match_parent">
 
-            <HorizontalScrollView
+            <ScrollView
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:background="@null"
                 android:fillViewport="true">
 
-                <org.codroid.editor.widget.CodroidEditor
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:background="@android:color/transparent"
-                    android:focusable="true"
-                    android:gravity="start|top" />
+                <HorizontalScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@null"
+                    android:fillViewport="true">
 
-            </HorizontalScrollView>
-        </ScrollView>
+                    <org.codroid.editor.widget.CodroidEditor
+                        android:id="@+id/activity_main_editor"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@android:color/transparent"
+                        android:gravity="start|top" />
+                </HorizontalScrollView>
+            </ScrollView>
+
+            <org.codroid.editor.widget.BottomPanel
+                android:id="@+id/activity_main_bottom_panel"
+                android:layout_width="match_parent"
+                android:layout_height="200dp"
+                android:background="@color/pink_500"
+                android:orientation="horizontal"
+                app:behavior_hideable="false"
+                app:behavior_peekHeight="30dp"
+                app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
+
+                <com.google.android.material.button.MaterialButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@color/black"
+                    android:text="@string/app_name" />
+
+            </org.codroid.editor.widget.BottomPanel>
+
+        </androidx.coordinatorlayout.widget.CoordinatorLayout>
+
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/project_structure_rv"
@@ -79,11 +103,4 @@
             android:background="@color/design_default_color_surface" />
 
     </androidx.drawerlayout.widget.DrawerLayout>
-
-    <org.codroid.editor.widget.BottomPanel
-        android:id="@+id/activity_main_bottom_panel"
-        app:layout_constraintTop_toBottomOf="parent"
-        android:background="@color/pink_500"
-        android:layout_width="match_parent"
-        android:layout_height="200dp"/>
 </androidx.constraintlayout.widget.ConstraintLayout>

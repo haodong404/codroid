@@ -1,5 +1,7 @@
 package org.codroid.interfaces.appearance;
 
+import org.codroid.interfaces.appearance.parts.EditorPart;
+import org.codroid.interfaces.appearance.parts.SemanticHighlightPart;
 import org.codroid.interfaces.env.AddonEnv;
 import org.codroid.interfaces.env.Property;
 import org.codroid.interfaces.exceptions.AttributeNotFoundException;
@@ -11,7 +13,9 @@ public class AppearanceProperty extends Property {
     }
 
     public enum PartEnum {
-        EDITOR("editor");
+        EDITOR("editor"),
+
+        SEMANTIC_HIGHLIGHT("semantic_highlight");
 
         private String str;
 
@@ -31,6 +35,8 @@ public class AppearanceProperty extends Property {
         switch (partEnum) {
             case EDITOR:
                 return new EditorPart(this.toml);
+            case SEMANTIC_HIGHLIGHT:
+                return new SemanticHighlightPart(this.toml);
             default:
                 throw new AttributeNotFoundException("Part: " + partEnum.value() + " not found!");
         }

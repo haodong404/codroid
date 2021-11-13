@@ -17,25 +17,13 @@
  *     along with Codroid.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.codroid.interfaces.appearance;
+package org.codroid.interfaces.evnet.editor;
 
-import me.grison.jtoml.impl.Toml;
+import org.codroid.interfaces.appearance.editor.WrappedSpannable;
+import org.codroid.interfaces.evnet.Event;
 
-/**
- * Editor part of appearance.
- */
-public class EditorPart extends Part {
+public interface TextChangedEvent extends Event {
 
-   public interface Attribute {
-       String BACKGROUND = "background";
-   }
+    void onTextChanged(WrappedSpannable wrappedSpannable, int start, int lengthBefore, int lengthAfter);
 
-    public EditorPart(Toml toml) throws IllegalArgumentException {
-        super(toml);
-    }
-
-    @Override
-    public AppearanceProperty.PartEnum part() {
-        return AppearanceProperty.PartEnum.EDITOR;
-    }
 }

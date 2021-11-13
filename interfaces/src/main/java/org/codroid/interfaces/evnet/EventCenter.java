@@ -21,7 +21,8 @@ package org.codroid.interfaces.evnet;
 
 import androidx.annotation.NonNull;
 
-import org.codroid.interfaces.Attachment;
+import org.codroid.interfaces.evnet.editor.SelectionChangedEvent;
+import org.codroid.interfaces.evnet.editor.TextChangedEvent;
 
 import java.util.EnumMap;
 import java.util.LinkedList;
@@ -42,7 +43,10 @@ public final class EventCenter {
      * It must be registered in this class before adding a new event.
      */
     public enum EventsEnum {
-        ADDON_IMPORT(AddonImportEvent.class);
+        ADDON_IMPORT(AddonImportEvent.class),
+
+        EDITOR_SELECTION_CHANGED(SelectionChangedEvent.class),
+        EDITOR_TEXT_CHANGED(TextChangedEvent.class);
 
         private Class<?> clazz;
 
@@ -73,7 +77,7 @@ public final class EventCenter {
     }
 
     // It stores the events registered.
-    private static EnumMap<EventsEnum, LinkedList<Attachment>> registeredEvents;
+    private static EnumMap<EventsEnum, LinkedList<Event>> registeredEvents;
 
     public EventCenter() {
         if (registeredEvents == null) {
@@ -87,9 +91,9 @@ public final class EventCenter {
      * @param type What the event type is
      * @param event new event
      */
-    public void register(EventsEnum type, Attachment event) {
+    public void register(EventsEnum type, Event event) {
         if (!registeredEvents.containsKey(type)) {
-            LinkedList<Attachment> linkedList = new LinkedList<>();
+            LinkedList<Event> linkedList = new LinkedList<>();
             linkedList.add(event);
             registeredEvents.put(type, linkedList);
         } else {
@@ -107,12 +111,11 @@ public final class EventCenter {
      * @return a list contains addons of the same type.
      */
     @NonNull
-    public <T extends Attachment> LinkedList<T> execute(EventsEnum eventsEnum) {
+    public <T extends Event> LinkedList<T> execute(EventsEnum eventsEnum) {
         var temp = registeredEvents.get(eventsEnum);
         if (temp == null) {
             temp = new LinkedList<>();
         }
-
         return (LinkedList<T>) temp;
     }
 
@@ -124,7 +127,7 @@ public final class EventCenter {
      * @return a stream contains addons of the same type.
      */
     @NonNull
-    public <T extends Attachment> Stream<T> executeStream(EventsEnum eventsEnum) {
+    public <T extends Event> Stream<T> executeStream(EventsEnum eventsEnum) {
         return execute(eventsEnum).stream().parallel().map(event -> (T) event);
     }
 

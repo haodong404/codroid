@@ -27,16 +27,25 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.util.AttributeSet;
+import android.view.Gravity;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.PopupWindow;
 
 import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.AppCompatEditText;
 
+import org.codroid.editor.R;
 import org.codroid.interfaces.addon.AddonManager;
 import org.codroid.interfaces.appearance.AppearanceProperty;
-import org.codroid.interfaces.appearance.EditorPart;
 import org.codroid.interfaces.appearance.Part;
+import org.codroid.interfaces.appearance.editor.WrappedSpannable;
+import org.codroid.interfaces.appearance.parts.EditorPart;
+import org.codroid.interfaces.evnet.EventCenter;
+import org.codroid.interfaces.evnet.editor.SelectionChangedEvent;
+import org.codroid.interfaces.evnet.editor.TextChangedEvent;
 
 import java.util.Optional;
 
@@ -48,13 +57,23 @@ import java.util.Optional;
 public class CodroidEditor extends AppCompatEditText {
 
     private Configure mConfigure;
+    private WrappedSpannable mWrappedSpannable;
 
     private Paint lineNumberPaint, backPaint;
 
     private Rect lineNumberBackRect;
 
+    // This is suggestion window
+    private PopupWindow mPopupWindow;
+
+    // The part of editor that defines the appearances
     private Optional<Part> part;
 
+    private int paddingLeft;
+    private int gap;
+
+    // return true if editor is drawn at first time.
+    private boolean isDrawn = false;
 
     public CodroidEditor(@NonNull Context context) {
         super(context);
@@ -73,6 +92,7 @@ public class CodroidEditor extends AppCompatEditText {
 
     private void init() {
         if (mConfigure == null) mConfigure = new Configure();
+
         if (lineNumberPaint == null && mConfigure.isShowLineNumber()) {
             lineNumberPaint = new Paint();
             lineNumberPaint.setStyle(Paint.Style.FILL);
@@ -85,14 +105,33 @@ public class CodroidEditor extends AppCompatEditText {
 
             part = AddonManager.get().appearancePart(AppearanceProperty.PartEnum.EDITOR);
 
-            if (part.isPresent()
-                    && part.get().getColor(EditorPart.Attribute.BACKGROUND).isPresent()){
-                setBackgroundColor(part.get()
-                        .getColor(EditorPart.Attribute.BACKGROUND).get()
-                        .toArgb());
-            }
+            part.ifPresent(p -> p.findColor(EditorPart.Attribute.BACKGROUND,
+                    value -> setBackgroundColor(value.toArgb())));
             lineNumberBackRect = new Rect();
         }
+        mWrappedSpannable = new WrappedSpannable(getText());
+
+    }
+
+    private void initSuggestionWindow(){
+        if (mPopupWindow == null) {
+            View view = View.inflate(getContext(), R.layout.suggestion_window, null);
+            mPopupWindow = new PopupWindow(view, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        }
+    }
+
+    @Override
+    public void setText(CharSequence text, BufferType type) {
+        super.setText(text, type);
+    }
+
+    @Override
+    public void layout(int l, int t, int r, int b) {
+        super.layout(l, t, r, b);
+        gap = dip2px(getContext(), 4);
+        paddingLeft = (int) lineNumberPaint.measureText(String.valueOf(getLineCount())) + gap * 2;
+        setPadding(paddingLeft + gap, 0, 0, 0);
+
     }
 
     public Configure getConfigure() {
@@ -103,28 +142,74 @@ public class CodroidEditor extends AppCompatEditText {
         this.mConfigure = mConfigure;
     }
 
+
+    @Override
+    protected void onSelectionChanged(int selStart, int selEnd) {
+        super.onSelectionChanged(selStart, selEnd);
+        if (isDrawn) showSuggestionWindow();
+
+        AddonManager.get().eventCenter()
+                .<SelectionChangedEvent>execute(EventCenter.EventsEnum.EDITOR_SELECTION_CHANGED)
+                .forEach(it -> {
+                    try {
+                        it.onSelectionChanged(mWrappedSpannable.update(getText()), selStart, selEnd);
+                    } catch (Exception e) {
+                        AddonManager.get().getLogger().e("Event editor_selection_changed executes failed with: " + e);
+                    }
+                });
+    }
+
+    @Override
+    protected void onTextChanged(CharSequence text, int start, int lengthBefore, int lengthAfter) {
+        super.onTextChanged(text, start, lengthBefore, lengthAfter);
+        AddonManager.get().eventCenter()
+                .<TextChangedEvent>execute(EventCenter.EventsEnum.EDITOR_TEXT_CHANGED)
+                .forEach(it -> {
+                    try {
+                        it.onTextChanged(mWrappedSpannable.update(getText()), start, lengthBefore, lengthAfter);
+                    } catch (Exception e) {
+                        AddonManager.get().getLogger().e("Event editor_text_changed executes failed with: " + e);
+                    }
+                });
+    }
+
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
+        if (!isDrawn) isDrawn = true;
         //Drawing line number
         if (mConfigure.isShowLineNumber()) {
-            int gap = dip2px(getContext(),4);
-            int paddingLeft = (int) lineNumberPaint.measureText(String.valueOf(getLineCount())) + gap * 2;
             lineNumberBackRect.set(0, 0, paddingLeft, getHeight());
-            setPadding(paddingLeft + gap, 0,0,0);
             canvas.drawRect(lineNumberBackRect, backPaint);
-            for(int i = 0; i < getLineCount(); i ++){
+            for (int i = 0; i < getLineCount(); i++) {
                 int baseLine = getLineBounds(i, null);
                 canvas.drawText(String.valueOf(i + 1), gap, baseLine, lineNumberPaint);
             }
         }
     }
 
+    public void showSuggestionWindow() {
+        initSuggestionWindow();
+        mPopupWindow.dismiss();
+        mPopupWindow.showAtLocation(this, Gravity.TOP | Gravity.START, 0,
+                getLineBounds(getCurrentCursorLine() - 1, null)+ mPopupWindow.getHeight() + getLineHeight() + 30);
+    }
+
+    private int getCurrentCursorLine() {
+        int selectionStart = getSelectionStart();
+        if (selectionStart != -1) {
+            return getLayout().getLineForOffset(selectionStart) + 1;
+        }
+        return -1;
+    }
+
 
     public class Configure {
         private boolean lineNumber = true;
-        private @ColorInt int lineNumberColor = Color.BLACK;
-        private @ColorInt int lineNumberBackColor = Color.GRAY;
+        private @ColorInt
+        int lineNumberColor = Color.BLACK;
+        private @ColorInt
+        int lineNumberBackColor = Color.GRAY;
 
         public boolean isShowLineNumber() {
             return lineNumber;
@@ -145,7 +230,8 @@ public class CodroidEditor extends AppCompatEditText {
             return this;
         }
 
-        public @ColorInt int getLineNumberBackColor() {
+        public @ColorInt
+        int getLineNumberBackColor() {
             return lineNumberBackColor;
         }
 

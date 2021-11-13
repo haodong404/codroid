@@ -89,6 +89,7 @@ public abstract class CodroidEnv implements Loggable {
         return Optional.empty();
     }
 
+
     private Optional<Part> appearancePart(String which, AppearanceProperty.PartEnum partEnum) {
         AppearanceProperty appearanceProperty = activeAppearances.get(which);
         if (appearanceProperty != null) {

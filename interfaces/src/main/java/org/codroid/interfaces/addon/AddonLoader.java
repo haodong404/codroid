@@ -19,9 +19,9 @@
 
 package org.codroid.interfaces.addon;
 
-import org.codroid.interfaces.env.AddonEnv;
 import org.codroid.interfaces.appearance.ThemeBase;
-import org.codroid.interfaces.Attachment;
+import org.codroid.interfaces.env.AddonEnv;
+import org.codroid.interfaces.evnet.Event;
 import org.codroid.interfaces.evnet.EventCenter;
 import org.codroid.interfaces.exceptions.AddonClassLoadException;
 import org.codroid.interfaces.exceptions.AddonImportException;
@@ -90,7 +90,7 @@ public final class AddonLoader {
         for (var i : classLoader.addonEvents()) {
             try {
                 Class<?> eventClass = classLoader.loadClass(i);
-                Attachment event = (Attachment) eventClass.getConstructors()[0].newInstance();
+                Event event = (Event) eventClass.getConstructors()[0].newInstance();
                 event.attached(addon);
                 Arrays.stream(eventClass.getInterfaces())
                         .filter(aClass -> AddonManager.get().eventCenter().isAnAddonEvent(aClass))

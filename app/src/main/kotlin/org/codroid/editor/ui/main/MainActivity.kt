@@ -21,26 +21,46 @@ package org.codroid.editor.ui.main
 
 import android.Manifest
 import android.content.Intent
+import android.graphics.Color
+import android.graphics.Typeface
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.provider.Settings
+import android.text.Editable
+import android.text.Spannable
+import android.text.SpannableString
+import android.text.style.CharacterStyle
+import android.text.style.ForegroundColorSpan
+import android.text.style.StyleSpan
+import android.text.style.UnderlineSpan
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.app.ActivityCompat.startActivityForResult
+import androidx.core.text.getSpans
+import androidx.core.text.set
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.codroid.editor.R
 import org.codroid.editor.databinding.ActivityMainBinding
 import org.codroid.editor.ui.addonmanager.AddonManagerActivity
 import org.codroid.editor.ui.projectstruct.ProjectStructureAdapter
 import org.codroid.editor.ui.utils.isStoragePermissionGranted
+import org.codroid.editor.widget.TestEvent
+import org.codroid.interfaces.addon.AddonManager
+import org.codroid.interfaces.evnet.EventCenter
+import kotlin.math.log
 
 
 class MainActivity : AppCompatActivity() {
@@ -53,11 +73,12 @@ class MainActivity : AppCompatActivity() {
     }
     private val viewModel: MainViewModel by viewModels()
 
-    private val getContent = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-        it?.let {
+    private val getContent =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            it?.let {
 
+            }
         }
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -67,10 +88,25 @@ class MainActivity : AppCompatActivity() {
         setSupportActionBar(binding.activityMainToolbar)
         binding.projectStructureRv.adapter = projectStructAdapter
         binding.projectStructureRv.layoutManager = LinearLayoutManager(this)
-        binding.activityMainBottomPanel.y = 100f
 
-
+        AddonManager.get().eventCenter().register(EventCenter.EventsEnum.EDITOR_SELECTION_CHANGED, TestEvent())
+        AddonManager.get().eventCenter().register(EventCenter.EventsEnum.EDITOR_TEXT_CHANGED, TestEvent())
+        GlobalScope.launch {
+            val spannableString = SpannableString("Hello World")
+            val colorSpan = ForegroundColorSpan(Color.RED)
+            spannableString.setSpan(colorSpan, 0, 2, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+            spannableString.setSpan(colorSpan, 2, 4, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+            binding.activityMainEditor.setText(spannableString, TextView.BufferType.SPANNABLE)
+        }
     }
+
+    override fun onStart() {
+        super.onStart()
+        binding.activityMainBottomPanel.post {
+            binding.activityMainBottomPanel.show()
+        }
+    }
+
 
     private fun permissionAsk() {
         if (Build.VERSION.SDK_INT > Build.VERSION_CODES.R) {
@@ -93,6 +129,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
+
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.main_tool_bar_menu, menu)
@@ -135,6 +172,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+
     override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
 
         R.id.action_plugin_manager -> {
@@ -143,7 +181,14 @@ class MainActivity : AppCompatActivity() {
         }
 
         R.id.action_setting -> {
-
+            binding.activityMainBottomPanel.close()
+            val spannableStr: Spannable = binding.activityMainEditor.text as Spannable
+            spannableStr.setSpan(
+                ForegroundColorSpan(Color.GREEN),
+                0,
+                3,
+                Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
             true
         }
 
@@ -152,7 +197,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun loadFileList(){
+    private fun loadFileList() {
         viewModel.listDir("/mnt/sdcard").observe(this@MainActivity) {
             projectStructAdapter.setList(it)
         }
