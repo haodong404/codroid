@@ -44,10 +44,9 @@ public abstract class CodroidEnv implements Loggable {
 
     private Context context;
 
-    public static String ADDONS_DIR = "addons";
-    public static String LOG_FILE_DIR = "logs";
-    public static String TEMP_DIR = "temp";
-
+    public final static String ADDONS_DIR = "addons";
+    public final static String LOG_FILE_DIR = "logs";
+    public final static String TEMP_DIR = "temp";
 
     protected Map<String, AppearanceProperty> activeAppearances = new HashMap<>();
 

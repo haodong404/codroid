@@ -20,13 +20,13 @@
 package org.codroid.editor.ui.addonmanager
 
 import android.net.Uri
-import android.os.Environment.getExternalStorageDirectory
 import android.provider.DocumentsContract
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
+import org.codroid.editor.Codroid
 import org.codroid.editor.ui.AddonItem
 import org.codroid.editor.ui.Response
 import org.codroid.interfaces.addon.AddonDescription
@@ -34,7 +34,6 @@ import org.codroid.interfaces.addon.AddonLoader
 import org.codroid.interfaces.addon.AddonManager
 import org.codroid.interfaces.utils.PathUtils
 import java.io.File
-import java.lang.Exception
 
 class AddonManagerViewModel : ViewModel() {
 
@@ -104,11 +103,11 @@ class AddonManagerViewModel : ViewModel() {
     }
 
     private fun getRealPath(uri: Uri): String? {
-        val docId = DocumentsContract.getDocumentId(uri);
-        val split = docId.split(":");
-        val type = split[0];
+        val docId = DocumentsContract.getDocumentId(uri)
+        val split = docId.split(":")
+        val type = split[0]
         if ("primary".contentEquals(type)) {
-            return "${getExternalStorageDirectory()}/${split[1]}";
+            return "${Codroid.SDCARD_ROOT_DIR}/${split[1]}"
         }
         return null
     }

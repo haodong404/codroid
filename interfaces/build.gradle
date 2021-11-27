@@ -49,6 +49,5 @@ dependencies {
     testImplementation 'junit:junit:4.13.2'
     implementation "androidx.room:room-runtime:2.3.0"
     annotationProcessor "androidx.room:room-compiler:2.3.0"
-    compileOnly files('D:/Android/Sdk/platforms/android-31/android.jar')
 }
 

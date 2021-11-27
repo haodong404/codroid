@@ -21,22 +21,13 @@ package org.codroid.interfaces.appearance.editor;
 
 import android.text.Spannable;
 import android.text.Spanned;
-import android.util.Log;
 
 import org.codroid.interfaces.addon.AddonManager;
 import org.codroid.interfaces.appearance.Semantic;
 
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 
 public class WrappedSpannable {
-
-    public final static String TYPE_KEYWORD = "keyword";
-
-    private final Map<String, Class<?>> semantics = new HashMap<>() {{
-        put(TYPE_KEYWORD, Keyword.class);
-    }};
 
     private Spannable spannable;
 
@@ -53,13 +44,11 @@ public class WrappedSpannable {
         return this;
     }
 
-    public void endowSemantic(String what, int start, int end) {
-        Class<?> span = semantics.get(what);
-        if (span != null) {
+    public void endowSemantic(int start, int end, Class<? extends Semantic> what) {
+        if (what != null) {
             if (!isSemanticExists(start, end)) {
-                Log.d("Zac", "Semantic");
                 try {
-                    spannable.setSpan(span.newInstance(), start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                    spannable.setSpan(what.newInstance(), start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
                 } catch (IllegalAccessException | InstantiationException e) {
                     e.printStackTrace();
                     AddonManager.get().getLogger().e("Highlight Error: " + e);
@@ -70,8 +59,7 @@ public class WrappedSpannable {
 
     private boolean isSemanticExists(int start, int end) {
         Semantic[] spans = spannable.getSpans(start, end, Semantic.class);
-        if (spans.length == 1)
-            return spannable.getSpanEnd(spans[0]) >= end;
+        if (spans.length == 1) return spannable.getSpanEnd(spans[0]) >= end;
 
         if (spans.length > 1) {
             Arrays.stream(spans).forEach(i -> {

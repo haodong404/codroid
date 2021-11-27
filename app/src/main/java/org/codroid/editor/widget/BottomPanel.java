@@ -65,7 +65,6 @@ public class BottomPanel extends FrameLayout {
 
     @Override
     protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
-        super.onLayout(changed, left, top, right, bottom);
         this.behavior = BottomSheetBehavior.from(this);
         if (getChildCount() == 0) {
             return;

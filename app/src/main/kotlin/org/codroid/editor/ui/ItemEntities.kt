@@ -19,13 +19,17 @@
 
 package org.codroid.editor.ui
 
-import androidx.annotation.DrawableRes
+import android.graphics.drawable.Drawable
 
 data class FileItem(
     val name: String,
-    @DrawableRes val icon: Int,
-    val textColor: Int
+    var icon: Drawable?,
+    val textColor: Int,
+    val type: String,
+    var isExpanded: Boolean,
+    val level: Int
 )
+
 
 data class AddonItem(
     val name: String,

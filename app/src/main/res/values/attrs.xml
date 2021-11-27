@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
+<?xml version="1.0" encoding="utf-8"?><!--
   ~     Copyright (c) 2021 Zachary. All rights reserved.
   ~
   ~     This file is part of Codroid.
@@ -19,6 +18,15 @@
   -->
 <resources>
     <declare-styleable name="Divider">
-        <attr name="backgroundColor" format="color"/>
+        <attr name="backgroundColor" format="color" />
+    </declare-styleable>
+
+    <declare-styleable name="ProjectStructureItem">
+        <attr name="title" format="string" />
+        <attr name="titleColor" format="color" />
+        <attr name="level" format="integer" />
+        <attr name="isExpanded" format="boolean"/>
+        <attr name="type" format="string" />
+
     </declare-styleable>
 </resources>

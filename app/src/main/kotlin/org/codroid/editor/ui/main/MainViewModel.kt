@@ -19,35 +19,47 @@
 
 package org.codroid.editor.ui.main
 
-import android.graphics.Color
+import android.util.Log
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.liveData
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import org.codroid.editor.R
-import org.codroid.editor.ui.FileItem
+import com.chad.library.adapter.base.provider.BaseNodeProvider
+import kotlinx.coroutines.delay
+import org.codroid.editor.ui.projectstruct.FileTreeNode
+import org.codroid.interfaces.utils.PathUtils
 import java.io.File
+import java.nio.file.Paths
 
 class MainViewModel : ViewModel() {
 
-    private val fileList: MutableLiveData<List<FileItem>> by lazy {
-        MutableLiveData<List<FileItem>>()
-    }
+    private var currentDir = ""
+    private lateinit var rootNode: FileTreeNode
 
-    fun listDir(pathname: String): LiveData<List<FileItem>> {
-        viewModelScope.launch(Dispatchers.Default) {
-            File(pathname).apply {
-                val fileItems: MutableList<FileItem> = mutableListOf()
-                if (this.exists()) {
-                    list()?.asSequence()?.forEach { it ->
-                        fileItems.add(FileItem(it, R.drawable.ic_launcher_background, Color.BLACK))
-                    }
-                    fileList.postValue(fileItems)
+    fun openDir(rootPath: String) = liveData {
+        rootNode = FileTreeNode(File(rootPath))
+        currentDir = rootPath
+        File(rootPath).apply {
+            if (exists()) {
+                listFiles()?.let {
+                    rootNode.extendLeaf(rootNode, it.toList())
+                    emit(rootNode.children)
                 }
             }
         }
-        return fileList
+    }
+
+
+    fun nextDir(currentNode: FileTreeNode) = liveData {
+        currentNode.element?.let {
+            File(it.path).apply {
+                if (exists()) {
+                    listFiles()?.let { it ->
+                        rootNode.extendLeaf(currentNode, it.toList())
+                        emit(currentNode.children)
+                    }
+                }
+            }
+        }
     }
 }

@@ -113,10 +113,10 @@ public class CodroidEditor extends AppCompatEditText {
 
     }
 
-    private void initSuggestionWindow(){
+    private void initSuggestionWindow() {
         if (mPopupWindow == null) {
-            View view = View.inflate(getContext(), R.layout.suggestion_window, null);
-            mPopupWindow = new PopupWindow(view, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            View view = View.inflate(getContext(), R.layout.suggestion_window, null );
+            mPopupWindow = new PopupWindow(view, ViewGroup.LayoutParams.MATCH_PARENT, 300);
         }
     }
 
@@ -128,7 +128,7 @@ public class CodroidEditor extends AppCompatEditText {
     @Override
     public void layout(int l, int t, int r, int b) {
         super.layout(l, t, r, b);
-        gap = dip2px(getContext(), 4);
+        gap = (int) dip2px(getContext(), 4);
         paddingLeft = (int) lineNumberPaint.measureText(String.valueOf(getLineCount())) + gap * 2;
         setPadding(paddingLeft + gap, 0, 0, 0);
 
@@ -146,8 +146,6 @@ public class CodroidEditor extends AppCompatEditText {
     @Override
     protected void onSelectionChanged(int selStart, int selEnd) {
         super.onSelectionChanged(selStart, selEnd);
-        if (isDrawn) showSuggestionWindow();
-
         AddonManager.get().eventCenter()
                 .<SelectionChangedEvent>execute(EventCenter.EventsEnum.EDITOR_SELECTION_CHANGED)
                 .forEach(it -> {
@@ -192,7 +190,7 @@ public class CodroidEditor extends AppCompatEditText {
         initSuggestionWindow();
         mPopupWindow.dismiss();
         mPopupWindow.showAtLocation(this, Gravity.TOP | Gravity.START, 0,
-                getLineBounds(getCurrentCursorLine() - 1, null)+ mPopupWindow.getHeight() + getLineHeight() + 30);
+                getLineBounds(getCurrentCursorLine() - 1, null) + mPopupWindow.getHeight() + getLineHeight() + 30);
     }
 
     private int getCurrentCursorLine() {

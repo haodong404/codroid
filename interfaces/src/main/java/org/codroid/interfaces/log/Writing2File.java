@@ -56,7 +56,7 @@ public class Writing2File extends WritingProcessor {
 
     @Override
     protected synchronized void process() {
-        LogStructure structure = obtain(); // Sava a copy to avoid duplicate fetching.
+        LogStructure structure = obtain();
         try {
             if (structure.getRawBytes() != null) {
                 outputStream.write(structure.getRawBytes());

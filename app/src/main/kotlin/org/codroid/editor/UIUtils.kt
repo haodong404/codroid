@@ -20,25 +20,47 @@
 package org.codroid.editor
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.Matrix
+import android.util.TypedValue
 
 /**
  * Convert dip to px
  *
- * @param context context
  * @param dpValue value of dp
  */
-fun dip2px(context: Context, dpValue: Float): Int {
-    val scale = context.resources.displayMetrics.density;
-    return (dpValue * scale + 0.5f).toInt()
+fun Context.dip2px(dpValue: Float): Float {
+    val scale = this.resources.displayMetrics.density;
+    return dpValue * scale + 0.5f
 }
 
 /**
  * Convert px to dip
  *
- * @param context context
  * @param pxValue value of px
  */
-fun px2dip(context: Context, pxValue: Float): Int {
-    val scale = context.resources.displayMetrics.density;
-    return (pxValue / scale + 0.5f).toInt()
+fun Context.px2dip(pxValue: Float): Float {
+    val scale = this.resources.displayMetrics.density;
+    return pxValue / scale + 0.5f
+}
+
+fun Context.sp2px(spValue: Float): Float {
+    return TypedValue.applyDimension(
+        TypedValue.COMPLEX_UNIT_SP,
+        spValue,
+        this.resources.displayMetrics
+    )
+}
+
+fun Bitmap.rotation(angle: Float): Bitmap {
+    val matrix = Matrix()
+    matrix.postRotate(angle)
+
+    Bitmap.createBitmap(this, 0, 0, width, height, matrix, true)
+        .let {
+            if (it != this && !this.isRecycled) {
+                this.recycle()
+            }
+            return it
+        }
 }

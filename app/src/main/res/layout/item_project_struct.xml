@@ -17,18 +17,23 @@
   ~     along with Codroid.  If not, see <https://www.gnu.org/licenses/>.
   -->
 
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:id="@+id/suggestion_window_root"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:maxHeight="200dp"
-    android:background="@color/black"
-    android:layout_height="100dp">
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <androidx.recyclerview.widget.RecyclerView
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
+    <data>
+        <variable
+            name="item"
+            type="org.codroid.editor.ui.FileItem" />
+    </data>
+
+    <org.codroid.editor.widgets.ProjectStructureItemView
+        android:id="@+id/project_structure_item"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+        android:background="@color/white"
+        app:level="@{item.level}"
+        app:title="@{item.name}"
+        app:type="@{item.type}"
+        app:isExpanded="@{item.isExpanded}"
+        app:titleColor="@{item.textColor}"
+        android:layout_height="30dp"/>
+</layout>

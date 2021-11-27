@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><!--
+<!--
   ~     Copyright (c) 2021 Zachary. All rights reserved.
   ~
   ~     This file is part of Codroid.
@@ -17,18 +17,12 @@
   ~     along with Codroid.  If not, see <https://www.gnu.org/licenses/>.
   -->
 
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:id="@+id/suggestion_window_root"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:maxHeight="200dp"
-    android:background="@color/black"
-    android:layout_height="100dp">
-
-    <androidx.recyclerview.widget.RecyclerView
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+  <path
+      android:fillColor="@android:color/black"
+      android:pathData="M16.59,8.59L12,13.17 7.41,8.59 6,10l6,6 6,-6z"/>
+</vector>

@@ -67,7 +67,7 @@
 
                     <org.codroid.editor.widget.CodroidEditor
                         android:id="@+id/activity_main_editor"
-                        android:layout_width="match_parent"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:background="@android:color/transparent"
                         android:gravity="start|top" />
@@ -98,6 +98,7 @@
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/project_structure_rv"
             android:layout_width="230dp"
+            android:scrollIndicators="end"
             android:layout_height="match_parent"
             android:layout_gravity="start"
             android:background="@color/design_default_color_surface" />

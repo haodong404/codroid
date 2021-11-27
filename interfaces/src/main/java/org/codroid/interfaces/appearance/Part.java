@@ -37,7 +37,7 @@ public abstract class Part {
 
     private Toml toml;
 
-    public interface OnFound<T>{
+    public interface OnFound<T> {
         void found(T value);
     }
 
@@ -74,7 +74,7 @@ public abstract class Part {
     }
 
     public void findColor(String attr, OnFound<Color> callback) {
-        if(getColor(attr).isPresent()){
+        if (getColor(attr).isPresent()) {
             if (callback != null) {
                 callback.found(getColor(attr).get());
             }
@@ -99,6 +99,7 @@ public abstract class Part {
     /**
      * This method should be implemented by subclasses,
      * it can return what the appearance part the subclass is.
+     *
      * @return appearance part.
      */
     public abstract AppearanceProperty.PartEnum part();

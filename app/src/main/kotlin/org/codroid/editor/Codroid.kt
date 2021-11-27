@@ -26,8 +26,6 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import androidx.room.Room
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import org.codroid.interfaces.addon.AddonManager
 import org.codroid.interfaces.database.AddonDatabase
 
@@ -40,6 +38,7 @@ class Codroid : Application() {
 
     companion object {
         lateinit var addonDb: AddonDatabase
+        const val SDCARD_ROOT_DIR = "/storage/emulated/0"
     }
 
     override fun onCreate() {

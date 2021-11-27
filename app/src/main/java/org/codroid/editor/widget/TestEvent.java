@@ -24,6 +24,8 @@ import android.text.Spannable;
 import android.text.Spanned;
 import android.text.style.ForegroundColorSpan;
 
+import org.codroid.interfaces.appearance.editor.Keyword;
+import org.codroid.interfaces.appearance.editor.Operator;
 import org.codroid.interfaces.appearance.editor.WrappedSpannable;
 import org.codroid.interfaces.env.AddonEnv;
 import org.codroid.interfaces.evnet.editor.SelectionChangedEvent;
@@ -50,7 +52,7 @@ public class TestEvent implements SelectionChangedEvent, TextChangedEvent {
                 if (spannable.charAt(selStart) == '+' && spannable.getSpanStart(colorSpan) == -1) {
                     spannable.setSpan(colorSpan, selStart, selStart + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
                 }
-                wrp.endowSemantic(WrappedSpannable.TYPE_KEYWORD, selStart - 2, selEnd);
+                wrp.endowSemantic(selStart - 2, selEnd, Keyword.class);
                 return;
             }
         }
@@ -60,6 +62,6 @@ public class TestEvent implements SelectionChangedEvent, TextChangedEvent {
     @Override
     public void onTextChanged(WrappedSpannable wrappedSpannable, int start, int lengthBefore, int lengthAfter) {
         Spannable spannable = wrappedSpannable.spannable();
-        wrappedSpannable.endowSemantic(WrappedSpannable.TYPE_KEYWORD, start, start + lengthAfter);
+        wrappedSpannable.endowSemantic(start, start + lengthAfter, Operator.class);
     }
 }
