@@ -20,9 +20,13 @@
 package org.codroid.editor
 
 import android.content.Context
+import android.content.res.TypedArray
 import android.graphics.Bitmap
+import android.graphics.Color
 import android.graphics.Matrix
 import android.util.TypedValue
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /**
  * Convert dip to px
@@ -52,15 +56,20 @@ fun Context.sp2px(spValue: Float): Float {
     )
 }
 
-fun Bitmap.rotation(angle: Float): Bitmap {
+fun Bitmap.zoom(scale: Float): Bitmap {
     val matrix = Matrix()
-    matrix.postRotate(angle)
+    matrix.setScale(scale, scale)
+    val new = Bitmap.createBitmap(this, 0, 0, width, height, matrix, true)
+    if (this != new && !this@zoom.isRecycled) {
+        this.recycle()
+    }
+    return new
+}
 
-    Bitmap.createBitmap(this, 0, 0, width, height, matrix, true)
-        .let {
-            if (it != this && !this.isRecycled) {
-                this.recycle()
-            }
-            return it
-        }
+fun Context.getAttrColor(id: Int): Int {
+    this.obtainStyledAttributes(intArrayOf(id)).let {
+        val temp = it.getColor(0, Color.RED)
+        it.recycle()
+        return temp
+    }
 }

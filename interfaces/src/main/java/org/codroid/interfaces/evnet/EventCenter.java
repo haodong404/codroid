@@ -21,6 +21,7 @@ package org.codroid.interfaces.evnet;
 
 import androidx.annotation.NonNull;
 
+import org.codroid.interfaces.evnet.editor.ProjectStructItemLoadEvent;
 import org.codroid.interfaces.evnet.editor.SelectionChangedEvent;
 import org.codroid.interfaces.evnet.editor.TextChangedEvent;
 
@@ -46,7 +47,9 @@ public final class EventCenter {
         ADDON_IMPORT(AddonImportEvent.class),
 
         EDITOR_SELECTION_CHANGED(SelectionChangedEvent.class),
-        EDITOR_TEXT_CHANGED(TextChangedEvent.class);
+        EDITOR_TEXT_CHANGED(TextChangedEvent.class),
+
+        PROJECT_STRUCT_ITEM_LOAD(ProjectStructItemLoadEvent.class);
 
         private Class<?> clazz;
 

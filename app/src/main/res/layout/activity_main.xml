@@ -68,7 +68,7 @@
                     <org.codroid.editor.widget.CodroidEditor
                         android:id="@+id/activity_main_editor"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
+                        android:layout_height="match_parent"
                         android:background="@android:color/transparent"
                         android:gravity="start|top" />
                 </HorizontalScrollView>
@@ -77,31 +77,24 @@
             <org.codroid.editor.widget.BottomPanel
                 android:id="@+id/activity_main_bottom_panel"
                 android:layout_width="match_parent"
-                android:layout_height="200dp"
+                android:layout_height="300dp"
                 android:background="@color/pink_500"
                 android:orientation="horizontal"
                 app:behavior_hideable="false"
                 app:behavior_peekHeight="30dp"
                 app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
 
-                <com.google.android.material.button.MaterialButton
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/project_structure_rv"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:background="@color/black"
-                    android:text="@string/app_name" />
+                    android:layout_gravity="start"
+                    android:background="?attr/android:colorBackground"
+                    android:scrollIndicators="end"/>
 
             </org.codroid.editor.widget.BottomPanel>
 
         </androidx.coordinatorlayout.widget.CoordinatorLayout>
-
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/project_structure_rv"
-            android:layout_width="230dp"
-            android:scrollIndicators="end"
-            android:layout_height="match_parent"
-            android:layout_gravity="start"
-            android:background="@color/design_default_color_surface" />
 
     </androidx.drawerlayout.widget.DrawerLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

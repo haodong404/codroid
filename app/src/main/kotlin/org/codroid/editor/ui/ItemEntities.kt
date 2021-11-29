@@ -19,11 +19,11 @@
 
 package org.codroid.editor.ui
 
-import android.graphics.drawable.Drawable
+import android.graphics.Bitmap
 
 data class FileItem(
     val name: String,
-    var icon: Drawable?,
+    var icon: Bitmap?,
     val textColor: Int,
     val type: String,
     var isExpanded: Boolean,

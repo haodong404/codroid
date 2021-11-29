@@ -19,27 +19,20 @@
 
 package org.codroid.interfaces.env;
 
-import org.codroid.interfaces.appearance.AppearanceProperty;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 
-public class ResourceFactory {
+public class ImageResource extends Resource {
 
-    public static final int RAW_RESOURCE = 0;
-    public static final int RAW_PROPERTY = 1;
-    public static final int APPEARANCE_PROPERTY = 2;
-    public static final int IMAGE_RESOURCE = 3;
+    private Bitmap bitmap;
 
-    public Resource createResource(AddonEnv addonEnv, String path, int type) {
-        switch (type) {
-            case RAW_RESOURCE:
-                return new ResourceRaw(addonEnv, path);
-            case RAW_PROPERTY:
-                return new Property(addonEnv, path);
-            case APPEARANCE_PROPERTY:
-                return new AppearanceProperty(addonEnv, path);
-            case IMAGE_RESOURCE:
-                return new ImageResource(addonEnv, path);
-            default:
-                return null;
-        }
+    public ImageResource(AddonEnv addonEnv, String path) {
+        super(addonEnv, path);
+        bitmap = BitmapFactory.decodeFile(toPath().toString());
     }
+
+    public Bitmap toBitmap() {
+        return this.bitmap;
+    }
+
 }

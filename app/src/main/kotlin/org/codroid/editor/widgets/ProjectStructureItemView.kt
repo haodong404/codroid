@@ -22,16 +22,13 @@ package org.codroid.editor.widgets
 import android.content.Context
 import android.graphics.*
 import android.util.AttributeSet
-import android.util.Log
 import android.view.View
 import android.view.animation.Animation
 import android.view.animation.Transformation
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.drawable.toBitmap
 import kotlinx.coroutines.*
-import org.codroid.editor.R
-import org.codroid.editor.dip2px
-import org.codroid.editor.sp2px
+import org.codroid.editor.*
 
 class ProjectStructureItemView : View {
 
@@ -68,6 +65,11 @@ class ProjectStructureItemView : View {
 
     private var mIconBitmap: Bitmap? = null
 
+    private var mTagBitmap: Bitmap? = null
+    private val mTagRectF: RectF by lazy {
+        RectF()
+    }
+
     private val mExpandMoreMatrix = Matrix()
     private val mIconRectF: RectF by lazy {
         RectF()
@@ -90,16 +92,17 @@ class ProjectStructureItemView : View {
     lateinit var configure: Configure
     private var level = 0
     var isExpanded = false
+    var isInit = false
 
     private fun init() {
-        // Create a sdefault configure
+        // Create a default configure
         configure = Configure(
             leftPadding = context.dip2px(4F),
             title = "Hello",
-            titleColor = Color.BLACK,
+            titleColor = context.getAttrColor(android.R.attr.textColorPrimary),
             titleSize = context.sp2px(12F),
             iconSize = context.dip2px(24F),
-
+            tagSize = context.dip2px(14F),
             indentLineColor = Color.GRAY,
             indentLineStroke = context.dip2px(0.6F)
         )
@@ -138,11 +141,14 @@ class ProjectStructureItemView : View {
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec)
 
+        if (!isInit) return
+
         var levelMargin = 0F
         for (i in 1..level) {
             levelMargin += configure.iconSize
         }
 
+        // Measure the expand more icon
         val top = measuredHeight / 2F - configure.iconSize / 2F
         if (mExpandMoreBitmap != null || isDir()) {
             mExpandMoreMatrix.setTranslate(configure.leftPadding + levelMargin, top)
@@ -162,12 +168,25 @@ class ProjectStructureItemView : View {
             top + configure.iconSize
         )
 
+        if (configure.tagSize != 0F) {
+            val tagLeft = mIconRectF.right - configure.tagSize
+            val tagTop = mIconRectF.bottom - configure.tagSize
+            mTagRectF.set(
+                tagLeft,
+                tagTop,
+                tagLeft + configure.tagSize,
+                tagTop + configure.tagSize
+            )
+        }
+
         mTitleTopSpace = mTitleHalfHeight + measuredHeight / 2F
         mTitleMarginLeft = (iconMarginLeft + configure.iconSize).toInt()
     }
 
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
+        if (!isInit) return
+
         mExpandMoreBitmap?.let { // Draw the expand icon if it is a directory
             if (isDir()) {
                 canvas?.drawBitmap(it, mExpandMoreMatrix, alphaPaint)
@@ -178,6 +197,13 @@ class ProjectStructureItemView : View {
                 canvas?.drawBitmap(mIconBitmap!!, null, mIconRectF, null)
             }
         }
+
+        mTagBitmap?.let {
+            if (!mTagBitmap?.isRecycled!!) {
+                canvas?.drawBitmap(mTagBitmap!!, null, mTagRectF, null)
+            }
+        }
+
         canvas?.drawText(
             configure.title,
             mTitleMarginLeft + configure.leftPadding,
@@ -194,15 +220,22 @@ class ProjectStructureItemView : View {
 
 
     suspend fun setImageBitmap(bitmap: Bitmap) {
-        withContext(Dispatchers.Default) {
-            val matrix = Matrix()
-            val scale = configure.iconSize / bitmap.width
-            matrix.setScale(scale, scale)
-            mIconBitmap?.recycle()
-            mIconBitmap =
-                Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
-            if (bitmap != mIconBitmap && !bitmap.isRecycled) {
-                bitmap.recycle()
+        withContext(Dispatchers.IO) {
+            mIconBitmap = bitmap.zoom(configure.iconSize / bitmap.width)
+            postInvalidate()
+        }
+    }
+
+    suspend fun setTagBitmap(bitmap: Bitmap?) {
+        withContext(Dispatchers.IO) {
+            if (bitmap == null) {
+                if (mTagBitmap != null) {
+                    mTagBitmap?.recycle()
+                    mTagBitmap = null
+                }
+            }
+            bitmap?.let {
+                mTagBitmap = it.zoom(configure.tagSize / bitmap.width)
             }
             postInvalidate()
         }
@@ -250,7 +283,6 @@ class ProjectStructureItemView : View {
     fun setLevel(level: Int) {
         if (this.level == level) return
         this.level = level
-//        requestLayout()
     }
 
 
@@ -264,6 +296,7 @@ class ProjectStructureItemView : View {
 
     fun setIsExpanded(isExpanded: Boolean) {
         this.isExpanded = isExpanded
+        this.isInit = true
         requestLayout()
     }
 
@@ -271,13 +304,14 @@ class ProjectStructureItemView : View {
         return type == DIRECTORY
     }
 
+
     data class Configure(
         var leftPadding: Float,
         var title: String,
         var titleColor: Int,
         var titleSize: Float,
         var iconSize: Float, // It's the side length of the icon square.
-
+        var tagSize: Float,
         var indentLineColor: Int,
         var indentLineStroke: Float
     )

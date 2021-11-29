@@ -20,6 +20,7 @@
 package org.codroid.editor.ui.projectstruct
 
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Color
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.drawable.toBitmap
@@ -35,7 +36,12 @@ import org.codroid.editor.R
 import org.codroid.editor.databinding.ItemProjectStructBinding
 import org.codroid.editor.ui.FileItem
 import org.codroid.editor.widgets.ProjectStructureItemView
+import org.codroid.interfaces.addon.AddonManager
+import org.codroid.interfaces.evnet.EventCenter
+import org.codroid.interfaces.evnet.editor.ProjectStructItemLoadEvent
+import org.codroid.interfaces.evnet.entities.ProjectStructItemEntity
 import java.io.File
+import java.lang.Exception
 
 class ProjectStructureAdapter() :
     BaseQuickAdapter<FileTreeNode, BaseDataBindingHolder<ItemProjectStructBinding>>(R.layout.item_project_struct) {
@@ -46,6 +52,10 @@ class ProjectStructureAdapter() :
         holder: BaseDataBindingHolder<ItemProjectStructBinding>,
         item: FileTreeNode
     ) {
+        var addon: ProjectStructItemEntity? = null
+
+        val itemView = holder.dataBinding?.projectStructureItem
+
         var type = ProjectStructureItemView.FILE
 
         if (item.element?.isDirectory == true) {
@@ -58,7 +68,41 @@ class ProjectStructureAdapter() :
             }
 
         scope.launch {
-            holder.dataBinding?.projectStructureItem?.setImageBitmap(initIcon(type))
+            withContext(Dispatchers.Default) {
+                AddonManager.get().eventCenter()
+                    .executeStream<ProjectStructItemLoadEvent>(EventCenter.EventsEnum.PROJECT_STRUCT_ITEM_LOAD)
+                    .forEach {
+                        try {
+                            it?.beforeLoading(item.element)?.let { entity ->
+                                addon = entity
+                            }
+                        } catch (e: Exception) {
+                            AddonManager.get().logger.e("An event: ${it.javaClass.name} execute failed! ( ${e.message} )")
+                            e.printStackTrace()
+                        }
+                    }
+
+                if (addon?.icon != null) {
+                    addon?.icon?.let {
+                        itemView?.setImageBitmap(it.toBitmap())
+                    }
+                } else {
+                    itemView?.setImageBitmap(initIcon(type))
+                }
+
+                addon?.let { it ->
+
+                    if (addon?.tagIcon != null) {
+                        itemView?.setTagBitmap(addon?.tagIcon?.toBitmap())
+                    } else {
+                        itemView?.setTagBitmap(null)
+                    }
+
+                    it.title?.let { str ->
+                        itemView?.setTitle(str)
+                    }
+                }
+            }
         }
     }
 

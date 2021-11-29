@@ -33,6 +33,7 @@ import android.view.MenuItem
 import android.widget.TextView
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewModelScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -79,6 +80,7 @@ class MainActivity : AppCompatActivity() {
         permissionApply()
 
         projectWindow()
+        Log.i("Zac", "Mode: ${AppCompatDelegate.getDefaultNightMode()}")
         AddonManager.get().eventCenter()
             .register(EventCenter.EventsEnum.EDITOR_SELECTION_CHANGED, TestEvent())
         AddonManager.get().eventCenter()
