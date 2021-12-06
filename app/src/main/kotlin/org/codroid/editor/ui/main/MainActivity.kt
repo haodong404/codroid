@@ -27,19 +27,15 @@ import android.os.Bundle
 import android.text.Spannable
 import android.text.SpannableString
 import android.text.style.ForegroundColorSpan
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.TextView
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.app.AppCompatDelegate
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.viewModelScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.snackbar.Snackbar
 import com.permissionx.guolindev.PermissionX
-import kotlinx.coroutines.launch
 import org.codroid.editor.Codroid
 import org.codroid.editor.R
 import org.codroid.editor.databinding.ActivityMainBinding
@@ -47,22 +43,17 @@ import org.codroid.editor.ui.addonmanager.AddonManagerActivity
 import org.codroid.editor.ui.projectstruct.FileTreeNode
 import org.codroid.editor.ui.projectstruct.ProjectStructureAdapter
 import org.codroid.editor.widget.TestEvent
-import org.codroid.editor.widgets.ProjectStructureItemView
+import org.codroid.editor.widgets.DirTreeItemView
 import org.codroid.interfaces.addon.AddonManager
 import org.codroid.interfaces.evnet.EventCenter
-import java.io.File
 
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
 
-    private val projectStructAdapter by lazy {
+    private val mDirTreeAdapter by lazy {
         ProjectStructureAdapter()
-    }
-
-    companion object {
-        private const val PERMISSION_RESULT_CODE = 1
     }
 
     private val viewModel: MainViewModel by viewModels()
@@ -73,14 +64,12 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         setSupportActionBar(binding.activityMainToolbar)
-        binding.projectStructureRv.adapter = projectStructAdapter
-        binding.projectStructureRv.layoutManager = LinearLayoutManager(this)
-
-        binding.projectStructureRv.setItemViewCacheSize(2)
+        binding.activityMainDirTreeRv.adapter = mDirTreeAdapter
+        binding.activityMainDirTreeRv.layoutManager = LinearLayoutManager(this)
+        mDirTreeAdapter.animationEnable = true
         permissionApply()
 
         projectWindow()
-        Log.i("Zac", "Mode: ${AppCompatDelegate.getDefaultNightMode()}")
         AddonManager.get().eventCenter()
             .register(EventCenter.EventsEnum.EDITOR_SELECTION_CHANGED, TestEvent())
         AddonManager.get().eventCenter()
@@ -94,18 +83,20 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun projectWindow() {
-        projectStructAdapter.setOnItemClickListener { adapter, view, position ->
+        mDirTreeAdapter.setOnItemClickListener { adapter, view, position ->
             val now = adapter.getItem(position) as FileTreeNode
-            val item = view.findViewById<ProjectStructureItemView>(R.id.project_structure_item)
+            val item = view.findViewById<DirTreeItemView>(R.id.dir_tree_item)
             item.changeStatus()
             if (item.isDir() && item.isExpanded) {
                 viewModel.nextDir(now).observe(this@MainActivity) { response ->
                     response?.let {
-                        projectStructAdapter.expand(position, it)
+                        mDirTreeAdapter.expand(position, it)
                     }
                 }
             } else if (item.isDir() && !item.isExpanded) {
-                projectStructAdapter.close(position)
+                mDirTreeAdapter.close(position)
+            } else if(!item.isDir()) {
+
             }
         }
     }
@@ -137,7 +128,7 @@ class MainActivity : AppCompatActivity() {
                     viewModel.openDir(Codroid.SDCARD_ROOT_DIR)
                         .observe(this@MainActivity) { response ->
                             response?.let {
-                                projectStructAdapter.setList(response)
+                                mDirTreeAdapter.setList(response)
                             }
                         }
                 } else {

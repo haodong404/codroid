@@ -42,12 +42,18 @@
 
     </com.google.android.material.appbar.AppBarLayout>
 
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/activity_main_tab_rv"
+        app:layout_constraintTop_toBottomOf="@id/activity_main_app_bar_layout"
+        android:layout_width="match_parent"
+        android:layout_height="30dp"/>
+
     <androidx.drawerlayout.widget.DrawerLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/activity_main_app_bar_layout">
+        app:layout_constraintTop_toBottomOf="@id/activity_main_tab_rv">
 
         <androidx.coordinatorlayout.widget.CoordinatorLayout
             android:layout_width="match_parent"
@@ -78,19 +84,32 @@
                 android:id="@+id/activity_main_bottom_panel"
                 android:layout_width="match_parent"
                 android:layout_height="300dp"
-                android:background="@color/pink_500"
+                android:background="?attr/colorSurface"
                 android:orientation="horizontal"
                 app:behavior_hideable="false"
                 app:behavior_peekHeight="30dp"
                 app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
 
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/project_structure_rv"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+
+                <HorizontalScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@null"
                     android:layout_gravity="start"
-                    android:background="?attr/android:colorBackground"
-                    android:scrollIndicators="end"/>
+                    android:fillViewport="true">
+
+                    <RelativeLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent">
+
+                        <androidx.recyclerview.widget.RecyclerView
+                            android:id="@+id/activity_main_dir_tree_rv"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:scrollIndicators="end" />
+
+                    </RelativeLayout>
+                </HorizontalScrollView>
 
             </org.codroid.editor.widget.BottomPanel>
 

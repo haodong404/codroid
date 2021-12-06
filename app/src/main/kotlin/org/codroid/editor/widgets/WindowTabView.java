@@ -17,16 +17,8 @@
  *     along with Codroid.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.codroid.interfaces.appearance.editor;
+package org.codroid.editor.widgets;
 
-import org.codroid.interfaces.appearance.parts.SemanticHighlightPart;
+public class WindowTabView {
 
-/**
- * This class defines a keyword semantic span.
- */
-public class Keyword extends SemanticTextColorSpan {
-    @Override
-    public String type() {
-        return SemanticHighlightPart.Attribute.KEYWORD;
-    }
 }

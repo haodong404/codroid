@@ -27,6 +27,10 @@ import org.codroid.interfaces.appearance.Semantic;
 
 import java.util.Arrays;
 
+/**
+ * This class is a wrapped spannable,
+ * which is convenient to set spans on the special texts.
+ */
 public class WrappedSpannable {
 
     private Spannable spannable;
@@ -39,11 +43,24 @@ public class WrappedSpannable {
         return this.spannable;
     }
 
+    /**
+     * It's called when global spannable changed.
+     *
+     * @param spannable it's always from CodroidEditor.
+     * @return this instance.
+     */
     public WrappedSpannable update(Spannable spannable) {
         this.spannable = spannable;
         return this;
     }
 
+    /**
+     * Attach a semantic span to the text.
+     *
+     * @param start where the position started.
+     * @param end   where the position ended.
+     * @param what  the semantic span
+     */
     public void endowSemantic(int start, int end, Class<? extends Semantic> what) {
         if (what != null) {
             if (!isSemanticExists(start, end)) {
@@ -57,6 +74,13 @@ public class WrappedSpannable {
         }
     }
 
+    /**
+     * Determine whether a span is semantics.
+     *
+     * @param start where the position started.
+     * @param end where the position ended.
+     * @return true if exists.
+     */
     private boolean isSemanticExists(int start, int end) {
         Semantic[] spans = spannable.getSpans(start, end, Semantic.class);
         if (spans.length == 1) return spannable.getSpanEnd(spans[0]) >= end;

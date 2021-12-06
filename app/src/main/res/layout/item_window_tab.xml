@@ -17,24 +17,8 @@
   ~     along with Codroid.  If not, see <https://www.gnu.org/licenses/>.
   -->
 
-<layout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
 
-    <data>
-        <variable
-            name="item"
-            type="org.codroid.editor.ui.FileItem" />
-    </data>
-
-    <org.codroid.editor.widgets.ProjectStructureItemView
-        android:id="@+id/project_structure_item"
-        android:layout_width="match_parent"
-        android:background="?attr/colorSurface"
-        android:foreground="?android:attr/selectableItemBackground"
-        app:level="@{item.level}"
-        app:title="@{item.name}"
-        app:type="@{item.type}"
-        app:isExpanded="@{item.isExpanded}"
-        app:titleColor="@{item.textColor}"
-        android:layout_height="30dp"/>
-</layout>
+</androidx.constraintlayout.widget.ConstraintLayout>

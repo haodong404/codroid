@@ -30,7 +30,7 @@ import androidx.core.graphics.drawable.toBitmap
 import kotlinx.coroutines.*
 import org.codroid.editor.*
 
-class ProjectStructureItemView : View {
+class DirTreeItemView : View {
 
     constructor(context: Context) : super(context) {
         init()
@@ -38,13 +38,13 @@ class ProjectStructureItemView : View {
 
     constructor(context: Context, attrs: AttributeSet?) : super(context, attrs) {
         init()
-        val typedArray = context.obtainStyledAttributes(attrs, R.styleable.ProjectStructureItem)
-        configure.title = typedArray.getString(R.styleable.ProjectStructureItem_title) ?: ""
+        val typedArray = context.obtainStyledAttributes(attrs, R.styleable.DirTreeItemView)
+        configure.title = typedArray.getString(R.styleable.DirTreeItemView_title) ?: ""
         configure.titleColor =
-            typedArray.getColor(R.styleable.ProjectStructureItem_titleColor, Color.BLACK)
-        type = typedArray.getString(R.styleable.ProjectStructureItem_type) ?: ""
-        level = typedArray.getInteger(R.styleable.ProjectStructureItem_level, 0)
-        isExpanded = typedArray.getBoolean(R.styleable.ProjectStructureItem_isExpanded, false)
+            typedArray.getColor(R.styleable.DirTreeItemView_titleColor, Color.BLACK)
+        type = typedArray.getString(R.styleable.DirTreeItemView_type) ?: ""
+        level = typedArray.getInteger(R.styleable.DirTreeItemView_level, 0)
+        isExpanded = typedArray.getBoolean(R.styleable.DirTreeItemView_isExpanded, false)
         typedArray.recycle()
     }
 
@@ -181,6 +181,9 @@ class ProjectStructureItemView : View {
 
         mTitleTopSpace = mTitleHalfHeight + measuredHeight / 2F
         mTitleMarginLeft = (iconMarginLeft + configure.iconSize).toInt()
+        if (mTitleMarginLeft + mTitlePaint.measureText(configure.title) > measuredWidth) {
+            setMeasuredDimension((mTitleMarginLeft + mTitlePaint.measureText(configure.title)).toInt() + 50, measuredHeight)
+        }
     }
 
     override fun onDraw(canvas: Canvas?) {

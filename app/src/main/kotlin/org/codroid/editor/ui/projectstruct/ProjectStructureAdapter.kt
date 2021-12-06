@@ -20,46 +20,61 @@
 package org.codroid.editor.ui.projectstruct
 
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.graphics.Color
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.drawable.toBitmap
 import androidx.recyclerview.widget.RecyclerView
-import com.chad.library.adapter.base.BaseNodeAdapter
 import com.chad.library.adapter.base.BaseQuickAdapter
-import com.chad.library.adapter.base.entity.node.BaseNode
-import com.chad.library.adapter.base.provider.BaseNodeProvider
 import com.chad.library.adapter.base.viewholder.BaseDataBindingHolder
-import com.chad.library.adapter.base.viewholder.BaseViewHolder
 import kotlinx.coroutines.*
 import org.codroid.editor.R
 import org.codroid.editor.databinding.ItemProjectStructBinding
 import org.codroid.editor.ui.FileItem
-import org.codroid.editor.widgets.ProjectStructureItemView
+import org.codroid.editor.widgets.DirTreeItemView
 import org.codroid.interfaces.addon.AddonManager
 import org.codroid.interfaces.evnet.EventCenter
 import org.codroid.interfaces.evnet.editor.ProjectStructItemLoadEvent
 import org.codroid.interfaces.evnet.entities.ProjectStructItemEntity
-import java.io.File
 import java.lang.Exception
 
 class ProjectStructureAdapter() :
-    BaseQuickAdapter<FileTreeNode, BaseDataBindingHolder<ItemProjectStructBinding>>(R.layout.item_project_struct) {
+    BaseQuickAdapter<FileTreeNode, BaseDataBindingHolder<ItemProjectStructBinding>>(R.layout.item_dir_tree) {
 
     private val scope = CoroutineScope(Dispatchers.Main)
+
+    companion object {
+        var dirStandardBitmap: Bitmap? = null
+        var fileStandardBitmap: Bitmap? = null
+    }
 
     override fun convert(
         holder: BaseDataBindingHolder<ItemProjectStructBinding>,
         item: FileTreeNode
     ) {
+        if (dirStandardBitmap == null) {
+            dirStandardBitmap = ResourcesCompat.getDrawable(
+                context.resources,
+                R.drawable.ic_twotone_folder_open_24,
+                context.theme
+            )?.toBitmap()!!
+        }
+
+        if (fileStandardBitmap == null) {
+            fileStandardBitmap = ResourcesCompat.getDrawable(
+                context.resources,
+                R.drawable.ic_twotone_description_24,
+                context.theme
+            )?.toBitmap()!!
+        }
+
         var addon: ProjectStructItemEntity? = null
 
         val itemView = holder.dataBinding?.projectStructureItem
 
-        var type = ProjectStructureItemView.FILE
+        var type = DirTreeItemView.FILE
 
         if (item.element?.isDirectory == true) {
-            type = ProjectStructureItemView.DIRECTORY
+            type = DirTreeItemView.DIRECTORY
         }
 
         holder.dataBinding?.item =
@@ -109,18 +124,8 @@ class ProjectStructureAdapter() :
     private fun initIcon(type: String): Bitmap {
         // Init the icon bitmap
         return when (type) {
-            ProjectStructureItemView.DIRECTORY -> ResourcesCompat.getDrawable(
-                context.resources,
-                R.drawable.ic_twotone_folder_open_24,
-                context.theme
-            )?.toBitmap()!!
-            else -> {
-                ResourcesCompat.getDrawable(
-                    context.resources,
-                    R.drawable.ic_twotone_description_24,
-                    context.theme
-                )?.toBitmap()!!
-            }
+            DirTreeItemView.DIRECTORY -> dirStandardBitmap!!
+            else -> fileStandardBitmap!!
         }
     }
 

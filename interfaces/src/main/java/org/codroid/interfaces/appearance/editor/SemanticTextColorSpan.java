@@ -32,15 +32,15 @@ public abstract class SemanticTextColorSpan extends TextColorSpan implements Sem
 
     private Optional<Part> part;
 
-    public SemanticTextColorSpan(){
+    public SemanticTextColorSpan() {
         super();
         part = AddonManager.get().appearancePart(AppearanceProperty.PartEnum.SEMANTIC_HIGHLIGHT);
     }
 
     @Override
     protected Color getColor() {
-        if (part.isPresent()){
-            if (part.get().getColor(type()).isPresent()){
+        if (part.isPresent()) {
+            if (part.get().getColor(type()).isPresent()) {
                 return part.get().getColor(type()).get();
             }
         }

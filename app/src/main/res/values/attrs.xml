@@ -21,7 +21,7 @@
         <attr name="backgroundColor" format="color" />
     </declare-styleable>
 
-    <declare-styleable name="ProjectStructureItem">
+    <declare-styleable name="DirTreeItemView">
         <attr name="title" format="string" />
         <attr name="titleColor" format="color" />
         <attr name="level" format="integer" />

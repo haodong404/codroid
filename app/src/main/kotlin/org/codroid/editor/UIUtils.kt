@@ -58,10 +58,11 @@ fun Context.sp2px(spValue: Float): Float {
 
 fun Bitmap.zoom(scale: Float): Bitmap {
     val matrix = Matrix()
+    if (scale.toInt() == 1) return this
     matrix.setScale(scale, scale)
     val new = Bitmap.createBitmap(this, 0, 0, width, height, matrix, true)
     if (this != new && !this@zoom.isRecycled) {
-        this.recycle()
+        this.recycle ()
     }
     return new
 }
