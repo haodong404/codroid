@@ -17,9 +17,8 @@
  *     along with Codroid.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.codroid.editor.ui.projectstruct
+package org.codroid.editor.ui.dirtree
 
-import com.chad.library.adapter.base.entity.node.BaseNode
 import java.io.File
 import java.util.Comparator
 

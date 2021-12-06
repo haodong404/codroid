@@ -19,17 +19,10 @@
 
 package org.codroid.editor.ui.main
 
-import android.util.Log
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.liveData
-import androidx.lifecycle.viewModelScope
-import com.chad.library.adapter.base.provider.BaseNodeProvider
-import kotlinx.coroutines.delay
-import org.codroid.editor.ui.projectstruct.FileTreeNode
-import org.codroid.interfaces.utils.PathUtils
+import org.codroid.editor.ui.dirtree.FileTreeNode
 import java.io.File
-import java.nio.file.Paths
 
 class MainViewModel : ViewModel() {
 

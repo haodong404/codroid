@@ -17,8 +17,29 @@
  *     along with Codroid.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.codroid.editor.widgets;
+package org.codroid.editor.ui.main
 
-public class WindowTabView {
+import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import androidx.databinding.DataBindingUtil
+import androidx.databinding.ViewDataBinding
+import androidx.fragment.app.Fragment
+import org.codroid.editor.R
+import org.codroid.editor.databinding.FragmentEditorWindowBinding
 
+class EditorWindowFragment : Fragment() {
+
+    private lateinit var binding: FragmentEditorWindowBinding
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        binding = FragmentEditorWindowBinding.inflate(inflater)
+
+        return binding.root
+    }
 }

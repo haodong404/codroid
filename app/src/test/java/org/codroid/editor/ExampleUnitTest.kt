@@ -1,6 +1,6 @@
 package org.codroid.editor
 
-import org.codroid.editor.ui.projectstruct.FileTreeNode
+import org.codroid.editor.ui.dirtree.FileTreeNode
 import org.junit.Test
 
 import org.junit.Assert.*

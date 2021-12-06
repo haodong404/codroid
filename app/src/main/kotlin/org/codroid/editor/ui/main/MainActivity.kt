@@ -21,18 +21,15 @@ package org.codroid.editor.ui.main
 
 import android.Manifest
 import android.content.Intent
-import android.graphics.Color
+import android.graphics.BitmapFactory
 import android.os.Build
 import android.os.Bundle
-import android.text.Spannable
-import android.text.SpannableString
-import android.text.style.ForegroundColorSpan
 import android.view.Menu
 import android.view.MenuItem
-import android.widget.TextView
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.lifecycleScope
+import androidx.core.content.res.ResourcesCompat
+import androidx.core.graphics.drawable.toBitmap
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.snackbar.Snackbar
 import com.permissionx.guolindev.PermissionX
@@ -40,12 +37,9 @@ import org.codroid.editor.Codroid
 import org.codroid.editor.R
 import org.codroid.editor.databinding.ActivityMainBinding
 import org.codroid.editor.ui.addonmanager.AddonManagerActivity
-import org.codroid.editor.ui.projectstruct.FileTreeNode
-import org.codroid.editor.ui.projectstruct.ProjectStructureAdapter
-import org.codroid.editor.widget.TestEvent
+import org.codroid.editor.ui.dirtree.FileTreeNode
+import org.codroid.editor.ui.dirtree.DirTreeAdapter
 import org.codroid.editor.widgets.DirTreeItemView
-import org.codroid.interfaces.addon.AddonManager
-import org.codroid.interfaces.evnet.EventCenter
 
 
 class MainActivity : AppCompatActivity() {
@@ -53,7 +47,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
 
     private val mDirTreeAdapter by lazy {
-        ProjectStructureAdapter()
+        DirTreeAdapter()
     }
 
     private val viewModel: MainViewModel by viewModels()
@@ -69,20 +63,19 @@ class MainActivity : AppCompatActivity() {
         mDirTreeAdapter.animationEnable = true
         permissionApply()
 
-        projectWindow()
-        AddonManager.get().eventCenter()
-            .register(EventCenter.EventsEnum.EDITOR_SELECTION_CHANGED, TestEvent())
-        AddonManager.get().eventCenter()
-            .register(EventCenter.EventsEnum.EDITOR_TEXT_CHANGED, TestEvent())
-        lifecycleScope.launchWhenCreated {
-            val spannableString = SpannableString("Hello World")
-            val colorSpan = ForegroundColorSpan(Color.RED)
-            spannableString.setSpan(colorSpan, 0, 2, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
-            binding.activityMainEditor.setText(spannableString, TextView.BufferType.SPANNABLE)
-        }
+        dirTreeWindow()
+
+        editorWindow()
+
     }
 
-    private fun projectWindow() {
+    private fun editorWindow() {
+        val adapter = EditorWindowAdapter(supportFragmentManager, lifecycle)
+        binding.activityMainEditorWindow.adapter = adapter
+        adapter.addFragments(listOf(EditorWindowFragment(), EditorWindowFragment()))
+    }
+
+    private fun dirTreeWindow() {
         mDirTreeAdapter.setOnItemClickListener { adapter, view, position ->
             val now = adapter.getItem(position) as FileTreeNode
             val item = view.findViewById<DirTreeItemView>(R.id.dir_tree_item)
@@ -95,8 +88,8 @@ class MainActivity : AppCompatActivity() {
                 }
             } else if (item.isDir() && !item.isExpanded) {
                 mDirTreeAdapter.close(position)
-            } else if(!item.isDir()) {
-
+            } else if (!item.isDir()) {
+                Snackbar.make(binding.root, now.element?.name ?: "None", Snackbar.LENGTH_SHORT).show()
             }
         }
     }
@@ -162,13 +155,6 @@ class MainActivity : AppCompatActivity() {
 
         R.id.action_setting -> {
             binding.activityMainBottomPanel.close()
-            val spannableStr: Spannable = binding.activityMainEditor.text as Spannable
-            spannableStr.setSpan(
-                ForegroundColorSpan(Color.GREEN),
-                0,
-                3,
-                Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
-            )
             true
         }
 
