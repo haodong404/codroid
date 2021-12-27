@@ -21,25 +21,27 @@ package org.codroid.editor.ui.main
 
 import android.Manifest
 import android.content.Intent
-import android.graphics.BitmapFactory
 import android.os.Build
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.res.ResourcesCompat
-import androidx.core.graphics.drawable.toBitmap
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.viewModelScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.snackbar.Snackbar
 import com.permissionx.guolindev.PermissionX
+import kotlinx.coroutines.launch
 import org.codroid.editor.Codroid
 import org.codroid.editor.R
 import org.codroid.editor.databinding.ActivityMainBinding
 import org.codroid.editor.ui.addonmanager.AddonManagerActivity
 import org.codroid.editor.ui.dirtree.FileTreeNode
 import org.codroid.editor.ui.dirtree.DirTreeAdapter
+import org.codroid.editor.ui.utils.EditorWindowHelper
 import org.codroid.editor.widgets.DirTreeItemView
+import java.nio.file.Paths
 
 
 class MainActivity : AppCompatActivity() {
@@ -52,30 +54,38 @@ class MainActivity : AppCompatActivity() {
 
     private val viewModel: MainViewModel by viewModels()
 
+    private lateinit var mWindowHelper: EditorWindowHelper
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         setSupportActionBar(binding.activityMainToolbar)
-        binding.activityMainDirTreeRv.adapter = mDirTreeAdapter
-        binding.activityMainDirTreeRv.layoutManager = LinearLayoutManager(this)
-        mDirTreeAdapter.animationEnable = true
+
         permissionApply()
 
-        dirTreeWindow()
-
         editorWindow()
+
+        dirTreeWindow()
 
     }
 
     private fun editorWindow() {
         val adapter = EditorWindowAdapter(supportFragmentManager, lifecycle)
         binding.activityMainEditorWindow.adapter = adapter
-        adapter.addFragments(listOf(EditorWindowFragment(), EditorWindowFragment()))
+        val windowTagAdapter = WindowTabAdapter()
+        binding.activityMainTabRv.adapter = windowTagAdapter
+        binding.activityMainTabRv.itemAnimator = null
+        binding.activityMainTabRv.layoutManager =
+            LinearLayoutManager(this).apply { orientation = LinearLayoutManager.HORIZONTAL }
+        mWindowHelper =
+            EditorWindowHelper(binding.activityMainEditorWindow, binding.activityMainTabRv)
     }
 
     private fun dirTreeWindow() {
+        binding.activityMainDirTreeRv.adapter = mDirTreeAdapter
+        binding.activityMainDirTreeRv.layoutManager = LinearLayoutManager(this)
         mDirTreeAdapter.setOnItemClickListener { adapter, view, position ->
             val now = adapter.getItem(position) as FileTreeNode
             val item = view.findViewById<DirTreeItemView>(R.id.dir_tree_item)
@@ -89,7 +99,13 @@ class MainActivity : AppCompatActivity() {
             } else if (item.isDir() && !item.isExpanded) {
                 mDirTreeAdapter.close(position)
             } else if (!item.isDir()) {
-                Snackbar.make(binding.root, now.element?.name ?: "None", Snackbar.LENGTH_SHORT).show()
+                lifecycleScope.launch {
+                    now.element?.let {
+                        val temp = it.toPath()
+                        mWindowHelper.newWindow(temp)
+                        mWindowHelper.change(temp)
+                    }
+                }
             }
         }
     }

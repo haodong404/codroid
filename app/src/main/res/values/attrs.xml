@@ -29,4 +29,8 @@
         <attr name="type" format="string" />
 
     </declare-styleable>
+
+    <declare-styleable name="WindowTab">
+        <attr name="name" format="string"/>
+    </declare-styleable>
 </resources>

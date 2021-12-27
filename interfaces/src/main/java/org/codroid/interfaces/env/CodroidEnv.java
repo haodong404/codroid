@@ -35,7 +35,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 /**
- * The basic environment of Codroid addon,
+ * This class is the basic environment of Codroid addon,
  * which contains global information about addons and provided by Codroid.
  * <p>
  * It allows to access specific directories, loggers, theme, etc.
@@ -70,6 +70,11 @@ public abstract class CodroidEnv implements Loggable {
         return getCodroidExternalDir(LOG_FILE_DIR);
     }
 
+    /**
+     * Determine whether the addon has existed through the packages in the addon directory.
+     * @param _package addon package
+     * @return true if exists.
+     */
     public boolean isAddonExist(String _package) {
         for (var i : Objects.requireNonNull(getAddonsDir().list())) {
             if (TextUtils.equals(i, _package)) {
@@ -101,18 +106,43 @@ public abstract class CodroidEnv implements Loggable {
         return Optional.empty();
     }
 
+    /**
+     * Return the addon directory.
+     * Android/data/org.codroid.editor/files/addons
+     *
+     * @return the addons directory
+     */
     public File getAddonsDir() {
         return getCodroidExternalDir(ADDONS_DIR);
     }
 
+    /**
+     * Return the specific directory of the addon.
+     *
+     * @param _package addon package.
+     * @return addon directory.
+     */
     public File getAddonRootDir(String _package) {
         return PathUtils.splice(getAddonsDir(), _package).toFile();
     }
 
+    /**
+     * Return Codroid's external directory,
+     * which is Android/data/org.codroid.editor/files/${subDir}
+     *
+     * @param subDir subfolder.
+     * @return Directory
+     */
     public File getCodroidExternalDir(String subDir) {
         return context.getExternalFilesDir(subDir);
     }
 
+    /**
+     * Return the directory where temporary files are stored.
+     * All the things in this directory will be cleared during Codroid startup.
+     *
+     * @return Temporary directory.
+     */
     public File getTempDir() {
         return getCodroidExternalDir(TEMP_DIR);
     }

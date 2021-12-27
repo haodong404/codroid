@@ -42,7 +42,6 @@ class MainViewModel : ViewModel() {
         }
     }
 
-
     fun nextDir(currentNode: FileTreeNode) = liveData {
         currentNode.element?.let {
             File(it.path).apply {

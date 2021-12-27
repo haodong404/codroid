@@ -20,16 +20,15 @@
 package org.codroid.editor.ui.main
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.databinding.DataBindingUtil
-import androidx.databinding.ViewDataBinding
 import androidx.fragment.app.Fragment
-import org.codroid.editor.R
 import org.codroid.editor.databinding.FragmentEditorWindowBinding
+import java.nio.file.Path
 
-class EditorWindowFragment : Fragment() {
+class EditorWindowFragment(var path: Path) : Fragment() {
 
     private lateinit var binding: FragmentEditorWindowBinding
 
@@ -37,9 +36,10 @@ class EditorWindowFragment : Fragment() {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         binding = FragmentEditorWindowBinding.inflate(inflater)
-
+        binding.editorWindowCodroidEditor.setText(path.toString())
         return binding.root
     }
+
 }

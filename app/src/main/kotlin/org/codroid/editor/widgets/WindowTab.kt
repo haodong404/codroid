@@ -27,6 +27,7 @@ import android.view.MotionEvent
 import android.view.View
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.drawable.toBitmap
+import androidx.core.view.isInvisible
 import org.codroid.editor.R
 import org.codroid.editor.dip2px
 import org.codroid.editor.getAttrColor
@@ -40,6 +41,9 @@ class WindowTab : View {
 
     constructor(context: Context, attrs: AttributeSet?) : super(context, attrs) {
         init()
+        val typeArr = context.obtainStyledAttributes(attrs, R.styleable.WindowTab)
+        mTitle = typeArr.getString(R.styleable.WindowTab_name) ?: "None"
+        typeArr.recycle()
     }
 
     constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : super(
@@ -66,16 +70,20 @@ class WindowTab : View {
 
     private var titleLeft = 0F
 
-    var mTitle = ""
-    var mTitleSize = 0F
-    var mTitleColor = 0
+    private var mTitle = ""
+    private var mTitleSize = 0F
+    private var mTitleColor = 0
 
-    var mTitleHalfHeight = 0F
-    var mTitleTop = 0F
+    private var mTitleHalfHeight = 0F
+    private var mTitleTop = 0F
 
-    var mIconBitmap: Bitmap? = null
+    private var mIconBitmap: Bitmap? = null
+    private var mIsSelect: Boolean = false
+    private var mSelectedColor: Int = Color.CYAN
 
-    var mCloseListener: OnClickListener? = null
+    private var mCloseListener: OnClickListener? = null
+
+    private var isClickOnClose = false
 
     private fun init() {
         mTitleSize = context.dip2px(12F)
@@ -127,7 +135,7 @@ class WindowTab : View {
                 measuredWidth + it.width + context.dip2px(4F),
                 top + it.height
             )
-            measuredWidth += it.width
+            measuredWidth = mCloseRectF.right
         }
         mTitleTop = measuredHeight / 2F + mTitleHalfHeight
         measuredWidth += paddingLeft + paddingRight
@@ -144,14 +152,25 @@ class WindowTab : View {
         mCloseBitmap?.let {
             canvas?.drawBitmap(it, null, mCloseRectF, null)
         }
+
+    }
+
+    override fun dispatchTouchEvent(event: MotionEvent?): Boolean {
+        if (event?.action == MotionEvent.ACTION_DOWN) {
+            isClickOnClose = isInRect(mCloseRectF, event.x, event.y)
+            return true
+        } else if (event?.action == MotionEvent.ACTION_UP) {
+            return if (isClickOnClose && isInRect(mCloseRectF, event.x, event.y)) {
+                onTouchEvent(event)
+            } else {
+                performClick()
+            }
+        }
+        return false
     }
 
     override fun onTouchEvent(event: MotionEvent?): Boolean {
-        return when(event?.action) {
-            MotionEvent.ACTION_DOWN -> {
-                isInRect(mCloseRectF, event.x, event.y)
-            }
-
+        return when (event?.action) {
             MotionEvent.ACTION_UP -> {
                 if (isInRect(mCloseRectF, event.x, event.y)) {
                     mCloseListener?.let {
@@ -162,7 +181,6 @@ class WindowTab : View {
                     false
                 }
             }
-
             else -> {
                 false
             }
@@ -175,12 +193,27 @@ class WindowTab : View {
 
     fun setTitle(title: String) {
         this.mTitle = title
+        requestLayout()
     }
 
     fun setIconBitmap(bitmap: Bitmap) {
         this.mIconBitmap = bitmap
         requestLayout()
         invalidate()
+    }
+
+    fun setIsSelected(isSelect: Boolean) {
+        if (mIsSelect != isSelect) {
+            this.mIsSelect = isSelect
+            if (isSelect)
+                setBackgroundColor(mSelectedColor)
+            else
+                setBackgroundColor(Color.TRANSPARENT)
+        }
+    }
+
+    fun setSelectColor(color: Int) {
+        this.mSelectedColor = color
     }
 
     fun isInRect(rect: RectF, x: Float, y: Float): Boolean {
