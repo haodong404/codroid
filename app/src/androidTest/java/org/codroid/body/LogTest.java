@@ -17,21 +17,36 @@
  *     along with Codroid.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.codroid.interfaces.evnet.editor;
+package org.codroid.body;
 
-import org.codroid.interfaces.appearance.editor.WrappedSpannable;
-import org.codroid.interfaces.evnet.Event;
 
-public interface TextChangedEvent extends Event {
+import android.content.Context;
 
-    /**
-     * Called when text in editor changed.
-     *
-     * @param wrappedSpannable spannable
-     * @param start the starting position
-     * @param lengthBefore length before
-     * @param lengthAfter length after
-     */
-    void onTextChanged(WrappedSpannable wrappedSpannable, int start, int lengthBefore, int lengthAfter);
+import androidx.test.core.app.ApplicationProvider;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+@RunWith(AndroidJUnit4.class)
+public class LogTest {
+    private Context context = ApplicationProvider.getApplicationContext();
+
+    @Test()
+    public void multiLoggerInstanceTest() {
+//        List<Logger> loggers = new LinkedList<>();
+//        for (int i = 0; i < 100; i++) {
+//            loggers.add(new Logger(context, "Logger-" + i));
+//        }
+//
+//        int i = 1;
+//        for (var it : loggers){
+//            for (int j = 0; j < 100; j ++){
+//                it.i("Hello: " + i);
+//                i ++;
+//            }
+//        }
+
+
+    }
 }

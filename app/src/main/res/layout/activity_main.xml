@@ -64,7 +64,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent" />
 
-            <org.codroid.editor.widget.BottomPanel
+            <org.codroid.body.widget.BottomPanel
                 android:id="@+id/activity_main_bottom_panel"
                 android:layout_width="match_parent"
                 android:layout_height="300dp"
@@ -95,7 +95,7 @@
                     </RelativeLayout>
                 </HorizontalScrollView>
 
-            </org.codroid.editor.widget.BottomPanel>
+            </org.codroid.body.widget.BottomPanel>
 
         </androidx.coordinatorlayout.widget.CoordinatorLayout>
 

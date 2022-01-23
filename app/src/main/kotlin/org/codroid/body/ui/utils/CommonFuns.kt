@@ -17,21 +17,15 @@
  *     along with Codroid.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.codroid.interfaces.evnet.editor;
+package org.codroid.body.ui.utils
 
-import org.codroid.interfaces.appearance.editor.WrappedSpannable;
-import org.codroid.interfaces.evnet.Event;
+import android.content.Context
+import android.widget.Toast
 
-public interface TextChangedEvent extends Event {
+fun Context.shortToast(content: CharSequence){
+    Toast.makeText(this, content, Toast.LENGTH_SHORT).show()
+}
 
-    /**
-     * Called when text in editor changed.
-     *
-     * @param wrappedSpannable spannable
-     * @param start the starting position
-     * @param lengthBefore length before
-     * @param lengthAfter length after
-     */
-    void onTextChanged(WrappedSpannable wrappedSpannable, int start, int lengthBefore, int lengthAfter);
-
+fun Context.longToast(content: CharSequence){
+    Toast.makeText(this, content, Toast.LENGTH_LONG).show()
 }

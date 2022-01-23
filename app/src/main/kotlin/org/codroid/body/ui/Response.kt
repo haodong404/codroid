@@ -17,21 +17,28 @@
  *     along with Codroid.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.codroid.interfaces.evnet.editor;
+package org.codroid.body.ui
 
-import org.codroid.interfaces.appearance.editor.WrappedSpannable;
-import org.codroid.interfaces.evnet.Event;
+class Response<T> (state: Int) {
 
-public interface TextChangedEvent extends Event {
+    constructor(state: Int, result: T) : this(state) {
+        this.result = result
+    }
 
-    /**
-     * Called when text in editor changed.
-     *
-     * @param wrappedSpannable spannable
-     * @param start the starting position
-     * @param lengthBefore length before
-     * @param lengthAfter length after
-     */
-    void onTextChanged(WrappedSpannable wrappedSpannable, int start, int lengthBefore, int lengthAfter);
+    constructor(state: Int, message: String) : this(state) {
+        this.errorMessage = message
+    }
 
+    private var stateCode: Int = state
+    var result: T? = null
+    var errorMessage: String? = null
+
+    companion object {
+        const val SUCCEED = 1;
+        const val FAILED = 2;
+    }
+
+    fun isSucceed(): Boolean {
+        return stateCode == SUCCEED
+    }
 }

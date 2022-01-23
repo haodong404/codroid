@@ -19,19 +19,19 @@
 
 package org.codroid.interfaces.evnet.editor;
 
-import org.codroid.interfaces.appearance.editor.WrappedSpannable;
 import org.codroid.interfaces.evnet.Event;
+import org.codroid.interfaces.evnet.entities.DirTreeItemEntity;
 
-public interface TextChangedEvent extends Event {
+import java.io.File;
+
+public interface DirTreeItemLoadEvent extends Event {
 
     /**
-     * Called when text in editor changed.
-     *
-     * @param wrappedSpannable spannable
-     * @param start the starting position
-     * @param lengthBefore length before
-     * @param lengthAfter length after
+     * Called before item loaded.
+     * It called in a non-main thread.
+     * @param file file
+     * @return what changes you made.
      */
-    void onTextChanged(WrappedSpannable wrappedSpannable, int start, int lengthBefore, int lengthAfter);
+    DirTreeItemEntity beforeLoading(File file);
 
 }

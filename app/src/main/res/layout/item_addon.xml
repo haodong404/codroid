@@ -22,7 +22,7 @@
 
         <variable
             name="item"
-            type="org.codroid.editor.ui.AddonItem" />
+            type="org.codroid.body.ui.AddonItem" />
     </data>
 
     <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
@@ -73,7 +73,7 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/item_addon_title" />
 
-            <org.codroid.editor.widget.Divider
+            <org.codroid.body.widget.Divider
                 android:id="@+id/item_addon_divider"
                 android:layout_width="match_parent"
                 android:layout_height="1dp"

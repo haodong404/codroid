@@ -21,7 +21,7 @@ package org.codroid.interfaces.evnet;
 
 import androidx.annotation.NonNull;
 
-import org.codroid.interfaces.evnet.editor.ProjectStructItemLoadEvent;
+import org.codroid.interfaces.evnet.editor.DirTreeItemLoadEvent;
 import org.codroid.interfaces.evnet.editor.SelectionChangedEvent;
 import org.codroid.interfaces.evnet.editor.TextChangedEvent;
 
@@ -38,7 +38,7 @@ import java.util.stream.Stream;
  * And the events will be triggered when needed.
  */
 public final class EventCenter {
-
+ 
     /**
      * This enum class contains all the events in Codroid.
      * It must be registered in this class before adding a new event.
@@ -49,9 +49,9 @@ public final class EventCenter {
         EDITOR_SELECTION_CHANGED(SelectionChangedEvent.class),
         EDITOR_TEXT_CHANGED(TextChangedEvent.class),
 
-        PROJECT_STRUCT_ITEM_LOAD(ProjectStructItemLoadEvent.class);
+        PROJECT_STRUCT_ITEM_LOAD(DirTreeItemLoadEvent.class);
 
-        private Class<?> clazz;
+        private final Class<?> clazz;
 
         EventsEnum(Class<?> clazz) {
             this.clazz = clazz;
@@ -91,7 +91,7 @@ public final class EventCenter {
     /**
      * Register a new Event.
      *
-     * @param type What the event type is
+     * @param type  What the event type is
      * @param event new event
      */
     public void register(EventsEnum type, Event event) {
@@ -110,7 +110,7 @@ public final class EventCenter {
      * Execute the events
      *
      * @param eventsEnum What the event type you want to trigger.
-     * @param <T> Class type
+     * @param <T>        Class type
      * @return a list contains addons of the same type.
      */
     @NonNull
@@ -126,7 +126,7 @@ public final class EventCenter {
      * Execute the events by parallel stream.
      *
      * @param eventsEnum What the event type you want to trigger.
-     * @param <T> Class type
+     * @param <T>        Class type
      * @return a stream contains addons of the same type.
      */
     @NonNull

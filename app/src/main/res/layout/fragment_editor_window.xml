@@ -17,17 +17,16 @@
   ~     along with Codroid.  If not, see <https://www.gnu.org/licenses/>.
   -->
 
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@null"
-    android:fillViewport="true">
-
-        <org.codroid.editor.widget.CodroidEditor
-            android:id="@+id/editor_window_codroid_editor"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@android:color/transparent"
-            android:gravity="start|top" />
+    android:layout_height="match_parent">
+    
+    <org.codroid.body.widgets.CodroidEditor
+        android:id="@+id/editor_window_codroid_editor"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@android:color/transparent"
+        android:gravity="start|top" />
 
 </ScrollView>

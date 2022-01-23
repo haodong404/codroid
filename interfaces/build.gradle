@@ -47,7 +47,7 @@ android {
 dependencies {
     implementation files('libs/jtoml-1.1.1.jar')
     testImplementation 'junit:junit:4.13.2'
-    implementation "androidx.room:room-runtime:2.3.0"
-    annotationProcessor "androidx.room:room-compiler:2.3.0"
+    implementation "androidx.room:room-runtime:2.4.1"
+    annotationProcessor "androidx.room:room-compiler:2.4.1"
 }
 

@@ -17,21 +17,15 @@
  *     along with Codroid.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.codroid.interfaces.evnet.editor;
+package org.codroid.body.ui.utils
 
-import org.codroid.interfaces.appearance.editor.WrappedSpannable;
-import org.codroid.interfaces.evnet.Event;
+import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 
-public interface TextChangedEvent extends Event {
-
-    /**
-     * Called when text in editor changed.
-     *
-     * @param wrappedSpannable spannable
-     * @param start the starting position
-     * @param lengthBefore length before
-     * @param lengthAfter length after
-     */
-    void onTextChanged(WrappedSpannable wrappedSpannable, int start, int lengthBefore, int lengthAfter);
-
+fun isStoragePermissionGranted(ctx: Context): Boolean {
+    return ActivityCompat.checkSelfPermission(ctx, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED &&
+            ContextCompat.checkSelfPermission(ctx, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
 }

@@ -17,21 +17,17 @@
  *     along with Codroid.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.codroid.interfaces.evnet.editor;
+package org.codroid.body.ui.addonmanager
 
-import org.codroid.interfaces.appearance.editor.WrappedSpannable;
-import org.codroid.interfaces.evnet.Event;
+import com.chad.library.adapter.base.BaseQuickAdapter
+import com.chad.library.adapter.base.viewholder.BaseDataBindingHolder
+import org.codroid.body.R
+import org.codroid.body.databinding.ItemAddonBinding
+import org.codroid.body.ui.AddonItem
 
-public interface TextChangedEvent extends Event {
+class AddonRecyclerAdapter: BaseQuickAdapter<AddonItem, BaseDataBindingHolder<ItemAddonBinding>>(R.layout.item_addon) {
 
-    /**
-     * Called when text in editor changed.
-     *
-     * @param wrappedSpannable spannable
-     * @param start the starting position
-     * @param lengthBefore length before
-     * @param lengthAfter length after
-     */
-    void onTextChanged(WrappedSpannable wrappedSpannable, int start, int lengthBefore, int lengthAfter);
-
+    override fun convert(holder: BaseDataBindingHolder<ItemAddonBinding>, item: AddonItem) {
+        holder.dataBinding?.item = item
+    }
 }

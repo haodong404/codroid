@@ -17,21 +17,23 @@
  *     along with Codroid.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.codroid.interfaces.evnet.editor;
+package org.codroid.body.ui
 
-import org.codroid.interfaces.appearance.editor.WrappedSpannable;
-import org.codroid.interfaces.evnet.Event;
+import android.graphics.Bitmap
 
-public interface TextChangedEvent extends Event {
+data class FileItem(
+    val name: String,
+    var icon: Bitmap?,
+    val textColor: Int,
+    val type: String,
+    var isExpanded: Boolean,
+    val level: Int
+)
 
-    /**
-     * Called when text in editor changed.
-     *
-     * @param wrappedSpannable spannable
-     * @param start the starting position
-     * @param lengthBefore length before
-     * @param lengthAfter length after
-     */
-    void onTextChanged(WrappedSpannable wrappedSpannable, int start, int lengthBefore, int lengthAfter);
 
-}
+data class AddonItem(
+    val name: String,
+    val version: String,
+    val description: String,
+    val author: String,
+    val link: String)

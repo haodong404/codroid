@@ -17,21 +17,36 @@
  *     along with Codroid.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.codroid.interfaces.evnet.editor;
+package org.codroid.interfaces.evnet.entities;
 
-import org.codroid.interfaces.appearance.editor.WrappedSpannable;
-import org.codroid.interfaces.evnet.Event;
+import org.codroid.interfaces.env.ImageResource;
 
-public interface TextChangedEvent extends Event {
+public class DirTreeItemEntity {
+    private String title;
+    private ImageResource icon;
+    private ImageResource tagIcon;
 
-    /**
-     * Called when text in editor changed.
-     *
-     * @param wrappedSpannable spannable
-     * @param start the starting position
-     * @param lengthBefore length before
-     * @param lengthAfter length after
-     */
-    void onTextChanged(WrappedSpannable wrappedSpannable, int start, int lengthBefore, int lengthAfter);
+    public String getTitle() {
+        return title;
+    }
 
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public ImageResource getIcon() {
+        return icon;
+    }
+
+    public void setIcon(ImageResource icon) {
+        this.icon = icon;
+    }
+
+    public ImageResource getTagIcon() {
+        return tagIcon;
+    }
+
+    public void setTagIcon(ImageResource tagIcon) {
+        this.tagIcon = tagIcon;
+    }
 }

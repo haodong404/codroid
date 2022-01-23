@@ -23,10 +23,10 @@
     <data>
         <variable
             name="item"
-            type="org.codroid.editor.ui.FileItem" />
+            type="org.codroid.body.ui.FileItem" />
     </data>
 
-    <org.codroid.editor.widgets.DirTreeItemView
+    <org.codroid.body.widgets.DirTreeItemView
         android:id="@+id/dir_tree_item"
         android:layout_width="match_parent"
         android:background="?attr/colorSurface"
