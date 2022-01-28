@@ -9,3 +9,4 @@ dependencyResolutionManagement {
 rootProject.name = "Codroid"
 include ':app'
 include ':interfaces'
+include ':editor'
