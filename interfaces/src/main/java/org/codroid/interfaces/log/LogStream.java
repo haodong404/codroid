@@ -19,10 +19,9 @@
 
 package org.codroid.interfaces.log;
 
-import android.content.Context;
-
 import org.codroid.interfaces.addon.AddonManager;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -46,7 +45,7 @@ public class LogStream {
 
     private List<WritingProcessor> outputs;
 
-    public LogStream(Context context) {
+    public LogStream(File dir) {
         if (mExecutorService == null) {
             initialize();
             mExecutorService = new ThreadPoolExecutor(mCorePoolSize, mMaximumPoolSize, mKeepAliveTime, TimeUnit.SECONDS, new LinkedBlockingDeque<>());
@@ -54,7 +53,7 @@ public class LogStream {
         outputs = new ArrayList<>(3);
         outputs.add(new Writing2SystemOut());
         try {
-            outputs.add(new Writing2File(context));
+            outputs.add(new Writing2File(dir));
         } catch (IOException e) {
             e.printStackTrace();
         }

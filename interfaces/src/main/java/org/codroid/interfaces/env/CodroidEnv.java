@@ -19,7 +19,6 @@
 
 package org.codroid.interfaces.env;
 
-import android.content.Context;
 import android.text.TextUtils;
 
 import org.codroid.interfaces.appearance.AppearanceProperty;
@@ -42,30 +41,31 @@ import java.util.Optional;
  */
 public abstract class CodroidEnv implements Loggable {
 
-    private Context context;
-
     public final static String ADDONS_DIR = "addons";
     public final static String LOG_FILE_DIR = "logs";
     public final static String TEMP_DIR = "temp";
 
+    protected File rootFile;
+
     protected Map<String, AppearanceProperty> activeAppearances = new HashMap<>();
 
-    public CodroidEnv(Context context) {
-        this.context = context;
+    public CodroidEnv(File root) {
+        this.rootFile = root;
     }
 
     public CodroidEnv() {
 
     }
 
-    public void createCodroidEnv(Context context) {
-        this.context = context;
+    public void createCodroidEnv(File root) {
+        this.rootFile = root;
     }
 
-    public Context getContext() {
-        return context;
-    }
-
+    /**
+     * Return the directory where logs stored.
+     *
+     * @return logs directory.
+     */
     public File getLogsDir() {
         return getCodroidExternalDir(LOG_FILE_DIR);
     }
@@ -134,7 +134,7 @@ public abstract class CodroidEnv implements Loggable {
      * @return Directory
      */
     public File getCodroidExternalDir(String subDir) {
-        return context.getExternalFilesDir(subDir);
+        return new File(rootFile, subDir);
     }
 
     /**

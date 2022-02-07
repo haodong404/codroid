@@ -26,8 +26,7 @@ import org.codroid.body.databinding.ItemWindowTabBinding
 import org.codroid.body.widgets.WindowTab
 import java.nio.file.Path
 
-class WindowTabAdapter :
-    BaseQuickAdapter<Path, BaseDataBindingHolder<ItemWindowTabBinding>>(R.layout.item_window_tab) {
+class WindowTabAdapter : BaseQuickAdapter<Path, BaseDataBindingHolder<ItemWindowTabBinding>>(R.layout.item_window_tab) {
 
     var currentPosition = 0
     private var closeListener: ((Path, Int) -> Unit?)? = null

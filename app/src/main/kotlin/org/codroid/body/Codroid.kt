@@ -49,7 +49,7 @@ class Codroid : Application() {
                 .allowMainThreadQueries()
                 .build()
         THEME = stringPreferencesKey("theme")
-        AddonManager.get().initialize(this, addonDb);
+        AddonManager.get().initialize(getExternalFilesDir(null), addonDb);
         AddonManager.get().loadAddons()
     }
 }

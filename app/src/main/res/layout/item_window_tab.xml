@@ -17,9 +17,7 @@
   ~     along with Codroid.  If not, see <https://www.gnu.org/licenses/>.
   -->
 <layout xmlns:app="http://schemas.android.com/apk/res-auto">
-
     <data>
-
         <variable
             name="path"
             type="java.nio.file.Path" />
