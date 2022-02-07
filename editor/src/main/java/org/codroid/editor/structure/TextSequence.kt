@@ -17,20 +17,12 @@
  *     along with Codroid.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.codroid.editor
+package org.codroid.editor.structure
 
-import org.junit.Test
+interface TextSequence {
+    fun insert(position: Int, content: String)
 
-import org.junit.Assert.*
+    fun delete(start: Int, end: Int)
 
-/**
- * Example local unit test, which will execute on the development machine (host).
- *
- * See [testing documentation](http://d.android.com/tools/testing).
- */
-class ExampleUnitTest {
-    @Test
-    fun addition_isCorrect() {
-        assertEquals(4, 2 + 2)
-    }
+    fun itemAt(target: String)
 }
