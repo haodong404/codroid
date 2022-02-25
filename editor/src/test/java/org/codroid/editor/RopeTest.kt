@@ -19,10 +19,8 @@
 
 package org.codroid.editor
 
-import org.codroid.editor.structure.Rope
+import org.codroid.editor.algorithm.rope.Rope
 import org.junit.Test
-
-import org.junit.Assert.*
 
 /**
  * Example local unit test, which will execute on the development machine (host).
@@ -32,6 +30,6 @@ import org.junit.Assert.*
 class RopeTest {
     @Test
     fun insert() {
-        var root = Rope.Node(null, null)
+        var root = Rope.NodeBody(null, null)
     }
 }

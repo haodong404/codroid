@@ -17,12 +17,16 @@
  *     along with Codroid.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.codroid.editor.structure
+package org.codroid.editor.algorithm.rope
 
-interface TextSequence {
-    fun insert(position: Int, content: String)
+import org.codroid.editor.algorithm.exceptions.TooLongPiecesException
 
-    fun delete(start: Int, end: Int)
-
-    fun itemAt(target: String)
+fun buildLeaf(piece: String): Rope.Leaf {
+    if (piece.length > Rope.MAX_LEAF) {
+        throw TooLongPiecesException()
+    }
+    return Rope.Leaf(
+        value = piece,
+        length = piece.length
+    )
 }

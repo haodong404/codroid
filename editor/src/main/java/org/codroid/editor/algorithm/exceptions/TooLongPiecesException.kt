@@ -17,8 +17,11 @@
  *     along with Codroid.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.codroid.editor
+package org.codroid.editor.algorithm.exceptions
 
-class CodroidEditor {
-    
+import java.lang.Exception
+
+class TooLongPiecesException : Exception() {
+    override val message: String
+        get() = "Too long pieces."
 }

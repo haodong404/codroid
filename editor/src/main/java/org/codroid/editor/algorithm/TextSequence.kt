@@ -17,8 +17,12 @@
  *     along with Codroid.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.codroid.editor
+package org.codroid.editor.algorithm
 
-class CodroidEditor {
-    
+interface TextSequence {
+    fun insert(position: Int, content: String)
+
+    fun delete(start: Int, end: Int)
+
+    fun itemAt(target: String)
 }
