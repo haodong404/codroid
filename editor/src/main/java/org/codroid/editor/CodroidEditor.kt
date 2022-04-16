@@ -55,7 +55,7 @@ class CodroidEditor : View, View.OnClickListener {
     private val mInputMethodManager =
         context?.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
 
-    private var textToDraw = ""
+    private var textToDraw = "HELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLO"
     private var appendPosition = 0F
     private val mTextPaint: Paint by lazy {
         Paint().apply {
