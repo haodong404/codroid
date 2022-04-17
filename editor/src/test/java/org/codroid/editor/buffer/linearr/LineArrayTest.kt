@@ -59,7 +59,25 @@ class LineArrayTest {
     fun delete() {
         mLineArray.delete(0, 42)
         assertEquals(26, mLineArray.rows())
-        assertEquals(618, mLineArray.length())
+        assertEquals(628, mLineArray.length())
+        assertEquals("", mLineArray.rowAt(0))
+
+        mLineArray.delete(0, 1)
+        assertEquals(25, mLineArray.rows())
+        assertEquals(627, mLineArray.length())
+
+        mLineArray.delete(0, 2)
+        assertEquals(23, mLineArray.rows())
+        assertEquals(625, mLineArray.length())
+        assertEquals("import org.codroid.interfaces.log.Logger;", mLineArray.rowAt(0))
+
+        mLineArray.delete(33, 58)
+        assertEquals(20, mLineArray.rows())
+        assertEquals(600, mLineArray.length())
+        assertEquals(
+            "import org.codroid.interfaces.loga superclass that should only be inherited by the exceptions about addon.",
+            mLineArray.rowAt(0)
+        )
     }
 
 

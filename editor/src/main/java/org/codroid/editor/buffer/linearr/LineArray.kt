@@ -71,44 +71,93 @@ class LineArray : TextSequence {
     }
 
     override fun delete(start: Int, end: Int) {
-        var ptr = 0
-        val builder = StringBuilder()
-        var flag = false
-        var startRow = 0
+        var rightEdge: Int
+        var leftEdge = 0
+        var from = -1
+        var to = -1
         var offset = 0
-        for ((idx, i) in mBuffer.withIndex()) {
-            ptr += i.length
-            if (ptr in start..end) {
-                if (!flag) {
-                    builder.append(i)
-                    startRow = idx
-                    flag = true
-                } else {
-                    mBuffer.removeAt(idx)
+        for ((idx, now) in mBuffer.withIndex()) {
+            rightEdge = now.length
+            if (rightEdge in start..end) {
+                if (from == -1) {
+                    from = idx
+                    offset = leftEdge
+                } else if (idx > to) {
+                    to = idx
+                    rightEdge++
                 }
-                builder.append(i)
-                builder.append(TextBufferConfig.lineSeparator())
-            } else if (flag) {
-                builder.removeSuffix(TextBufferConfig.lineSeparator())
+            } else if (from != -1 && to != -1) {
                 break
+            }
+            leftEdge = rightEdge
+        }
+        val pos = concatRows(from, to)
+        if (pos != -1) {
+            if (end - start > mBuffer[pos].length) {
+                mBuffer.removeAt(pos)
             } else {
-                offset += i.length
+                mBuffer[pos] = StringBuilder(mBuffer[pos])
+                    .removeRange(start - offset, end - offset)
+                    .toString()
             }
         }
-        builder.removeRange(start - offset, end - offset)
-
-        length -= (end - start)
-
-        if (builder.isEmpty()) {
-            mBuffer.removeAt(startRow)
-        } else {
-            mBuffer[startRow] = ""
-            insert(builder.toString(), startRow, 0)
-        }
+        length -= end - start
+        expandRow(pos)
     }
 
     override fun replace(content: String, start: Int, end: Int) {
-        TODO("Not yet implemented")
+
+    }
+
+    /**
+     * Concatenate rows into a single row.(which contains line breaker.)
+     *
+     * @param from beginning point.
+     * @param to ending point.
+     * @return the row's index.
+     */
+    private fun concatRows(from: Int, to: Int): Int {
+        if (from >= to) {
+            return -1
+        }
+        var isStart = true
+        val builder = StringBuilder()
+        var next = 0
+        for (i in from..to) {
+            if (isStart) {
+                builder.append(rowAt(i))
+                next = i + 1
+                isStart = false
+            } else {
+                builder.append(TextBufferConfig.lineSeparator())
+                builder.append(rowAt(next))
+                mBuffer.removeAt(next)
+            }
+        }
+        mBuffer[next - 1] = builder.toString()
+        return next - 1
+    }
+
+
+    /**
+     * Expand a row to multiple rows in mBuffer,
+     * if the row contains line breakers.
+     *
+     * @param index which row to expand
+     */
+    private fun expandRow(index: Int) {
+
+        if (!mBuffer[index].contains(TextBufferConfig.lineSeparator())) {
+            return
+        }
+
+        for ((idx, now) in mBuffer[index].lineSequence().withIndex()) {
+            if (idx == 0) {
+                mBuffer[index] = now
+            } else {
+                mBuffer.add(index + idx, now)
+            }
+        }
     }
 
     override fun length(): Int {
