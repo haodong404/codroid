@@ -146,4 +146,23 @@ class LineArrayTest {
                     "}\n", mLineArray.toString()
         )
     }
+
+    @Test
+    fun constructor2() {
+        val seq = LineArray(
+            "package org.codroid.interfaces.exceptions;\n" +
+                    "\n" +
+                    "\n" +
+                    "import org.codroid.interfaces.log.Logger;\n" +
+                    "\n" +
+                    "/**\n" +
+                    " * This is a superclass that should only be inherited by the exceptions about addon.\n" +
+                    " */"
+        )
+
+        seq.delete(1, 0)
+        assertEquals(8, seq.rows())
+        assertEquals(43 + 2 + 43 + 4 + 85 + 3, seq.length())
+        assertEquals("package org.codroid.interfaces.exceptions;", seq.rowAt(0))
+    }
 }
