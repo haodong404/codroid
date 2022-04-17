@@ -83,6 +83,26 @@ class LineArrayTest {
 
     @Test
     fun replace() {
+        mLineArray.replace("Hello ", 0, 0)
+        assertEquals("Hello package org.codroid.interfaces.exceptions;", mLineArray.rowAt(0))
+        assertEquals(26, mLineArray.rows())
+        assertEquals(676, mLineArray.length())
+
+        mLineArray.replace("LINE", 49, 49)
+        assertEquals("LINE", mLineArray.rowAt(1))
+        assertEquals(26, mLineArray.rows())
+        assertEquals(680, mLineArray.length())
+
+        mLineArray.replace("Line2\nLine3\nLine4", 55, 61)
+        assertEquals(28, mLineArray.rows())
+        assertEquals(691, mLineArray.length())
+        assertEquals("Line2", mLineArray.rowAt(3))
+        assertEquals("Line3", mLineArray.rowAt(4))
+        assertEquals("Line4 org.codroid.interfaces.log.Logger;", mLineArray.rowAt(5))
+
+        mLineArray.replace("RUIN", 0, mLineArray.length())
+        assertEquals(1, mLineArray.rows())
+        assertEquals(4, mLineArray.length())
     }
 
 

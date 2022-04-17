@@ -71,41 +71,41 @@ class LineArray : TextSequence {
     }
 
     override fun delete(start: Int, end: Int) {
-        var rightEdge: Int
+        if (start >= end) {
+            return
+        }
+        replace("", start, end)
+    }
+
+    override fun replace(content: String, start: Int, end: Int) {
+        var rightEdge = 0
         var leftEdge = 0
         var from = -1
         var to = -1
         var offset = 0
         for ((idx, now) in mBuffer.withIndex()) {
-            rightEdge = now.length
-            if (rightEdge in start..end) {
+            rightEdge = leftEdge + now.length
+            if (leftEdge in start..end || rightEdge in start..end) {
                 if (from == -1) {
                     from = idx
                     offset = leftEdge
                 } else if (idx > to) {
                     to = idx
-                    rightEdge++
                 }
-            } else if (from != -1 && to != -1) {
+            } else if (from != -1) {
+                if (to == -1) {
+                    to = from + 1
+                }
                 break
             }
-            leftEdge = rightEdge
+            leftEdge = rightEdge + 1
         }
         val pos = concatRows(from, to)
-        if (pos != -1) {
-            if (end - start > mBuffer[pos].length) {
-                mBuffer.removeAt(pos)
-            } else {
-                mBuffer[pos] = StringBuilder(mBuffer[pos])
-                    .removeRange(start - offset, end - offset)
-                    .toString()
-            }
-        }
-        length -= end - start
+        mBuffer[pos] = StringBuilder(mBuffer[pos])
+            .replaceRange(start - offset, end - offset, content)
+            .toString()
+        length = length - (end - start) + content.length
         expandRow(pos)
-    }
-
-    override fun replace(content: String, start: Int, end: Int) {
 
     }
 
@@ -117,8 +117,8 @@ class LineArray : TextSequence {
      * @return the row's index.
      */
     private fun concatRows(from: Int, to: Int): Int {
-        if (from >= to) {
-            return -1
+        if (from == to) {
+            return to
         }
         var isStart = true
         val builder = StringBuilder()
