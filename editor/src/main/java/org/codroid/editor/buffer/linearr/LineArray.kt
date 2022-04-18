@@ -13,6 +13,7 @@ class LineArray : TextSequence {
     constructor(inputStream: InputStream) : super(
         inputStream
     ) {
+
         val bytes = String(inputStream.readBytes(), TextBufferConfig.charset())
         for (i in bytes.lineSequence()) {
             mBuffer.add(i)
@@ -23,8 +24,8 @@ class LineArray : TextSequence {
         length--
     }
 
-    constructor(charSequence: String) : super(charSequence) {
-        for (i in charSequence.lineSequence()) {
+    constructor(str: String) : super(str) {
+        for (i in str.lineSequence()) {
             mBuffer.add(i)
             length += i.length + 1
         }
