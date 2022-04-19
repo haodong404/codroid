@@ -20,40 +20,24 @@
 
 package org.codroid.editor.decoration
 
-import android.graphics.Canvas
-import android.graphics.RectF
+import android.graphics.Paint
+import android.graphics.Typeface
 
-interface Decoration {
+class CharacterSpan() : ReplacementSpan {
 
-}
+    private val mPaint: Paint = Paint()
 
-interface Drawable {
-    fun onDraw(canvas: Canvas, rect: RectF)
-}
+    override fun onPainting(paint: Paint, content: String): Pair<Paint, String> {
+        return Pair(mPaint, content)
+    }
 
-/**
- * If there are decorations inside the characters, implement this interface.
- * It positioned by the interval in [org.codroid.editor.buffer.TextSequence].
- *
- */
-interface SpanDecoration : Decoration {
+    fun setTypeface(typeface: Typeface): CharacterSpan {
+        mPaint.typeface = typeface
+        return this
+    }
 
-}
-
-/**
- * If there are decorations that span multiple lines, implement this interface.
- * It positioned by row and column.
- *
- */
-interface DynamicDecoration : Decoration, Drawable {
-
-}
-
-/**
- * If there are decorations fixed to the window, implement this interface.
- * It's provided a fixed position.
- *
- */
-interface StaticDecoration : Decoration, Drawable {
-
+    fun setTextColor(color: Int): CharacterSpan {
+        mPaint.color = color
+        return this
+    }
 }
