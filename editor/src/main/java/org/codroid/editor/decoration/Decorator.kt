@@ -20,6 +20,62 @@
 
 package org.codroid.editor.decoration
 
-class Decorator {
+import org.codroid.editor.Interval
+import java.util.*
 
+class Decorator {
+    private val mSpanDecorationTree: TreeMap<Interval, LinkedList<SpanDecoration>> =
+        TreeMap { t1, t2 ->
+            if (t1.start > t2.start) {
+                return@TreeMap 1
+            } else if (t1.start < t2.start) {
+                return@TreeMap -1
+            }
+            return@TreeMap 0
+        }
+
+    private val mDynamicDecorationSet: HashSet<DynamicDecoration> = HashSet()
+
+    private val mStaticDecorationSet: HashSet<StaticDecoration> = HashSet()
+
+    fun addSpan(start: Int, end: Int, decoration: SpanDecoration) {
+        val interval = Interval(start, end)
+        if (!mSpanDecorationTree.containsKey(interval)) {
+            mSpanDecorationTree[interval] = LinkedList<SpanDecoration>().apply { add(decoration) }
+        } else {
+            mSpanDecorationTree[interval]?.add(decoration)
+        }
+    }
+
+    fun addSpan(decoration: DynamicDecoration) {
+        mDynamicDecorationSet.add(decoration)
+    }
+
+    fun addSpan(decoration: StaticDecoration) {
+        mStaticDecorationSet.add(decoration)
+    }
+
+    fun spanDecorationSequence(): Sequence<Map.Entry<Interval, LinkedList<SpanDecoration>>> {
+        return mSpanDecorationTree.asSequence()
+    }
+
+    fun dynamicDecorationSequence(): Sequence<DynamicDecoration> {
+        return mDynamicDecorationSet.asSequence()
+    }
+
+    fun staticDecorationSequence(): Sequence<StaticDecoration> {
+        return mStaticDecorationSet.asSequence()
+    }
+
+    fun spanSize(): Int {
+        return mSpanDecorationTree.size
+    }
+
+    fun dynamicSize(): Int {
+        return mDynamicDecorationSet.size
+    }
+
+    fun staticSize(): Int {
+        return mStaticDecorationSet.size
+    }
 }
