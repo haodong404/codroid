@@ -21,6 +21,9 @@
 
 package org.codroid.editor
 
+import org.codroid.editor.decoration.SpanDecoration
+import java.util.*
+
 /**
  * This Vector class could be used to represent coordinate of x and y.
  */
@@ -76,3 +79,33 @@ data class Vector(var x: Int = 0, var y: Int = 0) {
     }
 }
 
+
+data class Interval(var start: Int, var end: Int) {
+
+    fun isOverlapping(other: Interval): Boolean {
+        return other.start in start..end || other.end in start..end
+    }
+
+    fun length(): Int {
+        return end - start
+    }
+}
+
+data class Block(val substring: String, val spans: LinkedList<SpanDecoration>?)
+
+@JvmInline
+value class Row(private val blocks: LinkedList<Block>) {
+
+    fun appendBlock(block: Block) {
+        blocks.add(block)
+    }
+
+    override fun toString(): String {
+        val builder = StringBuilder()
+        for (item in blocks) {
+            builder.append(item.substring)
+        }
+        return builder.toString()
+    }
+
+}
