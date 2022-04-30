@@ -19,7 +19,7 @@
 
 package org.codroid.interfaces.log;
 
-import android.content.Context;
+import java.io.File;
 
 /**
  * This file is addons' log system.
@@ -36,16 +36,16 @@ public final class Logger {
     private static LogStream logStream;
     private String origin;
 
-    public Logger(Context context, String origin) {
+    public Logger(File dir, String origin) {
         if (logStream == null) {
-            logStream = new LogStream(context);
+            logStream = new LogStream(dir);
         }
         this.origin = origin;
     }
 
-    public Logger(Context context) {
+    public Logger(File dir) {
         if (logStream == null) {
-            logStream = new LogStream(context);
+            logStream = new LogStream(dir);
         }
         this.origin = "No origin";
     }

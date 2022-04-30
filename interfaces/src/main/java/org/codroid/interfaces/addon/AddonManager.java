@@ -19,7 +19,6 @@
 
 package org.codroid.interfaces.addon;
 
-import android.content.Context;
 import android.text.TextUtils;
 
 import org.codroid.interfaces.appearance.AppearanceProperty;
@@ -59,7 +58,6 @@ import java.util.stream.Collectors;
 public final class AddonManager extends CodroidEnv {
 
     private static AddonManager mInstance = null;
-
 
     public static synchronized AddonManager get() {
         if (mInstance == null) mInstance = new AddonManager();
@@ -228,7 +226,7 @@ public final class AddonManager extends CodroidEnv {
                     AddonDexClassLoader classLoader = AddonLoader.generateClassLoader(description);
                     if (!isLoaded(description.get().getPackage())) {
                         AddonBase addon = AddonLoader.loadAddon(classLoader);
-                        addon.createAddonEvn(getContext(), description.get().getPackage());
+                        addon.createAddonEvn(this, description.get().getPackage());
                         addon.onLoading();
                         // Load events from the addon.
                         if (description.get().getEvents() != null) {
@@ -285,10 +283,10 @@ public final class AddonManager extends CodroidEnv {
      * Initialize the AddonManager.
      * It must be called at Application.
      *
-     * @param context app context
+     * @param rootFIle {@code} context.getExternalFileDir(null), It's used to store logs, addons, and etc.
      */
-    public void initialize(Context context, AddonDatabase database) {
-        createCodroidEnv(context);
+    public void initialize(File rootFIle, AddonDatabase database) {
+        createCodroidEnv(rootFIle);
         this.database = database;
     }
 
@@ -333,7 +331,7 @@ public final class AddonManager extends CodroidEnv {
     @Override
     public Logger getLogger() {
         if (logger == null) {
-            logger = new Logger(getContext(), "Codroid");
+            logger = new Logger(getLogsDir(), "Codroid");
         }
         return logger;
     }

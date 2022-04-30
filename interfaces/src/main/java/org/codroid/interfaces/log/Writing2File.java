@@ -33,8 +33,8 @@ public class Writing2File extends WritingProcessor {
     private File logFile;
     private FileOutputStream outputStream;
 
-    public Writing2File(String filePath) throws IOException {
-        this.filePath = filePath;
+    public Writing2File(File filePath) throws IOException {
+        this.filePath = filePath.toString();
         initLogFile();
     }
 

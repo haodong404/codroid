@@ -19,8 +19,6 @@
 
 package org.codroid.interfaces.env;
 
-import android.content.Context;
-
 import org.codroid.interfaces.appearance.AppearanceProperty;
 import org.codroid.interfaces.log.Logger;
 
@@ -44,13 +42,12 @@ public class AddonEnv extends CodroidEnv {
 
     }
 
-    public AddonEnv(String identify, Context context) {
-        super(context);
+    public AddonEnv(String identify) {
         this.identify = identify;
     }
 
-    public void createAddonEvn(Context context, String identify) {
-        createCodroidEnv(context);
+    public void createAddonEvn(CodroidEnv parent, String identify) {
+        this.rootFile = parent.rootFile;
         this.identify = identify;
     }
 
@@ -115,7 +112,7 @@ public class AddonEnv extends CodroidEnv {
      */
     @Override
     public Logger getLogger() {
-        if (logger == null) logger = new Logger(getContext());
+        if (logger == null) logger = new Logger(getLogsDir());
         return logger.with(getIdentify());
     }
 }
