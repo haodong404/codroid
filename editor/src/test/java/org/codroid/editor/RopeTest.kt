@@ -30,6 +30,6 @@ import org.junit.Test
 class RopeTest {
     @Test
     fun insert() {
-        var root = Rope.NodeBody(null, null)
+//        var root = Rope.NodeBody(null, null)
     }
 }

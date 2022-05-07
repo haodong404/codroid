@@ -51,7 +51,16 @@ class EditContent(
         return mRange
     }
 
-    inner class RowIterator
+    inner class RowIterator : Iterator<Row> {
+        override fun hasNext(): Boolean {
+            TODO("Not yet implemented")
+        }
+
+        override fun next(): Row {
+            TODO("Not yet implemented")
+        }
+
+    }
 
     /**
      * The range of buffer window and visible window.
