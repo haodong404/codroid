@@ -100,7 +100,7 @@ class LineArray : TextSequence {
     }
 
     override fun replace(content: String, start: Int, end: Int) {
-        var rightEdge = 0
+        var rightEdge: Int
         var leftEdge = 0
         var from = -1
         var to = -1

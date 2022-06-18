@@ -38,6 +38,7 @@ class CodroidEditor : View, View.OnClickListener {
         setOnClickListener(this)
         isFocusable = true
         isFocusableInTouchMode = true
+        showInput()
     }
 
     constructor(context: Context) : super(context) {}
@@ -93,12 +94,18 @@ class CodroidEditor : View, View.OnClickListener {
         mInputMethodManager.hideSoftInputFromWindow(this.windowToken, 0)
     }
 
-    inner class InputConnection(targetView: View, fullEditor: Boolean): BaseInputConnection(targetView, fullEditor) {
+    inner class InputConnection(targetView: View, fullEditor: Boolean) :
+        BaseInputConnection(targetView, fullEditor) {
         override fun commitText(text: CharSequence?, newCursorPosition: Int): Boolean {
-            Log.i("Zac", text.toString() + ":" + newCursorPosition)
+            Log.i("Zac", text.toString() + ":" + newCursorPosition + ": CommitText")
             textToDraw = text.toString()
             this@CodroidEditor.postInvalidate()
             return true
+        }
+
+        override fun closeConnection() {
+            super.closeConnection()
+            Log.i("Zac", "CloseConnection")
         }
     }
 }

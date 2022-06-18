@@ -46,9 +46,9 @@ abstract class TextSequence {
 
     /**
      * Gets the string of rows by its index.
-     * The index should start at 0.
+     * The index should starting from 0.
      *
-     * @param index A integer start at 0.
+     * @param index An integer starting from 0.
      * @return The string of a row.
      */
     abstract fun rowAt(index: Int): String
@@ -66,8 +66,8 @@ abstract class TextSequence {
      * which is positioned by the row and column.
      *
      * @param content Content to insert.
-     * @param row which row, starting at 0.
-     * @param col which column, starting at 0.
+     * @param row which row, starting from 0.
+     * @param col which column, starting from 0.
      */
     abstract fun insert(content: String, row: Int, col: Int)
 
