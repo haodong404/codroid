@@ -19,6 +19,7 @@
 
 plugins {
     id 'com.android.library'
+    id 'kotlin-android'
 }
 
 android {
@@ -45,9 +46,11 @@ android {
 }
 
 dependencies {
-    implementation files('libs/jtoml-1.1.1.jar')
     testImplementation 'junit:junit:4.13.2'
-    implementation "androidx.room:room-runtime:2.4.1"
-    annotationProcessor "androidx.room:room-compiler:2.4.1"
+    implementation("cc.ekblad:4koma:1.0.2")
+    implementation "androidx.room:room-runtime:2.4.2"
+    testImplementation 'junit:junit:4.12'
+    annotationProcessor "androidx.room:room-compiler:2.4.2"
+    implementation "androidx.core:core-ktx:1.8.0"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.7.0"
 }
-

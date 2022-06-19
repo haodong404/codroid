@@ -20,6 +20,7 @@
 package org.codroid.interfaces.addon;
 
 import org.codroid.interfaces.env.Property;
+import org.codroid.interfaces.utils.TomlKt;
 
 import java.lang.reflect.Field;
 import java.nio.file.Path;
@@ -27,9 +28,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-
-import me.grison.jtoml.annotations.SerializedName;
-import me.grison.jtoml.impl.Toml;
 
 
 /**
@@ -41,27 +39,25 @@ public final class AddonDescription extends Property {
 
     public static String ADDON_DESCRIPTION_FILE_NAME = "addon-des.toml";
 
-
     private void serialize() {
-        entity = toml.getAs("addon", Addon.class);
+        entity = TomlKt.decode2Description(toPath());
         if (entity == null) {
             entity = new Addon();
         }
     }
 
-    public AddonDescription(){
+    public AddonDescription() {
         super(null);
     }
 
     public AddonDescription(Path file) {
         super(file);
-        open();
         serialize();
     }
 
     public static AddonDescription parseString(String content) {
         AddonDescription description = new AddonDescription();
-        description.toml = Toml.parse(content);
+        description.entity = TomlKt.decode2Description(content);
         description.serialize();
         return description;
     }
@@ -97,7 +93,6 @@ public final class AddonDescription extends Property {
     public static class Addon {
         private String name;
 
-        @SerializedName("package")
         private String _package;
 
         private String enterPoint;

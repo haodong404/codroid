@@ -22,7 +22,7 @@ package org.codroid.interfaces.appearance.parts;
 import org.codroid.interfaces.appearance.AppearanceProperty;
 import org.codroid.interfaces.appearance.Part;
 
-import me.grison.jtoml.impl.Toml;
+import java.util.Map;
 
 /**
  * Editor part of appearance.
@@ -33,8 +33,8 @@ public class EditorPart extends Part {
        String BACKGROUND = "background";
    }
 
-    public EditorPart(Toml toml) throws IllegalArgumentException {
-        super(toml);
+    public EditorPart(Map<?, ?> attr) throws IllegalArgumentException {
+        super(attr);
     }
 
     @Override

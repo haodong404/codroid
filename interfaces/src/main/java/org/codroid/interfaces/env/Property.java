@@ -19,28 +19,34 @@
 
 package org.codroid.interfaces.env;
 
-import java.nio.file.Path;
+import org.codroid.interfaces.utils.TomlKt;
 
-import me.grison.jtoml.impl.Toml;
+import java.nio.file.Path;
+import java.util.Map;
+
+import cc.ekblad.toml.TomlMapper;
 
 public class Property extends Resource {
 
-    protected Toml toml;
+    protected Map<String, Object> map;
+    protected static final TomlMapper mDefaultMapper = TomlKt.defaultTomlMapper();
 
     public Property(Path path) {
         super(path);
+        if (path != null) {
+            TomlKt.decode2Map(path, mDefaultMapper);
+        }
+    }
+
+    public <T> T getAs(Class<T> clazz) {
+        return TomlKt.toObject(getAttributes(), clazz);
+    }
+
+    public Map<String, Object> getAttributes() {
+        return map;
     }
 
     public Property(AddonEnv addonEnv, String relativePathStr) {
         super(addonEnv, relativePathStr);
     }
-
-    public void open() {
-        toml = Toml.parse(toPath().toFile());
-    }
-
-    public void close(){
-        toml = null;
-    }
-
 }
