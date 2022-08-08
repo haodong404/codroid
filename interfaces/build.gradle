@@ -48,9 +48,9 @@ android {
 dependencies {
     testImplementation 'junit:junit:4.13.2'
     implementation("cc.ekblad:4koma:1.0.2")
-    implementation "androidx.room:room-runtime:2.4.2"
-    testImplementation 'junit:junit:4.12'
-    annotationProcessor "androidx.room:room-compiler:2.4.2"
+    implementation "androidx.room:room-runtime:2.4.3"
+    testImplementation 'junit:junit:4.13.2'
+    annotationProcessor "androidx.room:room-compiler:2.4.3"
     implementation "androidx.core:core-ktx:1.8.0"
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.7.0"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.7.10"
 }
