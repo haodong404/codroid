@@ -24,6 +24,14 @@ package org.codroid.editor
 import org.codroid.editor.decoration.SpanDecoration
 import java.util.*
 
+typealias IntPair = ULong
+
+fun IntPair.first(): Int = ((this and 0xFFFFFFFF00000000U) shr 32).toInt()
+
+fun IntPair.second(): Int = (this and 0xFFFFFFFFU).toInt()
+
+fun makePair(first: Int, second: Int): IntPair = (first.toULong() shl 32) or second.toULong()
+
 /**
  * This Vector class could be used to represent coordinate of x and y.
  */
@@ -80,7 +88,12 @@ data class Vector(var x: Int = 0, var y: Int = 0) {
 }
 
 
-data class Interval(var start: Int, var end: Int) {
+class Interval(private val pair: IntPair) {
+
+    val start: Int
+        get() = pair.first()
+    val end: Int
+        get() = pair.second()
 
     fun isOverlapping(other: Interval): Boolean {
         return other.start in start..end || other.end in start..end

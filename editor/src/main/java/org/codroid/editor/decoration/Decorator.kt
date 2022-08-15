@@ -25,26 +25,17 @@ import org.codroid.editor.Vector
 import java.util.*
 
 class Decorator {
-
-    private val mSpanDecorationTree: DecorationMap<Interval, SpanDecoration> =
-        DecorationMap { t1, t2 ->
+    private val mSpanDecorationTree: TreeMap<Interval, LinkedList<SpanDecoration>> =
+        TreeMap { t1, t2 ->
             if (t1.start > t2.start) {
-                return@DecorationMap 1
+                return@TreeMap 1
             } else if (t1.start < t2.start) {
-                return@DecorationMap -1
+                return@TreeMap -1
             }
-            return@DecorationMap 0
+            return@TreeMap 0
         }
 
-    private val mDynamicDecorationTree: DecorationMap<RectCoordinate, DynamicDecoration> =
-        DecorationMap { t1, t2 ->
-            if (t1.first.y > t2.first.y) {
-                return@DecorationMap 1
-            } else if (t1.first.y < t2.first.y) {
-                return@DecorationMap -1
-            }
-            return@DecorationMap 0
-        }
+    private val mDynamicDecorationSet: HashSet<DynamicDecoration> = HashSet()
 
     private val mStaticDecorationSet: HashSet<StaticDecoration> = HashSet()
 
@@ -57,13 +48,8 @@ class Decorator {
         }
     }
 
-    fun addSpan(start: Vector, end: Vector, decoration: DynamicDecoration) {
-        val rect = Pair(start, end)
-        if (!mDynamicDecorationTree.containsKey(rect)) {
-            mDynamicDecorationTree[rect] = LinkedList<DynamicDecoration>().apply { add(decoration) }
-        } else {
-            mDynamicDecorationTree[rect]?.add(decoration)
-        }
+    fun addSpan(decoration: DynamicDecoration) {
+        mDynamicDecorationSet.add(decoration)
     }
 
     fun addSpan(decoration: StaticDecoration) {
@@ -74,18 +60,12 @@ class Decorator {
         return mSpanDecorationTree.asSequence()
     }
 
-    fun dynamicDecorationSequence(): Sequence<Map.Entry<Pair<Vector, Vector>, LinkedList<DynamicDecoration>>> {
-        return mDynamicDecorationTree.asSequence()
+    fun dynamicDecorationSequence(): Sequence<DynamicDecoration> {
+        return mDynamicDecorationSet.asSequence()
     }
 
     fun staticDecorationSequence(): Sequence<StaticDecoration> {
         return mStaticDecorationSet.asSequence()
-    }
-
-    fun clearAll() {
-        mSpanDecorationTree.clear()
-        mStaticDecorationSet.clear()
-        mDynamicDecorationTree.clear()
     }
 
     fun spanSize(): Int {
@@ -93,13 +73,10 @@ class Decorator {
     }
 
     fun dynamicSize(): Int {
-        return mDynamicDecorationTree.size
+        return mDynamicDecorationSet.size
     }
 
     fun staticSize(): Int {
         return mStaticDecorationSet.size
     }
 }
-
-typealias DecorationMap<K, V> = TreeMap<K, LinkedList<V>>
-typealias RectCoordinate = Pair<Vector, Vector>
