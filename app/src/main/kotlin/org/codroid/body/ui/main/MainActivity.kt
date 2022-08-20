@@ -68,7 +68,7 @@ class MainActivity : AppCompatActivity() {
 
         dirTreeWindow()
 
-        mWindowHelper.newWindow(Paths.get("/mnt/sdcard/Download/img.png"))
+        mWindowHelper.newWindow(Paths.get("/mnt/sdcard/TokenizeString.kt"))
     }
 
     private fun editorWindow() {

@@ -165,4 +165,22 @@ class LineArrayTest {
         assertEquals(43 + 2 + 43 + 4 + 85 + 3, seq.length())
         assertEquals("package org.codroid.interfaces.exceptions;", seq.rowAt(0))
     }
+
+    @Test
+    fun testIterator() {
+        val seq = LineArray(
+            "package org.codroid.interfaces.exceptions;\n" +
+                    "\n" +
+                    "\n" +
+                    "import org.codroid.interfaces.log.Logger;\n" +
+                    "\n" +
+                    "/**\n" +
+                    " * This is a superclass that should only be inherited by the exceptions about addon.\n" +
+                    " */"
+        )
+
+        for ((index, line) in seq.withIndex()) {
+            assertEquals(seq.rowAt(index), line)
+        }
+    }
 }

@@ -17,24 +17,16 @@
   ~     along with Codroid.  If not, see <https://www.gnu.org/licenses/>.
   -->
 
-<org.codroid.editor.UnrestrainedScrollView
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<org.codroid.editor.UnrestrainedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true">
-    
-    <TextView
+
+    <org.codroid.editor.CodroidEditor
         android:id="@+id/editor_window_codroid_editor"
-        android:text="HELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLO\n
-HELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHE\nLLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLO
-HELLOHELLOHELLOHELLOHELLOHELLOHELLOHELL\nOHELLOHELLOHELLOHELLOHELLOHELLOHELL\nOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLO
-HELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOH
-\nELLOHELLOHELLOHELLOHELLOHELLOHELLOH\nELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLO
-HELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHEL
-\nLOHELLOHELLOHELLOHELLOHEL\nLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLO"
-        android:textSize="30pt"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:gravity="start|top" />
+        android:gravity="start|top"
+        android:textSize="30pt" />
 
 </org.codroid.editor.UnrestrainedScrollView>

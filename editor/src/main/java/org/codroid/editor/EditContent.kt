@@ -20,20 +20,73 @@
 
 package org.codroid.editor
 
+import android.graphics.Color
+import android.util.Log
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.buffer
+import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.codroid.editor.analysis.SyntaxAnalyser
 import org.codroid.editor.buffer.TextSequence
+import org.codroid.editor.decoration.CharacterSpan
 import org.codroid.editor.decoration.Decorator
+import org.codroid.editor.decoration.SpanDecoration
+import org.codroid.textmate.*
+import java.nio.file.Path
+import java.util.*
 import kotlin.math.abs
 import kotlin.math.min
 
+@OptIn(ExperimentalUnsignedTypes::class)
 class EditContent(
     private val mTextSequence: TextSequence,
+    private val mPath: Path,
+    private val editor: CodroidEditor,
     visibleLines: Int = 10,
     bufferSize: Int = 10
-) {
+) : Iterable<Row> {
 
     private val mDecorator: Decorator = Decorator()
     private val mRange = Range(visibleLines, bufferSize)
 
+    private val mSyntaxAnalyser = SyntaxAnalyser(editor.theme!!)
+    private val mTokenBlocks = mutableListOf<List<TokenWithRange>>()
+
+    init {
+        editor.lifecycleScope.launch(Dispatchers.IO) {
+            mSyntaxAnalyser.analyze(mTextSequence, mPath)
+                .buffer()
+                .onCompletion {
+                    withContext(Dispatchers.Main) {
+                        editor.requestLayout()
+                        editor.invalidate()
+                        Log.i("Zac", "Finished")
+                    }
+                }
+                .collect { pair ->
+                    val tokens = mutableListOf<TokenWithRange>()
+                    val tokenLength = pair.second.tokens.size / 2
+                    for (j in 0 until tokenLength) {
+                        val startIndex = pair.second.tokens[2 * j]
+                        val nextStartIndex = if (j + 1 < tokenLength) {
+                            pair.second.tokens[2 * j + 2].toInt()
+                        } else {
+                            pair.first.length
+                        }
+                        val metadata = pair.second.tokens[2 * j + 1]
+                        tokens.add(
+                            TokenWithRange(
+                                IntRange(startIndex.toInt(), nextStartIndex - 1),
+                                encodedToken = metadata
+                            )
+                        )
+                    }
+                    mTokenBlocks.add(tokens)
+                }
+        }
+    }
 
     fun up() {
         mRange.moveUp(1)
@@ -47,19 +100,55 @@ class EditContent(
         return mTextSequence.length()
     }
 
+    fun rows(): Int {
+        return mTextSequence.rows()
+    }
+
     fun getRange(): Range {
         return mRange
     }
 
-    inner class RowIterator : Iterator<Row> {
-        override fun hasNext(): Boolean {
-            TODO("Not yet implemented")
-        }
+    fun longestLineSize(): Int {
+        return mTextSequence.longestLineSize()
+    }
+
+    override fun iterator(): Iterator<Row> = RowIterator(mTextSequence.iterator())
+
+    inner class RowIterator(private val iterator: Iterator<String>) : Iterator<Row> {
+
+        private val lineTokensIt = mTokenBlocks.iterator()
+
+        override fun hasNext() = iterator.hasNext()
 
         override fun next(): Row {
-            TODO("Not yet implemented")
+            return Row().apply {
+                val textContent = iterator.next()
+                Log.i("Zac", "------Row: $textContent")
+                if (lineTokensIt.hasNext()) {
+                    lineTokensIt.next().forEach {
+                        val spans = LinkedList<SpanDecoration>()
+                        val foreground = EncodedTokenAttributes.getForeground(it.encodedToken)
+                        Log.i(
+                            "Zac",
+                            "${it.range} : ${EncodedTokenAttributes.toBinaryStr(it.encodedToken)} | $foreground ${
+                                EncodedTokenAttributes.getBackground(it.encodedToken)
+                            } | ${EncodedTokenAttributes.getFontStyle(it.encodedToken)}"
+                        )
+                        spans.add(CharacterSpan().apply {
+                            SyntaxAnalyser.registry?.getColorMap()?.let { colorMap ->
+                                setTextColor(Color.parseColor(colorMap.getOrElse(foreground) {
+                                    Log.i("Zac", "Not found: $foreground")
+                                    "#FF0000"
+                                }))
+                            }
+                        })
+                        appendBlock(Block(textContent.substring(it.range), spans))
+                    }
+                    return@apply
+                }
+                appendBlock(Block(textContent))
+            }
         }
-
     }
 
     /**
@@ -147,4 +236,6 @@ class EditContent(
             return mTextSequence.rows() - 1
         }
     }
+
+    data class TokenWithRange(val range: IntRange, val encodedToken: EncodedToken)
 }

@@ -22,6 +22,7 @@ package org.codroid.editor.decoration
 
 import org.codroid.editor.Interval
 import org.codroid.editor.Vector
+import org.codroid.editor.makePair
 import java.util.*
 
 class Decorator {
@@ -40,7 +41,7 @@ class Decorator {
     private val mStaticDecorationSet: HashSet<StaticDecoration> = HashSet()
 
     fun addSpan(start: Int, end: Int, decoration: SpanDecoration) {
-        val interval = Interval(start, end)
+        val interval = Interval(makePair(start, end))
         if (!mSpanDecorationTree.containsKey(interval)) {
             mSpanDecorationTree[interval] = LinkedList<SpanDecoration>().apply { add(decoration) }
         } else {

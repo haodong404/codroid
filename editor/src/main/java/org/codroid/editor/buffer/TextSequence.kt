@@ -28,7 +28,7 @@ import java.io.InputStream
  *
  * That means you could implement any data structures to represent the text sequence.
  */
-abstract class TextSequence {
+abstract class TextSequence : Iterable<String> {
 
     /**
      * Constructs the TextSequence from an input stream.
@@ -104,6 +104,8 @@ abstract class TextSequence {
      * @return the number of rows in this sequence.
      */
     abstract fun rows(): Int
+
+    abstract fun longestLineSize(): Int
 
     /**
      * Returns the string represented by this sequence.

@@ -22,6 +22,7 @@
 package org.codroid.editor
 
 import org.codroid.editor.decoration.SpanDecoration
+import org.codroid.textmate.theme.RawTheme
 import java.util.*
 
 typealias IntPair = ULong
@@ -104,10 +105,10 @@ class Interval(private val pair: IntPair) {
     }
 }
 
-data class Block(val substring: String, val spans: LinkedList<SpanDecoration>?)
+data class Block(val substring: String, val spans: LinkedList<SpanDecoration>? = null)
 
 @JvmInline
-value class Row(private val blocks: LinkedList<Block>) {
+value class Row(val blocks: LinkedList<Block> = LinkedList()) {
 
     fun appendBlock(block: Block) {
         blocks.add(block)

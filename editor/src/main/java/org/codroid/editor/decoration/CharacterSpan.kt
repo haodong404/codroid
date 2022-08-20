@@ -22,22 +22,34 @@ package org.codroid.editor.decoration
 
 import android.graphics.Paint
 import android.graphics.Typeface
+import org.codroid.editor.graphics.TextPaint
 
 class CharacterSpan() : ReplacementSpan {
 
-    private val mPaint: Paint = Paint()
+    private var mTypeface: Typeface? = null
+    private var mTextColor: Int = 0
+
+    private val mTextPaint = TextPaint.default()
 
     override fun onPainting(paint: Paint, content: String): Pair<Paint, String> {
-        return Pair(mPaint, content)
+        mTextPaint.typeface = paint.typeface
+        mTextPaint.color = paint.color
+        if (mTypeface != null) {
+            mTextPaint.typeface = mTypeface
+        }
+        if (mTextColor != 0) {
+            mTextPaint.color = mTextColor
+        }
+        return Pair(mTextPaint, content)
     }
 
     fun setTypeface(typeface: Typeface): CharacterSpan {
-        mPaint.typeface = typeface
+        mTypeface = typeface
         return this
     }
 
     fun setTextColor(color: Int): CharacterSpan {
-        mPaint.color = color
+        mTextColor = color
         return this
     }
 }

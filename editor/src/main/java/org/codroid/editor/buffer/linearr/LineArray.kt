@@ -21,6 +21,7 @@
 
 package org.codroid.editor.buffer.linearr
 
+import android.util.Log
 import org.codroid.editor.buffer.TextSequence
 import org.codroid.editor.config.TextBufferConfig
 import java.io.InputStream
@@ -30,6 +31,7 @@ class LineArray : TextSequence {
 
     private val mBuffer: ArrayList<String> = ArrayList(20)
     private var length = 0
+    private var longest = 0
 
     constructor(inputStream: InputStream) : super(
         inputStream
@@ -40,6 +42,9 @@ class LineArray : TextSequence {
             mBuffer.add(i)
             // Each line has a line breaker(except the last line).
             length += i.length + 1
+            if (i.length > longest) {
+                this.longest = i.length
+            }
         }
         // There isn't a line breaker in the last line, so I subtracted 1.
         length--
@@ -49,6 +54,9 @@ class LineArray : TextSequence {
         for (i in str.lineSequence()) {
             mBuffer.add(i)
             length += i.length + 1
+            if (i.length > longest) {
+                this.longest = i.length
+            }
         }
         length--
     }
@@ -190,6 +198,9 @@ class LineArray : TextSequence {
         return mBuffer.size
     }
 
+    override fun longestLineSize(): Int = this.longest
+
+
     override fun toString(): String {
         val result = StringBuffer()
         for ((idx, i) in mBuffer.withIndex()) {
@@ -199,6 +210,22 @@ class LineArray : TextSequence {
             }
         }
         return result.toString()
+    }
+
+    override fun iterator(): Iterator<String> = LineIterator(this)
+
+    inner class LineIterator(private val lineArray: LineArray) : Iterator<String> {
+        private var current = 0
+
+        override fun hasNext(): Boolean {
+            return (lineArray.rows() - 1 >= current)
+        }
+
+        override fun next(): String {
+            return lineArray.rowAt(current).also {
+                current++
+            }
+        }
     }
 
 }
