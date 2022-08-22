@@ -23,6 +23,7 @@ package org.codroid.editor
 
 import android.content.Context
 import android.util.AttributeSet
+import android.util.Log
 import android.view.MotionEvent
 import android.view.VelocityTracker
 import android.view.View
@@ -59,6 +60,7 @@ class UnrestrainedScrollView : FrameLayout {
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+        Log.i("Zac", "$measuredHeight")
         if (childCount > 0) {
             getChildAt(0)?.let {
                 measureChild(it, widthMeasureSpec, heightMeasureSpec)

@@ -20,9 +20,7 @@
 package org.codroid.editor
 
 import android.content.Context
-import android.graphics.Canvas
-import android.graphics.Paint
-import android.graphics.Typeface
+import android.graphics.*
 import android.text.InputType
 import android.util.AttributeSet
 import android.util.Log
@@ -38,7 +36,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.codroid.editor.analysis.*
 import org.codroid.editor.buffer.linearr.LineArray
-import org.codroid.editor.decoration.CharacterSpan
+import org.codroid.editor.decoration.*
 import org.codroid.editor.graphics.TextPaint
 import org.codroid.textmate.parseJson
 import org.codroid.textmate.parsePLIST
@@ -74,14 +72,12 @@ class CodroidEditor : View, View.OnClickListener, LifecycleOwner {
     private var mEditContent: EditContent? = null
 
     private var mOffsetX = 0F
-    private var mCurrentOffsetY = 0F
-    private var mLineNumberWidth = 0F
-    private var mCurrentLineNumber = 1
-    private var mLineHeight = 0F
+
+    private val mLineAnchor by lazy { LineAnchor(mTextPaint) }
 
     private var isWrapped = false
 
-    private val mTextPaint = TextPaint.default().apply {
+    private val mTextPaint = TextPaint.default.apply {
         typeface = this.typeface
     }
 
@@ -180,14 +176,11 @@ class CodroidEditor : View, View.OnClickListener, LifecycleOwner {
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        mLineNumberWidth = mTextPaint.measureText(mEditContent?.rows()?.toString() ?: "0")
-        mOffsetX = mLineNumberWidth + 40
-        mCurrentOffsetY = mLineHeight
-        mLineHeight = mTextPaint.getStandardHeight()
+        mOffsetX = mTextPaint.measureText(mEditContent?.rows()?.toString() ?: "0") + 40
         var width = MeasureSpec.getSize(widthMeasureSpec)
         var height = MeasureSpec.getSize(heightMeasureSpec)
         mEditContent?.let {
-            height = it.rows() * mLineHeight.toInt()
+            height = it.rows() * mTextPaint.getLineHeight().toInt()
             width = it.longestLineSize() * mTextPaint.singleWidth().toInt()
         }
         setMeasuredDimension(width * 3, height * 3)
@@ -204,41 +197,66 @@ class CodroidEditor : View, View.OnClickListener, LifecycleOwner {
         canvas.drawText(
             (index + 1).toString(),
             mOffsetX - 20,
-            mCurrentOffsetY,
+            mLineAnchor.baseline,
             mTextPaint.withBlackColor()
         )
         mTextPaint.textAlign = Paint.Align.LEFT
     }
 
     private fun drawRows(canvas: Canvas) {
+        mLineAnchor.reset()
         mEditContent?.forEachIndexed { index, row ->
+            if (index == 3) {
+                canvas.drawRect(
+                    RectF(
+                        mOffsetX,
+                        index * mTextPaint.getLineHeight(),
+                        measuredWidth.toFloat(),
+                        (index + 1) * mTextPaint.getLineHeight()
+                    ), mTextPaint.withColor(Color.LTGRAY)
+                )
+            }
             drawLineNumber(canvas, index)
-            var offsetXinLine = 0F
+            var offsetXinLine = mOffsetX
             row.blocks.forEach { block ->
+                var blockWidth = mTextPaint.measureText(block.substring)
+                var offset = blockWidth
+                var paint = mTextPaint
                 if (block.spans != null) {
-                    block.spans.forEach { span ->
-                        if (span is CharacterSpan) {
-                            span.onPainting(mTextPaint, block.substring).let { pair ->
-                                canvas.drawText(
-                                    pair.second,
-                                    mOffsetX + offsetXinLine,
-                                    mCurrentOffsetY,
-                                    pair.first
-                                )
-                                offsetXinLine += pair.first.measureText(pair.second)
-                            }
-                        }
+                    val spanRect by lazy {
+                        SpanRect(
+                            offsetXinLine, mLineAnchor.top, offsetXinLine + blockWidth,
+                            mLineAnchor.bottom, mLineAnchor.baseline
+                        )
                     }
+                    if (block.spans.background != null) {
+                        block.spans.background!!.onDraw(canvas, spanRect)
+                    }
+                    if (block.spans.foreground != null) {
+                        block.spans.foreground!!.onDraw(canvas, spanRect)
+                    }
+                    if (block.spans.repaint != null) {
+                        paint = block.spans.repaint!!.onRepaint(paint)
+                        blockWidth = paint.measureText(block.substring)
+                    }
+                    if (block.spans.replacement != null) {
+                        offset = block.spans.replacement!!.onReplacing(
+                            canvas, paint, spanRect, block.substring
+                        )
+                    } else {
+                        canvas.drawText(block.substring, offsetXinLine, mLineAnchor.baseline, paint)
+                    }
+                    offsetXinLine += offset
                 } else {
                     canvas.drawText(
                         block.substring,
                         mOffsetX,
-                        mCurrentOffsetY,
+                        mLineAnchor.baseline,
                         mTextPaint.withBlackColor()
                     )
                 }
             }
-            mCurrentOffsetY += mLineHeight
+            mLineAnchor.increase()
         }
     }
 

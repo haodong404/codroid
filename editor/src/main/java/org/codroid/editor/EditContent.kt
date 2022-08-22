@@ -21,7 +21,6 @@
 package org.codroid.editor
 
 import android.graphics.Color
-import android.util.Log
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.buffer
@@ -33,10 +32,11 @@ import org.codroid.editor.buffer.TextSequence
 import org.codroid.editor.decoration.CharacterSpan
 import org.codroid.editor.decoration.Decorator
 import org.codroid.editor.decoration.SpanDecoration
-import org.codroid.textmate.*
+import org.codroid.textmate.EncodedTokenAttributes
 import java.nio.file.Path
 import java.util.*
 import kotlin.math.abs
+import kotlin.math.max
 import kotlin.math.min
 
 @OptIn(ExperimentalUnsignedTypes::class)
@@ -52,7 +52,6 @@ class EditContent(
     private val mRange = Range(visibleLines, bufferSize)
 
     private val mSyntaxAnalyser = SyntaxAnalyser(editor.theme!!)
-    private val mTokenBlocks = mutableListOf<List<TokenWithRange>>()
 
     init {
         editor.lifecycleScope.launch(Dispatchers.IO) {
@@ -62,30 +61,45 @@ class EditContent(
                     withContext(Dispatchers.Main) {
                         editor.requestLayout()
                         editor.invalidate()
-                        Log.i("Zac", "Finished")
                     }
                 }
                 .collect { pair ->
-                    val tokens = mutableListOf<TokenWithRange>()
                     val tokenLength = pair.second.tokens.size / 2
+                    val spans = mutableMapOf<IntRange, SpanDecoration>()
                     for (j in 0 until tokenLength) {
                         val startIndex = pair.second.tokens[2 * j]
                         val nextStartIndex = if (j + 1 < tokenLength) {
                             pair.second.tokens[2 * j + 2].toInt()
                         } else {
-                            pair.first.length
+                            pair.first.second()
                         }
                         val metadata = pair.second.tokens[2 * j + 1]
-                        tokens.add(
-                            TokenWithRange(
-                                IntRange(startIndex.toInt(), nextStartIndex - 1),
-                                encodedToken = metadata
-                            )
+                        makeSyntaxSpan(
+                            IntRange(startIndex.toInt(), nextStartIndex - 1),
+                            metadata, spans
                         )
                     }
-                    mTokenBlocks.add(tokens)
+                    mDecorator.appendSpan(spans)
                 }
         }
+    }
+
+    private fun makeSyntaxSpan(
+        range: IntRange,
+        metadata: UInt,
+        out: MutableMap<IntRange, SpanDecoration>
+    ) {
+        val span = CharacterSpan().apply {
+            val foreground = EncodedTokenAttributes.getForeground(metadata)
+            val background = EncodedTokenAttributes.getBackground(metadata)
+            val fontStyle = EncodedTokenAttributes.getFontStyle(metadata)
+            setFontStyle(fontStyle)
+            SyntaxAnalyser.registry?.getColorMap()?.run {
+                setTextColor(Color.parseColor(getOrDefault(foreground, "#FF0000")))
+                setBackground(Color.parseColor(getOrDefault(background, "#FF00FF")))
+            }
+        }
+        out[range] = span
     }
 
     fun up() {
@@ -116,37 +130,22 @@ class EditContent(
 
     inner class RowIterator(private val iterator: Iterator<String>) : Iterator<Row> {
 
-        private val lineTokensIt = mTokenBlocks.iterator()
+        private var mNewLineStartPos = 0
+        private val mSyntaxSpansIt = mDecorator.syntaxSpans().iterator()
 
         override fun hasNext() = iterator.hasNext()
 
         override fun next(): Row {
             return Row().apply {
                 val textContent = iterator.next()
-                Log.i("Zac", "------Row: $textContent")
-                if (lineTokensIt.hasNext()) {
-                    lineTokensIt.next().forEach {
-                        val spans = LinkedList<SpanDecoration>()
-                        val foreground = EncodedTokenAttributes.getForeground(it.encodedToken)
-                        Log.i(
-                            "Zac",
-                            "${it.range} : ${EncodedTokenAttributes.toBinaryStr(it.encodedToken)} | $foreground ${
-                                EncodedTokenAttributes.getBackground(it.encodedToken)
-                            } | ${EncodedTokenAttributes.getFontStyle(it.encodedToken)}"
-                        )
-                        spans.add(CharacterSpan().apply {
-                            SyntaxAnalyser.registry?.getColorMap()?.let { colorMap ->
-                                setTextColor(Color.parseColor(colorMap.getOrElse(foreground) {
-                                    Log.i("Zac", "Not found: $foreground")
-                                    "#FF0000"
-                                }))
-                            }
-                        })
-                        appendBlock(Block(textContent.substring(it.range), spans))
+                if (mSyntaxSpansIt.hasNext()) {
+                    mSyntaxSpansIt.next().forEach {
+                        appendBlock(Block(textContent.substring(it.key), it.value))
                     }
                     return@apply
                 }
                 appendBlock(Block(textContent))
+                mNewLineStartPos += textContent.length
             }
         }
     }
@@ -236,6 +235,4 @@ class EditContent(
             return mTextSequence.rows() - 1
         }
     }
-
-    data class TokenWithRange(val range: IntRange, val encodedToken: EncodedToken)
 }

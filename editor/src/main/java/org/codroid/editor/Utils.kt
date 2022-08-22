@@ -21,8 +21,9 @@
 
 package org.codroid.editor
 
+import org.codroid.editor.decoration.Decorator
 import org.codroid.editor.decoration.SpanDecoration
-import org.codroid.textmate.theme.RawTheme
+import org.codroid.editor.graphics.TextPaint
 import java.util.*
 
 typealias IntPair = ULong
@@ -105,7 +106,7 @@ class Interval(private val pair: IntPair) {
     }
 }
 
-data class Block(val substring: String, val spans: LinkedList<SpanDecoration>? = null)
+data class Block(val substring: String, val spans: Decorator.Spans? = null)
 
 @JvmInline
 value class Row(val blocks: LinkedList<Block> = LinkedList()) {
@@ -123,3 +124,26 @@ value class Row(val blocks: LinkedList<Block> = LinkedList()) {
     }
 
 }
+
+class LineAnchor(paint: TextPaint) {
+    private var mLineHeight = paint.getLineHeight()
+    private val mBaselineHeight = paint.getBaselineHeight()
+    var top = 0F
+    var bottom = mLineHeight
+    var baseline = mBaselineHeight
+
+    fun increase() {
+        this.top = bottom
+        this.bottom += mLineHeight
+        this.baseline = top + mBaselineHeight
+    }
+
+    fun reset() {
+        this.top = 0F
+        this.bottom = mLineHeight
+        this.baseline = mBaselineHeight
+    }
+}
+
+
+fun IntRange.isIn(other: IntRange): Boolean = this.first >= other.first && this.last <= other.last

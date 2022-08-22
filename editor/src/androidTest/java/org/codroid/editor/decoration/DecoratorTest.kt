@@ -34,15 +34,13 @@ class DecoratorTest {
     fun addSpanDecoration() {
         val charSpan = CharacterSpan()
             .setTextColor(Color.RED)
-        decorator.addSpan(0, 10, charSpan)
-        decorator.addSpan(20, 23, charSpan)
+        decorator.addSpan(IntRange(0, 9), charSpan)
+        decorator.addSpan(IntRange(20, 22), charSpan)
         assertEquals(2, decorator.spanSize())
         decorator.spanDecorationSequence()
             .forEach {
-                if (it.key == Interval(0, 10)) {
+                if (it.key == IntRange(0, 9)) {
                     assertTrue(it.value.first is CharacterSpan)
-                    val temp = it.value.first as CharacterSpan
-                    assertEquals(Color.RED, temp.onPainting(Paint(), "").first.color)
                 }
             }
         assertEquals(0, decorator.staticSize())

@@ -6,19 +6,30 @@ import kotlin.math.abs
 
 
 class TextPaint : Paint() {
+
     companion object {
-        fun default(): TextPaint = TextPaint().apply {
-            textSize = 40F
-            style = Style.FILL
-            color = Color.BLACK
-            isAntiAlias = true
-            return this
+        const val DefaultTextSize = 50F
+        val default: TextPaint by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
+            TextPaint()
         }
     }
 
+    init {
+        color = Color.BLACK
+        textSize = DefaultTextSize
+        isAntiAlias = true
+        style = Style.FILL
+        fontMetrics.leading = 10F
+    }
 
-    fun getStandardHeight(): Float {
-        return abs(fontMetrics.leading + fontMetrics.ascent) + fontMetrics.descent
+    fun getBaselineHeight(): Float {
+        return abs(fontMetrics.leading + fontMetrics.ascent) + 3F
+    }
+
+    fun getLineHeight(): Float {
+        fontMetrics.run {
+            return abs(leading + ascent) + descent + 10F
+        }
     }
 
     fun singleWidth(): Float {

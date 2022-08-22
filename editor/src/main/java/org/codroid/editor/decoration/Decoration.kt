@@ -28,7 +28,7 @@ interface Decoration {
 }
 
 interface Drawable {
-    fun onDraw(canvas: Canvas, rect: RectF)
+    fun onDraw(canvas: Canvas, rect: SpanRect)
 }
 
 /**
@@ -55,5 +55,22 @@ interface DynamicDecoration : Decoration, Drawable {
  *
  */
 interface StaticDecoration : Decoration, Drawable {
+
+}
+
+data class SpanRect(
+    val left: Float,
+    val top: Float,
+    val right: Float,
+    val bottom: Float,
+    val baseline: Float
+) {
+    fun width(): Float = right - left
+
+    fun height(): Float = bottom - top
+
+    fun centerX(): Float = width() / 2
+
+    fun centerY(): Float = height() / 2
 
 }

@@ -23,9 +23,6 @@ package org.codroid.editor.decoration
 import android.graphics.Canvas
 import android.graphics.RectF
 
-open class BackgroundSpan : SpanDecoration, Drawable {
-    override fun onDraw(canvas: Canvas, rect: RectF) {
-        TODO("Not yet implemented")
-    }
+interface BackgroundSpan : SpanDecoration, Drawable {
 
 }

@@ -20,33 +20,36 @@
 
 package org.codroid.editor.decoration
 
+import android.graphics.Paint
 import org.codroid.editor.Interval
 import org.codroid.editor.Vector
+import org.codroid.editor.graphics.TextPaint
+import org.codroid.editor.isIn
 import org.codroid.editor.makePair
 import java.util.*
 
 class Decorator {
-    private val mSpanDecorationTree: TreeMap<Interval, LinkedList<SpanDecoration>> =
+    private val mSpanDecorationTree: TreeMap<IntRange, Spans> =
         TreeMap { t1, t2 ->
-            if (t1.start > t2.start) {
+            if (t1.first > t2.first) {
                 return@TreeMap 1
-            } else if (t1.start < t2.start) {
+            } else if (t1.first < t2.first) {
                 return@TreeMap -1
             }
             return@TreeMap 0
         }
 
+    private val mSyntaxSpans = mutableListOf<Map<IntRange, Spans>>()
+
     private val mDynamicDecorationSet: HashSet<DynamicDecoration> = HashSet()
 
     private val mStaticDecorationSet: HashSet<StaticDecoration> = HashSet()
 
-    fun addSpan(start: Int, end: Int, decoration: SpanDecoration) {
-        val interval = Interval(makePair(start, end))
-        if (!mSpanDecorationTree.containsKey(interval)) {
-            mSpanDecorationTree[interval] = LinkedList<SpanDecoration>().apply { add(decoration) }
-        } else {
-            mSpanDecorationTree[interval]?.add(decoration)
+    fun addSpan(range: IntRange, decoration: SpanDecoration) {
+        if (!mSpanDecorationTree.containsKey(range)) {
+            mSpanDecorationTree[range] = Spans()
         }
+        convertSpan(decoration, mSpanDecorationTree[range]!!)
     }
 
     fun addSpan(decoration: DynamicDecoration) {
@@ -57,8 +60,42 @@ class Decorator {
         mStaticDecorationSet.add(decoration)
     }
 
-    fun spanDecorationSequence(): Sequence<Map.Entry<Interval, LinkedList<SpanDecoration>>> {
-        return mSpanDecorationTree.asSequence()
+    fun appendSpan(map: Map<IntRange, SpanDecoration>) {
+        val temp = mutableMapOf<IntRange, Spans>()
+        map.forEach {
+            val spans = Spans()
+            convertSpan(it.value, spans)
+            temp[it.key] = spans
+        }
+        mSyntaxSpans.add(temp)
+    }
+
+    private fun convertSpan(span: SpanDecoration, out: Spans) {
+        if (span is RepaintSpan) {
+            val temp = out.repaint
+            if (temp != null) {
+                out.repaint = object : RepaintSpan {
+                    override fun onRepaint(origin: TextPaint): TextPaint {
+                        return temp.onRepaint(origin)
+                    }
+                }
+            } else {
+                out.repaint = span
+            }
+        }
+        if (span is ForegroundSpan) {
+            out.foreground = span
+        }
+        if (span is BackgroundSpan) {
+            out.background = span
+        }
+        if (span is ReplacementSpan) {
+            out.replacement = span
+        }
+    }
+
+    fun spanDecorations(): TreeMap<IntRange, Spans> {
+        return mSpanDecorationTree
     }
 
     fun dynamicDecorationSequence(): Sequence<DynamicDecoration> {
@@ -67,6 +104,22 @@ class Decorator {
 
     fun staticDecorationSequence(): Sequence<StaticDecoration> {
         return mStaticDecorationSet.asSequence()
+    }
+
+    fun syntaxSpans(): List<Map<IntRange, Spans>> {
+        return mSyntaxSpans
+    }
+
+    fun searchSpan(range: IntRange): Map<IntRange, Spans> {
+        val result = mutableMapOf<IntRange, Spans>()
+        mSpanDecorationTree.forEach {
+            if (it.key.isIn(range)) {
+                result[it.key] = it.value
+            } else if (it.key.first > range.last) {
+                return result
+            }
+        }
+        return result
     }
 
     fun spanSize(): Int {
@@ -80,4 +133,11 @@ class Decorator {
     fun staticSize(): Int {
         return mStaticDecorationSet.size
     }
+
+    data class Spans(
+        var repaint: RepaintSpan? = null,
+        var background: BackgroundSpan? = null,
+        var foreground: ForegroundSpan? = null,
+        var replacement: ReplacementSpan? = null
+    )
 }

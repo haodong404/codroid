@@ -68,7 +68,7 @@
                 android:id="@+id/activity_main_bottom_panel"
                 android:layout_width="match_parent"
                 android:layout_height="300dp"
-                android:background="?attr/colorSurface"
+                android:background="?attr/colorAccent"
                 android:orientation="horizontal"
                 app:behavior_hideable="false"
                 app:behavior_peekHeight="30dp"
