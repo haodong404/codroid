@@ -105,7 +105,7 @@ abstract class TextSequence : Iterable<String> {
      */
     abstract fun rows(): Int
 
-    abstract fun longestLineSize(): Int
+    abstract fun longestLineLength(): Int
 
     /**
      * Returns the string represented by this sequence.

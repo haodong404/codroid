@@ -198,7 +198,7 @@ class LineArray : TextSequence {
         return mBuffer.size
     }
 
-    override fun longestLineSize(): Int = this.longest
+    override fun longestLineLength(): Int = this.longest
 
 
     override fun toString(): String {

@@ -67,11 +67,12 @@ class CharacterSpan : RepaintSpan, BackgroundSpan {
         }
         if (isUnderline(mFontStyle)) {
             mPaint.strokeWidth = 3F
+            val bottom = (rect.bottom + rect.baseline) / 2
             canvas.drawLine(
                 rect.left,
-                rect.bottom,
+                bottom,
                 rect.right,
-                rect.bottom,
+                bottom,
                 mPaint.withBlackColor()
             )
         }

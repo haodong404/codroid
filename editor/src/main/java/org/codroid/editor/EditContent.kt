@@ -34,9 +34,7 @@ import org.codroid.editor.decoration.Decorator
 import org.codroid.editor.decoration.SpanDecoration
 import org.codroid.textmate.EncodedTokenAttributes
 import java.nio.file.Path
-import java.util.*
 import kotlin.math.abs
-import kotlin.math.max
 import kotlin.math.min
 
 @OptIn(ExperimentalUnsignedTypes::class)
@@ -96,7 +94,7 @@ class EditContent(
             setFontStyle(fontStyle)
             SyntaxAnalyser.registry?.getColorMap()?.run {
                 setTextColor(Color.parseColor(getOrDefault(foreground, "#FF0000")))
-                setBackground(Color.parseColor(getOrDefault(background, "#FF00FF")))
+//                setBackground(Color.parseColor(getOrDefault(background, "#FF00FF")))
             }
         }
         out[range] = span
@@ -122,8 +120,8 @@ class EditContent(
         return mRange
     }
 
-    fun longestLineSize(): Int {
-        return mTextSequence.longestLineSize()
+    fun longestLineLength(): Int {
+        return mTextSequence.longestLineLength()
     }
 
     override fun iterator(): Iterator<Row> = RowIterator(mTextSequence.iterator())
