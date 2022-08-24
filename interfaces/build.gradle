@@ -23,14 +23,14 @@ plugins {
 }
 
 android {
-    compileSdk 31
+    compileSdk 32
 
     defaultConfig {
         minSdk 26
-        targetSdk 31
+        targetSdk 32
 
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        consumerProguardFiles "consumer-rules.pro"
+        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
+        consumerProguardFiles 'consumer-rules.pro'
     }
 
     buildTypes {
@@ -43,14 +43,20 @@ android {
         sourceCompatibility JavaVersion.VERSION_11
         targetCompatibility JavaVersion.VERSION_11
     }
+
+    kotlinOptions {
+        jvmTarget = "11"
+    }
 }
 
 dependencies {
+    implementation 'cc.ekblad:4koma:1.0.2'
+    implementation 'com.tencent:mmkv:1.2.14'
+    implementation 'androidx.room:room-runtime:2.4.3'
+    implementation 'androidx.core:core-ktx:1.8.0'
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib:1.7.10'
+    implementation "org.jetbrains.kotlin:kotlin-reflect:1.7.10"
     testImplementation 'junit:junit:4.13.2'
-    implementation("cc.ekblad:4koma:1.0.2")
-    implementation "androidx.room:room-runtime:2.4.3"
     testImplementation 'junit:junit:4.13.2'
-    annotationProcessor "androidx.room:room-compiler:2.4.3"
-    implementation "androidx.core:core-ktx:1.8.0"
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.7.10"
+    annotationProcessor 'androidx.room:room-compiler:2.4.3'
 }

@@ -19,6 +19,7 @@
 
 package org.codroid.interfaces.env;
 
+import org.codroid.interfaces.utils.PathUtils;
 import org.codroid.interfaces.utils.TomlKt;
 
 import java.nio.file.Path;
@@ -34,7 +35,7 @@ public class Property extends Resource {
     public Property(Path path) {
         super(path);
         if (path != null) {
-            TomlKt.decode2Map(path, mDefaultMapper);
+            this.map = TomlKt.decode2Map(path, mDefaultMapper);
         }
     }
 
@@ -48,5 +49,6 @@ public class Property extends Resource {
 
     public Property(AddonEnv addonEnv, String relativePathStr) {
         super(addonEnv, relativePathStr);
+        map = TomlKt.decode2Map(PathUtils.splice(addonEnv.getAddonRootDir(), relativePathStr), mDefaultMapper);
     }
 }

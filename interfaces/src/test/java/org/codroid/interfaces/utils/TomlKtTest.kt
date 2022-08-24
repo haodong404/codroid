@@ -1,8 +1,23 @@
 package org.codroid.interfaces.utils
 
+import android.provider.Settings
+import cc.ekblad.toml.configuration.TomlMapperConfigurator
+import cc.ekblad.toml.decode
+import cc.ekblad.toml.get
+import cc.ekblad.toml.model.TomlValue
+import cc.ekblad.toml.tomlMapper
+import cc.ekblad.toml.transcoding.TomlDecoder
+import cc.ekblad.toml.transcoding.decode
+import org.codroid.interfaces.preference.Preferences
+import org.codroid.interfaces.preference.Setting
+import org.codroid.interfaces.preference.preferencesMapper
 import org.junit.Assert.*
 
 import org.junit.Test
+import java.lang.IllegalArgumentException
+import kotlin.reflect.KParameter
+import kotlin.reflect.full.primaryConstructor
+import kotlin.reflect.typeOf
 
 class TomlKtTest {
     private val mapper = defaultTomlMapper()

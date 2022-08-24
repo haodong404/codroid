@@ -25,9 +25,12 @@ import org.codroid.interfaces.appearance.AppearanceProperty;
 import org.codroid.interfaces.appearance.Part;
 import org.codroid.interfaces.exceptions.AttributeNotFoundException;
 import org.codroid.interfaces.log.Loggable;
+import org.codroid.interfaces.preference.CodroidPreferenceGroup;
+import org.codroid.interfaces.preference.PreferencesProperty;
 import org.codroid.interfaces.utils.PathUtils;
 
 import java.io.File;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -44,10 +47,14 @@ public abstract class CodroidEnv implements Loggable {
     public final static String ADDONS_DIR = "addons";
     public final static String LOG_FILE_DIR = "logs";
     public final static String TEMP_DIR = "temp";
+    // This preference dir is belong to Codroid, not plugins.
+    public final static String PREFERENCES_DIR = "preferences";
 
     protected File rootFile;
 
     protected Map<String, AppearanceProperty> activeAppearances = new HashMap<>();
+    protected Map<CodroidPreferenceGroup, PreferencesProperty> codroidPreferences =
+            new EnumMap<CodroidPreferenceGroup, PreferencesProperty>(CodroidPreferenceGroup.class);
 
     public CodroidEnv(File root) {
         this.rootFile = root;
@@ -72,6 +79,7 @@ public abstract class CodroidEnv implements Loggable {
 
     /**
      * Determine whether the addon has existed through the packages in the addon directory.
+     *
      * @param _package addon package
      * @return true if exists.
      */
@@ -128,7 +136,7 @@ public abstract class CodroidEnv implements Loggable {
 
     /**
      * Return Codroid's external directory,
-     * which is Android/data/org.codroid.editor/files/${subDir}
+     * which is Android/data/org.codroid.body/files/${subDir}
      *
      * @param subDir subfolder.
      * @return Directory
@@ -147,4 +155,13 @@ public abstract class CodroidEnv implements Loggable {
         return getCodroidExternalDir(TEMP_DIR);
     }
 
+    public File getPreferencesDir() {
+        return getCodroidExternalDir(PREFERENCES_DIR);
+    }
+
+    public PreferencesProperty getCodroidPreference(CodroidPreferenceGroup group) {
+        return this.codroidPreferences.get(group);
+    }
+
+    protected abstract void registerPreference(String path);
 }

@@ -35,6 +35,8 @@ import org.codroid.interfaces.exceptions.IncompleteAddonDescriptionException;
 import org.codroid.interfaces.exceptions.NoAddonDescriptionFoundException;
 import org.codroid.interfaces.exceptions.PropertyInitException;
 import org.codroid.interfaces.log.Logger;
+import org.codroid.interfaces.preference.CodroidPreferenceGroup;
+import org.codroid.interfaces.preference.PreferencesProperty;
 import org.codroid.interfaces.utils.PathUtils;
 
 import java.io.File;
@@ -77,6 +79,13 @@ public final class AddonManager extends CodroidEnv {
         }
     }
 
+    @Override
+    protected void registerPreference(String path) {
+        final var file = new File(getPreferencesDir(), path);
+        if (TextUtils.equals(file.getName(), "text-editor")) {
+            codroidPreferences.put(CodroidPreferenceGroup.TEXT_EDITOR, new PreferencesProperty(file.toPath()));
+        }
+    }
 
     public enum ImportStage {
         READING_DESCRIPTION,
@@ -152,7 +161,7 @@ public final class AddonManager extends CodroidEnv {
             for (var it : eventCenter().<AddonImportEvent>execute(EventCenter.EventsEnum.ADDON_IMPORT)) {
                 try {
                     temp = it.beforeImport(temp);
-                } catch (Exception e){
+                } catch (Exception e) {
                     getLogger().e("Event: " + it.getClass().getName() + ", calls failed! (" + e.toString() + ")");
                 }
             }
