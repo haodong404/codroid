@@ -35,7 +35,7 @@ public class Property extends Resource {
     public Property(Path path) {
         super(path);
         if (path != null) {
-            this.map = TomlKt.decode2Map(path, mDefaultMapper);
+            this.map = TomlKt.decode2Map(path, getTomlMapper());
         }
     }
 
@@ -49,6 +49,10 @@ public class Property extends Resource {
 
     public Property(AddonEnv addonEnv, String relativePathStr) {
         super(addonEnv, relativePathStr);
-        map = TomlKt.decode2Map(PathUtils.splice(addonEnv.getAddonRootDir(), relativePathStr), mDefaultMapper);
+        map = TomlKt.decode2Map(toPath(), getTomlMapper());
+    }
+
+    public TomlMapper getTomlMapper() {
+        return mDefaultMapper;
     }
 }

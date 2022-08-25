@@ -19,7 +19,12 @@
 
 package org.codroid.interfaces.addon;
 
+import android.content.Context;
 import android.text.TextUtils;
+
+import androidx.room.Room;
+
+import com.tencent.mmkv.MMKV;
 
 import org.codroid.interfaces.appearance.AppearanceProperty;
 import org.codroid.interfaces.appearance.ThemeBase;
@@ -291,12 +296,13 @@ public final class AddonManager extends CodroidEnv {
     /**
      * Initialize the AddonManager.
      * It must be called at Application.
-     *
-     * @param rootFIle {@code} context.getExternalFileDir(null), It's used to store logs, addons, and etc.
      */
-    public void initialize(File rootFIle, AddonDatabase database) {
-        createCodroidEnv(rootFIle);
-        this.database = database;
+    public void initialize(Context context) {
+        MMKV.initialize(context);
+        createCodroidEnv(context.getExternalFilesDir(null));
+        this.database = Room.databaseBuilder(context, AddonDatabase.class, "addon-database")
+                .allowMainThreadQueries()
+                .build();
     }
 
     /**

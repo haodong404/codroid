@@ -1,0 +1,29 @@
+title = "Preferences example"
+
+[settings."switch"]
+type = "switch"
+title = "Title"
+subtitle = "subtitle"
+defaultValue = false
+
+[settings."input"]
+type = "input"
+title = "This is an input"
+subtitle = ""
+valueType = "STRING"  # STRING, NUMBER
+defaultValue = "1234"
+placeholder = "Please enter..."
+
+[settings."textarea"]
+type = "textarea"
+title = "This is a textarea"
+subtitle = "Subtitle"
+defaultValue = "Content"
+placeholder = "Placeholder"
+
+[settings."select"]
+type = "select"
+title = "Select"
+subtitle = "subtitle"
+options = ["A", "B", "C", "D"]
+defaultValue = 0  # A index in options.

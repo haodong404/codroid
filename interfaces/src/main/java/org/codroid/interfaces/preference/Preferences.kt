@@ -22,13 +22,13 @@ object SettingTypes {
 interface Setting {
     val type: String
     val title: String
-    val subtitle: String
+    val subtitle: String?
 }
 
 data class InputSetting(
     override val type: String,
     override val title: String,
-    override val subtitle: String,
+    override val subtitle: String?,
     val placeholder: String,
     val valueType: String = "STRING",
     val defaultValue: Any,
@@ -38,14 +38,14 @@ data class InputSetting(
 data class SwitchSetting(
     override val type: String,
     override val title: String,
-    override val subtitle: String,
+    override val subtitle: String?,
     val defaultValue: Boolean
 ) : Setting
 
 data class TextareaSetting(
     override val type: String,
     override val title: String,
-    override val subtitle: String,
+    override val subtitle: String?,
     val placeholder: String,
     val defaultValue: String,
 ) : Setting
@@ -53,7 +53,7 @@ data class TextareaSetting(
 data class SelectSetting(
     override val type: String,
     override val title: String,
-    override val subtitle: String,
+    override val subtitle: String?,
     val options: List<String>,
     val defaultValue: Int,
 ) : Setting
@@ -89,6 +89,9 @@ private fun decodeSetting(
 ): Pair<KParameter, Any?> {
     return param to (value as TomlValue.Map).properties.map { settingsMap ->
         val settingTomlMap = settingsMap.value as TomlValue.Map
+        if (!settingTomlMap.properties.containsKey("type")) {
+            throw IllegalArgumentException("Attribute type is required but missing.")
+        }
         return@map when ((settingTomlMap.properties["type"] as TomlValue.String).value) {
             SettingTypes.Input -> settingsMap.key to convertSetting<InputSetting>(
                 settingTomlMap,
@@ -106,7 +109,7 @@ private fun decodeSetting(
                 settingTomlMap,
                 decoder
             )
-            else -> settingsMap.key to null
+            else -> throw IllegalArgumentException("Unknown setting type: ${(settingTomlMap.properties["type"] as TomlValue.String).value}")
         }
     }.toMap()
 }

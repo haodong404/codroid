@@ -35,6 +35,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.TreeMap;
 
 /**
  * This class is the basic environment of Codroid addon,
@@ -54,14 +55,14 @@ public abstract class CodroidEnv implements Loggable {
 
     protected Map<String, AppearanceProperty> activeAppearances = new HashMap<>();
     protected Map<CodroidPreferenceGroup, PreferencesProperty> codroidPreferences =
-            new EnumMap<CodroidPreferenceGroup, PreferencesProperty>(CodroidPreferenceGroup.class);
+            new EnumMap<>(CodroidPreferenceGroup.class);
+    protected Map<String, PreferencesProperty> customPreferences = new TreeMap<>();
 
     public CodroidEnv(File root) {
         this.rootFile = root;
     }
 
     public CodroidEnv() {
-
     }
 
     public void createCodroidEnv(File root) {

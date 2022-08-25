@@ -137,6 +137,7 @@ public class AddonEnv extends CodroidEnv {
             try {
                 this.preference = (PreferencesProperty) resourceFactory
                         .createResource(this, PREFERENCE_FILE, ResourceFactory.PREFERENCES_PROPERTY);
+                customPreferences.put(getIdentify(), preference);
             } catch (Exception e) {
                 throw new PreferenceNotFoundException(getIdentify());
             }
