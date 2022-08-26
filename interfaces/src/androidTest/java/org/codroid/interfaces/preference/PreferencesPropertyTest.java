@@ -16,7 +16,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.nio.file.Path;
 
-@RunWith(AndroidJUnit4ClassRunner.class)
 @SmallTest
 public class PreferencesPropertyTest {
 

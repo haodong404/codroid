@@ -38,6 +38,7 @@ import org.codroid.body.databinding.ActivityMainBinding
 import org.codroid.body.ui.addonmanager.AddonManagerActivity
 import org.codroid.body.ui.dirtree.FileTreeNode
 import org.codroid.body.ui.dirtree.DirTreeAdapter
+import org.codroid.body.ui.preferences.PreferencesActivity
 import org.codroid.body.ui.utils.EditorWindowHelper
 import org.codroid.body.widgets.DirTreeItemView
 import java.nio.file.Paths
@@ -170,7 +171,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         R.id.action_setting -> {
-            binding.activityMainBottomPanel.close()
+            startActivity(Intent(this, PreferencesActivity::class.java))
             true
         }
 
