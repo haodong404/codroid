@@ -11,6 +11,7 @@ import android.webkit.WebView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.webkit.WebViewAssetLoader
 import androidx.webkit.WebViewClientCompat
+import androidx.webkit.WebViewCompat
 import org.codroid.body.databinding.ActivityPreferencesBinding
 
 class PreferencesActivity : AppCompatActivity() {
@@ -21,6 +22,8 @@ class PreferencesActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityPreferencesBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        val webViewPackageInfo = WebViewCompat.getCurrentWebViewPackage(this)
+        Log.i("Zac", "WebView version: ${webViewPackageInfo?.versionName}")
         binding.preferencesWebview.settings.run {
             javaScriptEnabled = true
         }

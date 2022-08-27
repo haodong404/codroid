@@ -1,13 +1,16 @@
-const colors = require("tailwindcss/colors")
+const colors = require("tailwindcss/colors");
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: ["./src/**/*.{html,js,jsx,tsx}", "./*.html"],
+  content: ["./src/**/*.{html,js,jsx,tsx,svg}", "./*.html"],
   theme: {
+    fontFamily: {
+      sans: ["poppins"],
+    },
     extend: {
       colors: {
-        "primary":colors.cyan
-      }
+        primary: colors.cyan,
+      },
     },
   },
   plugins: [],

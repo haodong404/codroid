@@ -1,5 +1,6 @@
 import { defineConfig } from "vite";
 import preact from "@preact/preset-vite";
+import { createSvgIconsPlugin } from "vite-plugin-svg-icons";
 import join from "path";
 
 // https://vitejs.dev/config/
@@ -14,6 +15,12 @@ export default defineConfig({
       "@assets": join.join(__dirname, "./src/assets"),
     },
   },
-  plugins: [preact()],
+  plugins: [
+    preact(),
+    createSvgIconsPlugin({
+      iconDirs: [join.join(__dirname, "./src/assets/icons")],
+      symbolId: "icon-[dir]-[name]",
+    }),
+  ],
   esbuild: {},
 });
