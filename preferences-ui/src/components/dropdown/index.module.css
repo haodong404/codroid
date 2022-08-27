@@ -1,0 +1,8 @@
+.dropdown_selected {
+  @apply bg-primary-50 border-2 border-primary-900 rounded-full text-primary-900;
+  @apply pl-3 py-0.5 pr-1.5 inline-flex items-center text-xs;
+}
+
+.dropdown_expanded {
+  @apply bg-neutral-600;
+}

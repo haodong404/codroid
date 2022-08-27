@@ -1,0 +1,4 @@
+.item_root {
+  @apply rounded-3xl inline-flex flex-col items-center justify-center pt-2 pb-2 w-32;
+  flex-shrink: 0;
+}
