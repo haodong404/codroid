@@ -1,0 +1,11 @@
+.setting_root {
+  @apply py-2;
+}
+
+.setting_title {
+  @apply font-normal mb-0.5;
+}
+
+.setting_subtitle {
+  @apply text-neutral-500 leading-none text-sm;
+}
