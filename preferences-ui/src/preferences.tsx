@@ -31,7 +31,7 @@ export function Preference() {
   ];
   return (
     <>
-      <Appbar></Appbar>
+      <Appbar class="sticky top-0"></Appbar>
       <SearchBar class="mt-2"></SearchBar>
       <Navigator class="mt-4" items={navigatorItems}></Navigator>
       <Preferences class="mt-4" title="Text Editor" />

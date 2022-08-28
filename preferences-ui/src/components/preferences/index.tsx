@@ -2,8 +2,15 @@ import { Component, ComponentChild, Fragment, h } from "preact";
 import { Button } from "../button";
 import DropdownSetting from "./setting-items/dropdown";
 import styles from "./index.module.css";
-import { Setting, SettingType, DropdownSettingItem, SwitchSettingItem } from "./setting-items/props";
+import {
+  Setting,
+  SettingType,
+  DropdownSettingItem,
+  SwitchSettingItem,
+  TextfieldSettingItem,
+} from "./setting-items/props";
 import SwitchSetting from "./setting-items/switch";
+import TextfieldSetting from "./setting-items/textfield";
 
 export interface SettingsProps {
   class?: string;
@@ -52,7 +59,15 @@ const preferences: Array<Setting> = [
     title: "Auto close Brackets",
     subtitle:
       "Controls whether the editor should remove adjacent closing quotes or brackets when deleting.",
-    value: true,
+    value: false,
+  },
+  {
+    type: SettingType.Input,
+    title: "Auto close Brackets",
+    subtitle:
+      "Controls whether the editor should remove adjacent closing quotes or brackets when deleting.",
+    value: "Default value",
+    placeholder: "Please enter"
   },
 ];
 
@@ -61,8 +76,10 @@ export default class Preferences extends Component<SettingsProps> {
     switch (setting.type) {
       case SettingType.Dropdown:
         return h(DropdownSetting, setting as DropdownSettingItem);
-        case SettingType.Switch:
-          return h(SwitchSetting, setting as SwitchSettingItem)
+      case SettingType.Switch:
+        return h(SwitchSetting, setting as SwitchSettingItem);
+      case SettingType.Input:
+        return h(TextfieldSetting, setting as TextfieldSettingItem);
       default:
         return <></>;
     }
