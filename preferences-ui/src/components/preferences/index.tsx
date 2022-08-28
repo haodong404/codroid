@@ -12,75 +12,13 @@ import {
 import SwitchSetting from "./setting-items/switch";
 import TextfieldSetting from "./setting-items/textfield";
 import TextareaSetting from "./setting-items/textarea";
+import colors from "tailwindcss/colors";
 
 export interface SettingsProps {
   class?: string;
   title: string;
+  settings: Array<Setting>;
 }
-
-const preferences: Array<Setting> = [
-  {
-    type: SettingType.Dropdown,
-    title: "Auto close Brackets",
-    subtitle:
-      "Controls whether the editor should remove adjacent closing quotes or brackets when deleting.",
-    value: 0,
-    items: [
-      "Aaaa",
-      "Hello World!",
-      "Hello World!",
-      "Hello World!",
-      "Hello World!",
-      "Hello World!",
-      "Auto",
-      "a",
-      "org.codroid.textmate.TextMate",
-    ],
-  },
-  {
-    type: SettingType.Dropdown,
-    title: "Auto close Brackets",
-    subtitle:
-      "Controls whether the editor should remove adjacent closing quotes or brackets when deleting.",
-    value: 3,
-    items: [
-      "Aaaa",
-      "Hello World!",
-      "Hello World!",
-      "Hello World!",
-      "Hello World!",
-      "Hello World!",
-      "Auto",
-      "a",
-      "org.codroid.textmate.TextMate",
-    ],
-  },
-  {
-    type: SettingType.Switch,
-    title: "Auto close Brackets",
-    subtitle:
-      "Controls whether the editor should remove adjacent closing quotes or brackets when deleting.",
-    value: false,
-  },
-  {
-    type: SettingType.Input,
-    title: "Auto close Brackets",
-    subtitle:
-      "Controls whether the editor should remove adjacent closing quotes or brackets when deleting.",
-    value: "Default value",
-    placeholder: "Please enter",
-  },
-  {
-    type: SettingType.Textarea,
-    title: "Auto close Brackets",
-    subtitle:
-      "Controls whether the editor should remove adjacent closing quotes or brackets when deleting.",
-    value:
-      "Default value Controls whether the editor should remove adjacent closing quotes or brackets when deleting.Controls whether the editor should remove adjacent closing quotes or brackets when deleting.Controls whether the editor should remove adjacent closing quotes or brackets when deleting.Controls whether the editor should remove adjacent closing quotes or brackets when deleting.Controls whether the editor should remove adjacent closing quotes or brackets when deleting.Controls whether the editor should remove adjacent closing quotes or brackets when deleting.",
-    placeholder: "Please enter",
-  },
-];
-
 export default class Preferences extends Component<SettingsProps> {
   loadSettingItem = (setting: Setting): h.JSX.Element => {
     switch (setting.type) {
@@ -102,10 +40,10 @@ export default class Preferences extends Component<SettingsProps> {
       <>
         <section class={`${styles.settings_head} ${this.props.class}`}>
           <h1 class={styles.settings_title}>{this.props.title}</h1>
-          <Button></Button>
+          <Button color={colors.red} text="RESET" />
         </section>
         <section class="flex flex-col divide-y">
-          {preferences.map((it) => (
+          {this.props.settings.map((it) => (
             <Fragment key={it}>{this.loadSettingItem(it)}</Fragment>
           ))}
         </section>

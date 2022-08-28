@@ -7,13 +7,10 @@ export class SearchBar extends Component<{ class?: string }> {
     return (
       <div class={`${styles.searchbar_root} ${this.props.class}`}>
         <input
-          class="relative top-0 left-0 bottom-0 right-0 focus:outline-0 flex-1 mr-2 bg-transparent"
-          placeholder="Searching for settings."
+          class="focus:outline-0 bg-transparent flex-auto"
+          placeholder="Searching for settings..."
         ></input>
-        <SvgIcon
-          name="search"
-          class="h-7 w-7 fill-primary-800"
-        ></SvgIcon>
+        <SvgIcon name="search" class="h-7 w-7 fill-primary-800" />
       </div>
     );
   }

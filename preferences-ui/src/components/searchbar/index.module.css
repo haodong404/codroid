@@ -1,3 +1,4 @@
 .searchbar_root {
-  @apply w-full bg-neutral-200 hover:bg-neutral-100 transition-all duration-300 pl-6 pr-6 pt-2 pb-2 flex items-center rounded-full;
+  @apply w-full transition-all duration-300 pl-6 pr-6 pt-2 pb-2 flex justify-between items-center rounded-full;
+  @apply bg-neutral-200 hover:bg-neutral-100;
 }

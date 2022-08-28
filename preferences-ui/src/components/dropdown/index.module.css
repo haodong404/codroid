@@ -1,6 +1,6 @@
 .dropdown_selected {
-  @apply bg-primary-50 rounded-lg text-primary-900 hover:bg-primary-100 transition-all duration-300 outline outline-[1.5px];
-  @apply pl-3 py-1 pr-1.5 inline-flex items-center justify-between text-xs cursor-pointer ;
+  @apply bg-primary-50 rounded-lg text-primary-900 hover:bg-primary-100 transition-all duration-300 border-primary-900 border-[1.5px];
+  @apply pl-3 py-1 pr-1.5 inline-flex items-center justify-between text-xs cursor-pointer;
   min-width: 4rem;
 }
 

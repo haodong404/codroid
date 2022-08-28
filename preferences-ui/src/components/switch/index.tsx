@@ -20,6 +20,7 @@ export default class Switch extends Component<SwitchProps> {
           />
           <div
             class="w-11 h-6 bg-primary-50 border-[1.5px] border-primary-900 transition-all
+            outline-none
           peer-focus:outline-none
           rounded-full peer peer-checked:after:translate-x-full
            after:content-[''] 
