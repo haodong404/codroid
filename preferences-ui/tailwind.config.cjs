@@ -11,6 +11,9 @@ module.exports = {
       colors: {
         primary: colors.cyan,
       },
+      space: {
+        "1.5": "1.5px"
+      }
     },
   },
   plugins: [],

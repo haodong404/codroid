@@ -1,5 +1,5 @@
 import { Component, ComponentChild, Fragment, h } from "preact";
-import SvgIcon from "../SvgIcon";
+import SvgIcon from "../svgIcon";
 import styles from "./index.module.css";
 
 export interface DropdownProps {

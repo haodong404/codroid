@@ -1,6 +1,6 @@
 import { Component, ComponentChild, h } from "preact";
 import { TailwindColor } from "../../pkg/tailwindColor";
-import SvgIcon from "../SvgIcon";
+import SvgIcon from "../svgIcon";
 import styles from "./index.module.css";
 
 export interface ItemProps {

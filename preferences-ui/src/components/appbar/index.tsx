@@ -1,7 +1,7 @@
 import { Component, ComponentChild, h } from "preact";
 import styles from "./index.module.css";
 import { Button } from "../button";
-import SvgIcon from "../SvgIcon";
+import SvgIcon from "../svgIcon";
 
 export class Appbar extends Component {
   render(): ComponentChild {

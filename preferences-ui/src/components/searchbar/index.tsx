@@ -1,5 +1,5 @@
 import { Component, ComponentChild, h } from "preact";
-import SvgIcon from "../SvgIcon";
+import SvgIcon from "../svgIcon";
 import styles from "./index.module.css";
 
 export class SearchBar extends Component<{ class?: string }> {
