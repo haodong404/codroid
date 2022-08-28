@@ -11,6 +11,7 @@ import {
 } from "./setting-items/props";
 import SwitchSetting from "./setting-items/switch";
 import TextfieldSetting from "./setting-items/textfield";
+import TextareaSetting from "./setting-items/textarea";
 
 export interface SettingsProps {
   class?: string;
@@ -67,7 +68,16 @@ const preferences: Array<Setting> = [
     subtitle:
       "Controls whether the editor should remove adjacent closing quotes or brackets when deleting.",
     value: "Default value",
-    placeholder: "Please enter"
+    placeholder: "Please enter",
+  },
+  {
+    type: SettingType.Textarea,
+    title: "Auto close Brackets",
+    subtitle:
+      "Controls whether the editor should remove adjacent closing quotes or brackets when deleting.",
+    value:
+      "Default value Controls whether the editor should remove adjacent closing quotes or brackets when deleting.Controls whether the editor should remove adjacent closing quotes or brackets when deleting.Controls whether the editor should remove adjacent closing quotes or brackets when deleting.Controls whether the editor should remove adjacent closing quotes or brackets when deleting.Controls whether the editor should remove adjacent closing quotes or brackets when deleting.Controls whether the editor should remove adjacent closing quotes or brackets when deleting.",
+    placeholder: "Please enter",
   },
 ];
 
@@ -80,6 +90,8 @@ export default class Preferences extends Component<SettingsProps> {
         return h(SwitchSetting, setting as SwitchSettingItem);
       case SettingType.Input:
         return h(TextfieldSetting, setting as TextfieldSettingItem);
+      case SettingType.Textarea:
+        return h(TextareaSetting, setting as TextfieldSettingItem);
       default:
         return <></>;
     }
