@@ -1,5 +1,4 @@
 import { Component, ComponentChild, h } from "preact";
-import styles from "./index.module.css";
 import { Button } from "../button";
 import SvgIcon from "../svgIcon";
 import colors from "tailwindcss/colors";
@@ -12,7 +11,14 @@ export class Appbar extends Component<{ class?: string }> {
       >
         <SvgIcon class="h-6 w-6 inline-block" name="arrow_back" />
         <h1 class="inline-block font-sans text-2xl ml-3 flex-1">Preferences</h1>
-        <Button color={colors.red} text="RESET ALL" />
+        <Button
+          color={colors.red}
+          text="RESET ALL"
+          onclick={() => {
+            
+            Android.showToast(`Hello ${Android.json()}`);
+          }}
+        />
       </div>
     );
   }

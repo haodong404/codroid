@@ -4,12 +4,15 @@ import cc.ekblad.toml.model.TomlValue
 import cc.ekblad.toml.tomlMapper
 import cc.ekblad.toml.transcoding.TomlDecoder
 import cc.ekblad.toml.transcoding.decode
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import java.lang.Exception
 import java.lang.IllegalArgumentException
 import kotlin.reflect.KClass
 import kotlin.reflect.KParameter
 import kotlin.reflect.full.primaryConstructor
 
+@Serializable
 data class Preferences(val title: String = "TITLE", val settings: Map<String, Setting>)
 
 object SettingTypes {
@@ -19,44 +22,48 @@ object SettingTypes {
     const val Select = "select"
 }
 
-interface Setting {
-    val type: String
-    val title: String
-    val subtitle: String?
+@Serializable
+sealed class Setting {
+    abstract val category: String
+    abstract val title: String
+    abstract val subtitle: String?
 }
 
+@Serializable
 data class InputSetting(
-    override val type: String,
+    override val category: String,
     override val title: String,
     override val subtitle: String?,
     val placeholder: String,
     val valueType: String = "STRING",
-    val defaultValue: Any,
-) : Setting
+    val defaultValue: String,
+) : Setting()
 
-
+@Serializable
 data class SwitchSetting(
-    override val type: String,
+    override val category: String,
     override val title: String,
     override val subtitle: String?,
     val defaultValue: Boolean
-) : Setting
+) : Setting()
 
+@Serializable
 data class TextareaSetting(
-    override val type: String,
+    override val category: String,
     override val title: String,
     override val subtitle: String?,
     val placeholder: String,
     val defaultValue: String,
-) : Setting
+) : Setting()
 
+@Serializable
 data class SelectSetting(
-    override val type: String,
+    override val category: String,
     override val title: String,
     override val subtitle: String?,
     val options: List<String>,
     val defaultValue: Int,
-) : Setting
+) : Setting()
 
 val preferencesMapper = tomlMapper {
     decoder { root: TomlValue.Map ->
@@ -89,10 +96,10 @@ private fun decodeSetting(
 ): Pair<KParameter, Any?> {
     return param to (value as TomlValue.Map).properties.map { settingsMap ->
         val settingTomlMap = settingsMap.value as TomlValue.Map
-        if (!settingTomlMap.properties.containsKey("type")) {
+        if (!settingTomlMap.properties.containsKey("category")) {
             throw IllegalArgumentException("Attribute type is required but missing.")
         }
-        return@map when ((settingTomlMap.properties["type"] as TomlValue.String).value) {
+        return@map when ((settingTomlMap.properties["category"] as TomlValue.String).value) {
             SettingTypes.Input -> settingsMap.key to convertSetting<InputSetting>(
                 settingTomlMap,
                 decoder

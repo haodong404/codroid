@@ -14,14 +14,14 @@ import TextfieldSetting from "./setting-items/textfield";
 import TextareaSetting from "./setting-items/textarea";
 import colors from "tailwindcss/colors";
 
-export interface SettingsProps {
+export interface PreferencesProps {
   class?: string;
   title: string;
-  settings: Array<Setting>;
+  settings: {};
 }
-export default class Preferences extends Component<SettingsProps> {
+export default class Preferences extends Component<PreferencesProps> {
   loadSettingItem = (setting: Setting): h.JSX.Element => {
-    switch (setting.type) {
+    switch (setting.category) {
       case SettingType.Dropdown:
         return h(DropdownSetting, setting as DropdownSettingItem);
       case SettingType.Switch:
@@ -35,6 +35,17 @@ export default class Preferences extends Component<SettingsProps> {
     }
   };
 
+  resolveSettingItems = (): h.JSX.Element[] => {
+    console.log(this.props.settings);
+
+    const result = Array<h.JSX.Element>();
+    for (const [key, value] of Object.entries(this.props.settings)) {
+      (value as Setting).id = key;
+      result.push(this.loadSettingItem(value as Setting));
+    }
+    return result;
+  };
+
   render(): ComponentChild {
     return (
       <>
@@ -43,9 +54,7 @@ export default class Preferences extends Component<SettingsProps> {
           <Button color={colors.red} text="RESET" />
         </section>
         <section class="flex flex-col divide-y">
-          {this.props.settings.map((it) => (
-            <Fragment key={it}>{this.loadSettingItem(it)}</Fragment>
-          ))}
+          {this.resolveSettingItems()}
         </section>
       </>
     );

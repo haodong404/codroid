@@ -8,10 +8,10 @@ import org.codroid.interfaces.exceptions.AttributeNotFoundException;
 
 import java.util.Map;
 
-public class AppearanceProperty extends Property {
+public class AppearanceProperty extends Property<Object> {
 
     public AppearanceProperty(AddonEnv addonEnv, String relativePathStr) {
-        super(addonEnv, relativePathStr);
+        super(addonEnv, relativePathStr, Object.class);
     }
 
     public enum PartEnum {
@@ -45,5 +45,13 @@ public class AppearanceProperty extends Property {
             default:
                 throw new AttributeNotFoundException("Part: " + partEnum.value() + " not found!");
         }
+    }
+
+    private Map<String, Object> getAttributes() {
+        return (Map<String, Object>) getEntity();
+    }
+
+    public static class Appearances {
+
     }
 }

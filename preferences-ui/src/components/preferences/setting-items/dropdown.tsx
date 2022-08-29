@@ -11,8 +11,8 @@ export default class DropdownSetting extends Component<DropdownSettingItem> {
         <p class={styles.setting_subtitle}>{this.props.subtitle}</p>
         <div class="mt-2 flex justify-end">
           {h(Dropdown, {
-            selected: this.props.value,
-            items: this.props.items,
+            defaultValue: this.props.defaultValue,
+            options: this.props.options,
           })}
         </div>
       </div>

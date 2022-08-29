@@ -45,8 +45,7 @@ class PreferencesActivity : AppCompatActivity() {
                 return interceptedWebRequest
             }
         }
-
+        binding.preferencesWebview.addJavascriptInterface(JsInterface(this), "Android")
         binding.preferencesWebview.loadUrl("https://appassets.androidplatform.net/assets/preferences-ui/index.html")
     }
-
 }

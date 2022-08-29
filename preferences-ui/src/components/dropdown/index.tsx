@@ -3,8 +3,8 @@ import SvgIcon from "../svgIcon";
 import styles from "./index.module.css";
 
 export interface DropdownProps {
-  items: Array<string>;
-  selected: number;
+  options: Array<string>;
+  defaultValue: number;
 }
 
 interface DropdownItem {
@@ -25,7 +25,7 @@ export default class Dropdown extends Component<DropdownProps> {
 
   componentDidMount() {
     this.setState({
-      current: this.props.selected,
+      current: this.props.defaultValue,
     });
     document.addEventListener("click", () => {
       if (this.state.isExpanded) {
@@ -59,14 +59,14 @@ export default class Dropdown extends Component<DropdownProps> {
       <>
         <div class={styles.dropdown_outer}>
           <div onClick={this.clicked} class={styles.dropdown_selected}>
-            {this.props.items[this.state.current]}
+            {this.props.options[this.state.current]}
             <SvgIcon
               name="arrow_drop_down"
               class={`h-4 w-4 fill-primary-900 transition-transform ${expandIcon}`}
             />
           </div>
           <div class={trigger}>
-            {this.props.items.map((it: string, index: number) => (
+            {this.props.options.map((it: string, index: number) => (
               <Fragment key={index}>
                 {h(dropdownItem, {
                   index: index,

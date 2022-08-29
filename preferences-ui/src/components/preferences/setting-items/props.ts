@@ -11,22 +11,23 @@ export enum SettingType {
 }
 
 export interface SettingItem {
-  type: SettingType;
+  id: string;
+  category: SettingType;
   title: string;
   subtitle?: string;
 }
 
 export interface DropdownSettingItem extends SettingItem {
-  value: number;
-  items: Array<string>;
+  defaultValue: number;
+  options: Array<string>;
 }
 
 export interface SwitchSettingItem extends SettingItem {
-  value: boolean;
+  defaultValue: boolean;
 }
 
 export interface TextfieldSettingItem extends SettingItem {
-  value?: string;
+  defaultValue?: string;
   placeholder?: string;
 }
 

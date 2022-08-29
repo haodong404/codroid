@@ -8,6 +8,10 @@ body {
   @apply select-none font-sans;
 }
 
+button {
+  outline: none;
+}
+
 @font-face {
   font-family: poppins;
   src: url("./assets/Poppins-Regular.ttf");

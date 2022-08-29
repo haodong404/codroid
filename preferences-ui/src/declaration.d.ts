@@ -4,3 +4,7 @@ declare module "*.module.css" {
 }
 
 declare module "*.svg";
+
+declare interface ImportMeta {
+  env;
+}

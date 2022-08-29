@@ -12,7 +12,7 @@ export default class TextfieldSetting extends Component<TextfieldSettingItem> {
         <div class="mt-2 flex justify-end">
           <Textfield
             class="w-2/3"
-            value={this.props.value}
+            value={this.props.defaultValue}
             placeholder={this.props.placeholder}
           />
         </div>

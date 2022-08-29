@@ -45,3 +45,5 @@ class TomlKtTest {
         assertEquals(null, desc.list)
     }
 }
+
+data class Entity(val name: String, val age: Int)

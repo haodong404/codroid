@@ -9,69 +9,9 @@ import {
   Setting,
   SettingType,
 } from "./components/preferences/setting-items/props";
+import { PreferencesProps } from "./components/preferences";
+import textEditorSettings from "./mock/settings";
 
-const textEditorSettings: Array<Setting> = [
-  {
-    type: SettingType.Dropdown,
-    title: "Auto close Brackets",
-    subtitle:
-      "Controls whether the editor should remove adjacent closing quotes or brackets when deleting.",
-    value: 0,
-    items: [
-      "Aaaa",
-      "Hello World!",
-      "Hello World!",
-      "Hello World!",
-      "Hello World!",
-      "Hello World!",
-      "Auto",
-      "a",
-      "org.codroid.textmate.TextMate",
-    ],
-  },
-  {
-    type: SettingType.Dropdown,
-    title: "Auto close Brackets",
-    subtitle:
-      "Controls whether the editor should remove adjacent closing quotes or brackets when deleting.",
-    value: 3,
-    items: [
-      "Aaaa",
-      "Hello World!",
-      "Hello World!",
-      "Hello World!",
-      "Hello World!",
-      "Hello World!",
-      "Auto",
-      "a",
-      "org.codroid.textmate.TextMate",
-    ],
-  },
-  {
-    type: SettingType.Switch,
-    title: "Auto close Brackets",
-    subtitle:
-      "Controls whether the editor should remove adjacent closing quotes or brackets when deleting.",
-    value: false,
-  },
-  {
-    type: SettingType.Input,
-    title: "Auto close Brackets",
-    subtitle:
-      "Controls whether the editor should remove adjacent closing quotes or brackets when deleting.",
-    value: "Default value",
-    placeholder: "Please enter",
-  },
-  {
-    type: SettingType.Textarea,
-    title: "Auto close Brackets",
-    subtitle:
-      "Controls whether the editor should remove adjacent closing quotes or brackets when deleting.",
-    value:
-      "Default value Controls whether the editor should remove adjacent closing quotes or brackets when deleting.Controls whether the editor should remove adjacent closing quotes or brackets when deleting.Controls whether the editor should remove adjacent closing quotes or brackets when deleting.Controls whether the editor should remove adjacent closing quotes or brackets when deleting.Controls whether the editor should remove adjacent closing quotes or brackets when deleting.Controls whether the editor should remove adjacent closing quotes or brackets when deleting.",
-    placeholder: "Please enter",
-  },
-];
 
 const navigatorItems: Array<NavigatorItemProps> = [
   {
@@ -100,7 +40,26 @@ const navigatorItems: Array<NavigatorItemProps> = [
 export default class Preference extends Component {
   state = {
     current: 0,
+    preference: {
+      title: "loading",
+      settings: new Map<string, Setting>(),
+    },
   };
+
+  componentDidMount() {
+    if (import.meta.env.DEV) {
+      this.setState({
+        preference: {
+          title: "TITLE",
+          settings: textEditorSettings,
+        },
+      });
+    } else {
+      this.setState({
+        preference: JSON.parse(Android.json()),
+      });
+    }
+  }
 
   changePreference = (index: number) => {
     this.setState({
@@ -109,6 +68,8 @@ export default class Preference extends Component {
   };
 
   render(): ComponentChild {
+    console.log(this.state.preference.title);
+
     return (
       <>
         <Appbar class="sticky top-0"></Appbar>
@@ -118,10 +79,7 @@ export default class Preference extends Component {
           items={navigatorItems}
           onChanged={this.changePreference}
         ></Navigator>
-        {h(Preferences, {
-          title: navigatorItems[this.state.current].title!,
-          settings: textEditorSettings,
-        })}
+        {h(Preferences, this.state.preference as PreferencesProps)}
       </>
     );
   }

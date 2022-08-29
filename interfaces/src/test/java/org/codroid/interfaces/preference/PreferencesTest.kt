@@ -3,7 +3,6 @@ package org.codroid.interfaces.preference
 import cc.ekblad.toml.decode
 import cc.ekblad.toml.encodeToString
 import cc.ekblad.toml.tomlMapper
-import org.codroid.interfaces.exceptions.PreferenceNotFoundException
 import org.junit.Test
 import org.junit.Assert.*
 
@@ -16,7 +15,7 @@ class PreferencesTest {
         val preference = Preferences(
             settings = mapOf(
                 "input-type" to InputSetting(
-                    type = "input",
+                    category = "input",
                     title = "This is an input box.",
                     subtitle = "Subtitle",
                     valueType = "STRING",
@@ -35,7 +34,7 @@ class PreferencesTest {
         val preference = Preferences(
             settings = mapOf(
                 "input-type" to InputSetting(
-                    type = "input",
+                    category = "input",
                     title = "This is an input box.",
                     subtitle = "Subtitle",
                     valueType = "NUMBER",
@@ -55,7 +54,7 @@ class PreferencesTest {
         val preference = Preferences(
             settings = mapOf(
                 "switch-type" to SwitchSetting(
-                    type = "switch",
+                    category = "switch",
                     title = "This is a switch button.",
                     subtitle = "Subtitle",
                     defaultValue = false
@@ -72,7 +71,7 @@ class PreferencesTest {
         val preference = Preferences(
             settings = mapOf(
                 "switch-type" to TextareaSetting(
-                    type = "textarea",
+                    category = "textarea",
                     title = "This is a switch button.",
                     subtitle = "Subtitle",
                     placeholder = "placeholder",
@@ -90,7 +89,7 @@ class PreferencesTest {
         val preference = Preferences(
             settings = mapOf(
                 "switch-type" to SelectSetting(
-                    type = "select",
+                    category = "select",
                     title = "This is a switch button.",
                     subtitle = "Subtitle",
                     options = listOf("Aa", "Bb", "Cc"),
@@ -108,7 +107,7 @@ class PreferencesTest {
         val preference = Preferences(
             settings = mapOf(
                 "switch-type" to SelectSetting(
-                    type = "select",
+                    category = "select",
                     title = "This is a switch button.",
                     subtitle = null,
                     options = listOf("Aa", "Bb", "Cc"),

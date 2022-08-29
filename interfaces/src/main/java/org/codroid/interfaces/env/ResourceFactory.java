@@ -20,7 +20,6 @@
 package org.codroid.interfaces.env;
 
 import org.codroid.interfaces.appearance.AppearanceProperty;
-import org.codroid.interfaces.preference.PreferencesProperty;
 
 public class ResourceFactory {
 
@@ -35,13 +34,9 @@ public class ResourceFactory {
             case RAW_RESOURCE:
                 return new ResourceRaw(addonEnv, path);
             case RAW_PROPERTY:
-                return new Property(addonEnv, path);
-            case APPEARANCE_PROPERTY:
-                return new AppearanceProperty(addonEnv, path);
+                return new Property<>(addonEnv, path, Object.class);
             case IMAGE_RESOURCE:
                 return new ImageResource(addonEnv, path);
-            case PREFERENCES_PROPERTY:
-                return new PreferencesProperty(addonEnv, path);
             default:
                 return null;
         }

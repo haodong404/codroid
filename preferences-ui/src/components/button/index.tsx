@@ -8,7 +8,7 @@ export interface ButtonProps {
   color: TailwindColor;
   icon?: string;
   text: string;
-  onclick?: (e: Event) => {};
+  onclick?: (e?: Event) => void;
 }
 
 function renderIcon(props: any): h.JSX.Element {

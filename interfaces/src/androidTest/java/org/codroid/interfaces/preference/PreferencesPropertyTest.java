@@ -14,6 +14,7 @@ import org.junit.runner.RunWith;
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Path;
 
 @SmallTest
@@ -23,18 +24,13 @@ public class PreferencesPropertyTest {
 
     @Before
     public void init() {
-        try {
-            MMKV.initialize(ApplicationProvider.getApplicationContext());
-            var a = getClass().getResourceAsStream("preferences.toml");
-            System.out.println(a.available());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        MMKV.initialize(ApplicationProvider.getApplicationContext());
     }
 
     @Test
-    public void TestInitialValue() {
-        PreferencesProperty property = new PreferencesProperty(tomlPath);
+    public void TestInitialValue() throws IOException {
+        var input = ApplicationProvider.getApplicationContext().getAssets().open("preferences.toml");
+        PreferencesProperty property = new PreferencesProperty("ID", "", input);
         Assert.assertFalse(property.getBoolean("switch"));
     }
 }

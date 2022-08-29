@@ -78,7 +78,7 @@ public class AddonEnv extends CodroidEnv {
      * @return an {@link AppearanceProperty}.
      */
     public AppearanceProperty getAppearanceProperty(String relativePath) {
-        return (AppearanceProperty) getResourceByType(relativePath, ResourceFactory.APPEARANCE_PROPERTY);
+        return new AppearanceProperty(this, relativePath);
     }
 
     /**

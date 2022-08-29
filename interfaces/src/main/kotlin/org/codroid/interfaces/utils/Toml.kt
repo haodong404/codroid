@@ -5,13 +5,19 @@ import cc.ekblad.toml.decode
 import cc.ekblad.toml.model.TomlValue
 import cc.ekblad.toml.serialization.from
 import cc.ekblad.toml.tomlMapper
+import cc.ekblad.toml.util.InternalAPI
 import org.codroid.interfaces.addon.Addon
 import org.codroid.interfaces.addon.AddonDescription
+import java.io.InputStream
 import java.lang.reflect.Modifier
 import java.nio.file.Path
 import java.util.function.LongFunction
+import kotlin.jvm.internal.Reflection
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
+import kotlin.reflect.cast
+import kotlin.reflect.full.cast
+import kotlin.reflect.full.createType
 import kotlin.reflect.typeOf
 
 fun defaultTomlMapper(): TomlMapper {
@@ -24,6 +30,18 @@ fun decode2Map(path: Path, mapper: TomlMapper): Map<String, Any> {
 
 fun decode2Map(content: String, mapper: TomlMapper): Map<String, Any> {
     return mapper.decode(content)
+}
+
+fun decode2Map(inputStream: InputStream, mapper: TomlMapper): Map<String, Any> {
+    return mapper.decode(inputStream)
+}
+
+@OptIn(InternalAPI::class)
+fun <T> decode(content: String, clazz: Class<T>): T {
+    return defaultTomlMapper().decode(
+        Reflection.createKotlinClass(clazz).createType(),
+        TomlValue.from(content)
+    )
 }
 
 fun descriptionMapper(): TomlMapper {

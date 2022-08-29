@@ -1,6 +1,7 @@
 import { Component, ComponentChild, h } from "preact";
 
 export interface SwitchProps {
+  id: string;
   checked?: boolean;
 }
 
@@ -9,13 +10,13 @@ export default class Switch extends Component<SwitchProps> {
     return (
       <>
         <label
-          for="switch"
+          for={this.props.id}
           class="inline-flex relative items-center cursor-pointer"
         >
           <input
             type="checkbox"
             checked={this.props.checked}
-            id="switch"
+            id={this.props.id}
             class="sr-only peer"
           />
           <div
