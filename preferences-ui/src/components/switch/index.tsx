@@ -3,6 +3,7 @@ import { Component, ComponentChild, h } from "preact";
 export interface SwitchProps {
   id: string;
   checked?: boolean;
+  onChanged?: (e: Event) => void;
 }
 
 export default class Switch extends Component<SwitchProps> {
@@ -17,6 +18,7 @@ export default class Switch extends Component<SwitchProps> {
             type="checkbox"
             checked={this.props.checked}
             id={this.props.id}
+            onChange={this.props.onChanged}
             class="sr-only peer"
           />
           <div

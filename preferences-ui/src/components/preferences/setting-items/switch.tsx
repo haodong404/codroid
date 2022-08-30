@@ -11,10 +11,20 @@ export default class SwitchSetting extends Component<SwitchSettingItem> {
       >
         <div>
           <h1 class={styles.setting_title}>{this.props.title}</h1>
-          <p class={styles.setting_subtitle}>{this.props.subtitle}</p>
+          <p class={styles.setting_summary}>{this.props.summary}</p>
         </div>
         <div>
-          <Switch id={this.props.id} checked={this.props.defaultValue} />
+          <Switch
+            id={this.props.id}
+            checked={this.props.defaultValue}
+            onChanged={(e: Event) => {
+              if (import.meta.env.PROD) {
+                PreferencesInjection.putBoolean(this.props.id, false);
+              } else {
+                console.log(e);
+              }
+            }}
+          />
         </div>
       </div>
     );

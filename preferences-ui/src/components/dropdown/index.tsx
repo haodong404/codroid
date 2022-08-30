@@ -5,6 +5,7 @@ import styles from "./index.module.css";
 export interface DropdownProps {
   options: Array<string>;
   defaultValue: number;
+  onSelected?: (index: number) => void;
 }
 
 interface DropdownItem {
@@ -37,6 +38,7 @@ export default class Dropdown extends Component<DropdownProps> {
   }
 
   itemClicked = (e: Event, index: number) => {
+    this.props.onSelected?.call(null, index);
     this.setState({
       current: index,
     });

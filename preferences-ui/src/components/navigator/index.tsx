@@ -35,6 +35,12 @@ export class Navigator extends Component<NavigatorProps> {
           return {
             ...item,
             onclick: (e: Event) => {
+              if (import.meta.env.PROD) {
+                PreferencesInjection.selectPreference(
+                  item.id,
+                  item.fromCodroid
+                );
+              }
               this.itemClick(index);
             },
           };

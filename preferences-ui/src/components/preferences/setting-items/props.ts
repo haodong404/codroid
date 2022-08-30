@@ -3,7 +3,7 @@ export type Setting =
   | SwitchSettingItem
   | TextfieldSettingItem;
 
-export enum SettingType {
+export enum SettingCategory {
   Input = "input",
   Dropdown = "select",
   Switch = "switch",
@@ -12,9 +12,9 @@ export enum SettingType {
 
 export interface SettingItem {
   id: string;
-  category: SettingType;
+  category: SettingCategory;
   title: string;
-  subtitle?: string;
+  summary?: string;
 }
 
 export interface DropdownSettingItem extends SettingItem {

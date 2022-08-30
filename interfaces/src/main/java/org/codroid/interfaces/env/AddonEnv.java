@@ -22,7 +22,7 @@ package org.codroid.interfaces.env;
 import org.codroid.interfaces.appearance.AppearanceProperty;
 import org.codroid.interfaces.exceptions.PreferenceNotFoundException;
 import org.codroid.interfaces.log.Logger;
-import org.codroid.interfaces.preference.PreferencesProperty;
+import org.codroid.interfaces.preference.PreferenceProperty;
 
 import java.io.File;
 
@@ -41,7 +41,7 @@ public class AddonEnv extends CodroidEnv {
     private Logger logger;
 
     private ResourceFactory resourceFactory = new ResourceFactory();
-    private PreferencesProperty preference = null;
+    private PreferenceProperty preference = null;
 
     public AddonEnv() {
 
@@ -55,7 +55,7 @@ public class AddonEnv extends CodroidEnv {
      */
     @Override
     protected void registerPreference(String relativePath) {
-        this.preference = (PreferencesProperty) getResourceByType(relativePath, ResourceFactory.PREFERENCES_PROPERTY);
+        this.preference = (PreferenceProperty) getResourceByType(relativePath, ResourceFactory.PREFERENCES_PROPERTY);
     }
 
     public AddonEnv(String identify) {
@@ -132,11 +132,10 @@ public class AddonEnv extends CodroidEnv {
         return logger.with(getIdentify());
     }
 
-    public PreferencesProperty getPreference() throws PreferenceNotFoundException {
+    public PreferenceProperty getPreference() throws PreferenceNotFoundException {
         if (this.preference == null) {
             try {
-                this.preference = (PreferencesProperty) resourceFactory
-                        .createResource(this, PREFERENCE_FILE, ResourceFactory.PREFERENCES_PROPERTY);
+                this.preference = new PreferenceProperty(this, PREFERENCE_FILE);
                 customPreferences.put(getIdentify(), preference);
             } catch (Exception e) {
                 throw new PreferenceNotFoundException(getIdentify());

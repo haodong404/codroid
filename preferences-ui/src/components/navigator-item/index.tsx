@@ -7,6 +7,8 @@ export interface NavigatorItemProps {
   class?: string;
   icon?: string;
   title?: string;
+  id: string;
+  fromCodroid: boolean;
   selected?: boolean;
   color?: TailwindColor;
   onclick?: (e: Event) => void;
@@ -28,12 +30,12 @@ export class NavigatorItem extends Component<NavigatorItemProps> {
           style={`background-color: ${this.props.color?.[100]}`}
         >
           <SvgIcon
-            class={`h-8 w-8`}
+            class={`h-6 w-6`}
             style={`fill: ${this.props.color?.[900]}`}
             name={this.props.icon}
           ></SvgIcon>
           <span
-            class="-mt-1 text-base font-sans font-medium"
+            class="text-base font-sans font-medium overflow-hidden text-ellipsis w-full px-2 text-center"
             style={`color:${this.props.color?.[900]}`}
           >
             {this.props.title}

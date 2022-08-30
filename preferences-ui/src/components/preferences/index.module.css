@@ -3,5 +3,5 @@
 }
 
 .settings_title {
-  @apply text-2xl;
+  @apply text-2xl max-w-xs overflow-hidden text-ellipsis;
 }

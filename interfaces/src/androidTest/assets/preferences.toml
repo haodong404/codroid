@@ -3,13 +3,13 @@ title = "Preferences example"
 [settings."switch"]
 type = "switch"
 title = "Title"
-subtitle = "subtitle"
+summary = "summary"
 defaultValue = false
 
 [settings."input"]
 type = "input"
 title = "This is an input"
-subtitle = ""
+summary = ""
 valueType = "STRING"  # STRING, NUMBER
 defaultValue = "1234"
 placeholder = "Please enter..."
@@ -17,13 +17,13 @@ placeholder = "Please enter..."
 [settings."textarea"]
 type = "textarea"
 title = "This is a textarea"
-subtitle = "Subtitle"
+summary = "summary"
 defaultValue = "Content"
 placeholder = "Placeholder"
 
 [settings."select"]
 type = "select"
 title = "Select"
-subtitle = "subtitle"
+summary = "summary"
 options = ["A", "B", "C", "D"]
 defaultValue = 0  # A index in options.

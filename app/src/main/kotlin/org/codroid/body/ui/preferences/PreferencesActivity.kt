@@ -2,9 +2,7 @@ package org.codroid.body.ui.preferences
 
 import android.annotation.SuppressLint
 import android.os.Bundle
-import android.os.PersistableBundle
 import android.util.Log
-import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebView
@@ -45,7 +43,7 @@ class PreferencesActivity : AppCompatActivity() {
                 return interceptedWebRequest
             }
         }
-        binding.preferencesWebview.addJavascriptInterface(JsInterface(this), "Android")
+        binding.preferencesWebview.addJavascriptInterface(PreferencesInjection(), "PreferencesInjection")
         binding.preferencesWebview.loadUrl("https://appassets.androidplatform.net/assets/preferences-ui/index.html")
     }
 }

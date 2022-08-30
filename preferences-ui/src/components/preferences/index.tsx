@@ -4,7 +4,7 @@ import DropdownSetting from "./setting-items/dropdown";
 import styles from "./index.module.css";
 import {
   Setting,
-  SettingType,
+  SettingCategory,
   DropdownSettingItem,
   SwitchSettingItem,
   TextfieldSettingItem,
@@ -22,13 +22,13 @@ export interface PreferencesProps {
 export default class Preferences extends Component<PreferencesProps> {
   loadSettingItem = (setting: Setting): h.JSX.Element => {
     switch (setting.category) {
-      case SettingType.Dropdown:
+      case SettingCategory.Dropdown:
         return h(DropdownSetting, setting as DropdownSettingItem);
-      case SettingType.Switch:
+      case SettingCategory.Switch:
         return h(SwitchSetting, setting as SwitchSettingItem);
-      case SettingType.Input:
+      case SettingCategory.Input:
         return h(TextfieldSetting, setting as TextfieldSettingItem);
-      case SettingType.Textarea:
+      case SettingCategory.Textarea:
         return h(TextareaSetting, setting as TextfieldSettingItem);
       default:
         return <></>;
@@ -36,8 +36,6 @@ export default class Preferences extends Component<PreferencesProps> {
   };
 
   resolveSettingItems = (): h.JSX.Element[] => {
-    console.log(this.props.settings);
-
     const result = Array<h.JSX.Element>();
     for (const [key, value] of Object.entries(this.props.settings)) {
       (value as Setting).id = key;

@@ -4,18 +4,16 @@ import cc.ekblad.toml.model.TomlValue
 import cc.ekblad.toml.tomlMapper
 import cc.ekblad.toml.transcoding.TomlDecoder
 import cc.ekblad.toml.transcoding.decode
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import java.lang.Exception
 import java.lang.IllegalArgumentException
 import kotlin.reflect.KClass
 import kotlin.reflect.KParameter
 import kotlin.reflect.full.primaryConstructor
 
 @Serializable
-data class Preferences(val title: String = "TITLE", val settings: Map<String, Setting>)
+data class Preference(val title: String = "TITLE", val settings: Map<String, Setting>)
 
-object SettingTypes {
+object SettingCategory {
     const val Input = "input"
     const val Textarea = "textarea"
     const val Switch = "switch"
@@ -26,48 +24,48 @@ object SettingTypes {
 sealed class Setting {
     abstract val category: String
     abstract val title: String
-    abstract val subtitle: String?
+    abstract val summary: String?
 }
 
 @Serializable
 data class InputSetting(
     override val category: String,
     override val title: String,
-    override val subtitle: String?,
+    override val summary: String?,
     val placeholder: String,
     val valueType: String = "STRING",
-    val defaultValue: String,
+    var defaultValue: String = "",
 ) : Setting()
 
 @Serializable
 data class SwitchSetting(
     override val category: String,
     override val title: String,
-    override val subtitle: String?,
-    val defaultValue: Boolean
+    override val summary: String?,
+    var defaultValue: Boolean = false
 ) : Setting()
 
 @Serializable
 data class TextareaSetting(
     override val category: String,
     override val title: String,
-    override val subtitle: String?,
+    override val summary: String?,
     val placeholder: String,
-    val defaultValue: String,
+    var defaultValue: String = "",
 ) : Setting()
 
 @Serializable
 data class SelectSetting(
     override val category: String,
     override val title: String,
-    override val subtitle: String?,
+    override val summary: String?,
     val options: List<String>,
-    val defaultValue: Int,
+    var defaultValue: Int = 0,
 ) : Setting()
 
 val preferencesMapper = tomlMapper {
     decoder { root: TomlValue.Map ->
-        val params = Preferences::class.primaryConstructor?.parameters
+        val params = Preference::class.primaryConstructor?.parameters
         params?.associate { param ->
             val value = root.properties[param.name]
             if (value == null) {
@@ -85,7 +83,7 @@ val preferencesMapper = tomlMapper {
             param to value
         }?.filterNot {
             it.key.isOptional && it.value == null
-        }?.let { Preferences::class.primaryConstructor?.callBy(it) }
+        }?.let { Preference::class.primaryConstructor?.callBy(it) }
     }
 }
 
@@ -100,19 +98,19 @@ private fun decodeSetting(
             throw IllegalArgumentException("Attribute type is required but missing.")
         }
         return@map when ((settingTomlMap.properties["category"] as TomlValue.String).value) {
-            SettingTypes.Input -> settingsMap.key to convertSetting<InputSetting>(
+            SettingCategory.Input -> settingsMap.key to convertSetting<InputSetting>(
                 settingTomlMap,
                 decoder
             )
-            SettingTypes.Textarea -> settingsMap.key to convertSetting<TextareaSetting>(
+            SettingCategory.Textarea -> settingsMap.key to convertSetting<TextareaSetting>(
                 settingTomlMap,
                 decoder
             )
-            SettingTypes.Switch -> settingsMap.key to convertSetting<SwitchSetting>(
+            SettingCategory.Switch -> settingsMap.key to convertSetting<SwitchSetting>(
                 settingTomlMap,
                 decoder
             )
-            SettingTypes.Select -> settingsMap.key to convertSetting<SelectSetting>(
+            SettingCategory.Select -> settingsMap.key to convertSetting<SelectSetting>(
                 settingTomlMap,
                 decoder
             )

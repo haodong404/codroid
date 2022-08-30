@@ -42,8 +42,7 @@ import org.codroid.interfaces.exceptions.NoAddonDescriptionFoundException;
 import org.codroid.interfaces.exceptions.PropertyInitException;
 import org.codroid.interfaces.log.Logger;
 import org.codroid.interfaces.preference.CodroidPreferenceGroup;
-import org.codroid.interfaces.preference.PreferencesProperty;
-import org.codroid.interfaces.preference.SettingTypes;
+import org.codroid.interfaces.preference.PreferenceProperty;
 import org.codroid.interfaces.utils.PathUtils;
 
 import java.io.File;
@@ -95,13 +94,11 @@ public final class AddonManager extends CodroidEnv {
                 if (TextUtils.equals(preference, "text-editor.toml")) {
                     var inputStream = this.context.getAssets().open("preferences/" + preference);
                     codroidPreferences.put(CodroidPreferenceGroup.TEXT_EDITOR,
-                            new PreferencesProperty("preference-text-editor-kv", getPreferencesDir().getPath(), inputStream));
+                            new PreferenceProperty("preference-text-editor-kv", getPreferencesDir().getPath(), inputStream));
                 }
             }
-            Log.i("Zac", "Size: " + codroidPreferences.get(CodroidPreferenceGroup.TEXT_EDITOR).getBoolean("switch"));
         } catch (IOException e) {
             e.printStackTrace();
-            Log.i("Zac", "NULL");
         }
 
     }

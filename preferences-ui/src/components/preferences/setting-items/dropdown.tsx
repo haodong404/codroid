@@ -8,11 +8,16 @@ export default class DropdownSetting extends Component<DropdownSettingItem> {
     return (
       <div class={styles.setting_root}>
         <h1 class={styles.setting_title}>{this.props.title}</h1>
-        <p class={styles.setting_subtitle}>{this.props.subtitle}</p>
+        <p class={styles.setting_summary}>{this.props.summary}</p>
         <div class="mt-2 flex justify-end">
           {h(Dropdown, {
             defaultValue: this.props.defaultValue,
             options: this.props.options,
+            onSelected: (index: number) => {
+              if (import.meta.env.PROD) {
+                PreferencesInjection.putInt(this.props.id, index);
+              }
+            },
           })}
         </div>
       </div>

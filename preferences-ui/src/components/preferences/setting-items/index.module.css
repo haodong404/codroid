@@ -6,6 +6,6 @@
   @apply font-normal mb-0.5;
 }
 
-.setting_subtitle {
-  @apply text-neutral-500 leading-none text-sm;
+.setting_summary {
+  @apply text-neutral-500 text-sm;
 }

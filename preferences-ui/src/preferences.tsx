@@ -5,71 +5,69 @@ import colors from "tailwindcss/colors";
 import { Navigator } from "./components/navigator";
 import { NavigatorItemProps } from "./components/navigator-item";
 import Preferences from "./components/preferences";
-import {
-  Setting,
-  SettingType,
-} from "./components/preferences/setting-items/props";
 import { PreferencesProps } from "./components/preferences";
-import textEditorSettings from "./mock/settings";
+import { preferencesMock } from "./mock/settings";
 
+const navigatorItems: Array<NavigatorItemProps> = [];
+const preferences: Array<PreferencesProps> = [];
 
-const navigatorItems: Array<NavigatorItemProps> = [
-  {
-    title: "Text Editor",
-    icon: "code",
-    color: colors.red,
-    selected: true,
-  },
-  {
-    title: "Security",
-    icon: "setting",
-    color: colors.yellow,
-  },
-  {
-    title: "General",
-    icon: "setting",
-    color: colors.green,
-  },
-  {
-    title: "General",
-    icon: "setting",
-    color: colors.yellow,
-  },
-];
-
+if (import.meta.env.PROD) {
+  const allPreferences: any = JSON.parse(PreferencesInjection.allPreferences());
+  let isFirst = true;
+  let fromCodroid = true;
+  for (const [key, value] of Object.entries(allPreferences)) {
+    // meet a divider
+    if (key == "DIVIDER") {
+      fromCodroid = false;
+      continue;
+    }
+    navigatorItems.push({
+      title: (value as any).title,
+      id: key,
+      fromCodroid: fromCodroid,
+      icon: "code",
+      color: colors.red,
+      selected: isFirst,
+    });
+    preferences.push({
+      title: (value as any).title,
+      settings: (value as any).settings,
+    });
+    isFirst = false;
+  }
+} else {
+  let isFirst = true;
+  for (const [key, value] of Object.entries(preferencesMock)) {
+    navigatorItems.push({
+      title: value.title,
+      id: key,
+      fromCodroid: true,
+      icon: "setting",
+      color: colors.amber,
+      selected: isFirst,
+    });
+    preferences.push({
+      title: value.title,
+      settings: value.settings,
+    });
+    isFirst = false;
+  }
+}
 export default class Preference extends Component {
   state = {
-    current: 0,
-    preference: {
-      title: "loading",
-      settings: new Map<string, Setting>(),
-    },
+    preference: preferences[0],
   };
 
-  componentDidMount() {
-    if (import.meta.env.DEV) {
-      this.setState({
-        preference: {
-          title: "TITLE",
-          settings: textEditorSettings,
-        },
-      });
-    } else {
-      this.setState({
-        preference: JSON.parse(Android.json()),
-      });
-    }
-  }
+  componentDidMount() {}
 
   changePreference = (index: number) => {
     this.setState({
-      current: index,
+      preference: preferences[index],
     });
+    console.log(this.state.preference);
   };
 
   render(): ComponentChild {
-    console.log(this.state.preference.title);
-
     return (
       <>
         <Appbar class="sticky top-0"></Appbar>

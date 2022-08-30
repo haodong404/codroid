@@ -8,7 +8,7 @@ export default class TextfieldSetting extends Component<TextfieldSettingItem> {
     return (
       <div class={`${styles.setting_root}`}>
         <h1 class={styles.setting_title}>{this.props.title}</h1>
-        <p class={styles.setting_subtitle}>{this.props.subtitle}</p>
+        <p class={styles.setting_summary}>{this.props.summary}</p>
         <div class="mt-2 flex justify-end">
           <Textfield
             class="w-2/3"

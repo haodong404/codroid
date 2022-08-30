@@ -26,7 +26,7 @@ import org.codroid.interfaces.appearance.Part;
 import org.codroid.interfaces.exceptions.AttributeNotFoundException;
 import org.codroid.interfaces.log.Loggable;
 import org.codroid.interfaces.preference.CodroidPreferenceGroup;
-import org.codroid.interfaces.preference.PreferencesProperty;
+import org.codroid.interfaces.preference.PreferenceProperty;
 import org.codroid.interfaces.utils.PathUtils;
 
 import java.io.File;
@@ -54,9 +54,9 @@ public abstract class CodroidEnv implements Loggable {
     protected File rootFile;
 
     protected Map<String, AppearanceProperty> activeAppearances = new HashMap<>();
-    protected Map<CodroidPreferenceGroup, PreferencesProperty> codroidPreferences =
+    protected Map<CodroidPreferenceGroup, PreferenceProperty> codroidPreferences =
             new EnumMap<>(CodroidPreferenceGroup.class);
-    protected Map<String, PreferencesProperty> customPreferences = new TreeMap<>();
+    protected Map<String, PreferenceProperty> customPreferences = new TreeMap<>();
 
     public CodroidEnv(File root) {
         this.rootFile = root;
@@ -160,8 +160,16 @@ public abstract class CodroidEnv implements Loggable {
         return getCodroidExternalDir(PREFERENCES_DIR);
     }
 
-    public PreferencesProperty getCodroidPreference(CodroidPreferenceGroup group) {
+    public PreferenceProperty getCodroidPreference(CodroidPreferenceGroup group) {
         return this.codroidPreferences.get(group);
+    }
+
+    public Map<CodroidPreferenceGroup, PreferenceProperty> getCodroidPreferences() {
+        return this.codroidPreferences;
+    }
+
+    public Map<String, PreferenceProperty> getCustomPreferences() {
+        return customPreferences;
     }
 
     protected abstract void registerPreference(String path);

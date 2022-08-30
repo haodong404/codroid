@@ -12,7 +12,7 @@ class PreferencesTest {
 
     @Test
     fun `Can parse input setting with string value`() {
-        val preference = Preferences(
+        val preference = Preference(
             settings = mapOf(
                 "input-type" to InputSetting(
                     category = "input",
@@ -25,13 +25,13 @@ class PreferencesTest {
             )
         )
         val toml = defaultMapper.encodeToString(preference)
-        val actual = preferencesMapper.decode<Preferences>(toml)
+        val actual = preferencesMapper.decode<Preference>(toml)
         assertEquals(preference, actual)
     }
 
     @Test
     fun `Can parse input setting with number value`() {
-        val preference = Preferences(
+        val preference = Preference(
             settings = mapOf(
                 "input-type" to InputSetting(
                     category = "input",
@@ -44,14 +44,14 @@ class PreferencesTest {
             )
         )
         val toml = defaultMapper.encodeToString(preference)
-        val actual = preferencesMapper.decode<Preferences>(toml)
+        val actual = preferencesMapper.decode<Preference>(toml)
         assertEquals(preference, actual)
     }
 
 
     @Test
     fun `Can parse switch setting with string value`() {
-        val preference = Preferences(
+        val preference = Preference(
             settings = mapOf(
                 "switch-type" to SwitchSetting(
                     category = "switch",
@@ -62,13 +62,13 @@ class PreferencesTest {
             )
         )
         val toml = defaultMapper.encodeToString(preference)
-        val actual = preferencesMapper.decode<Preferences>(toml)
+        val actual = preferencesMapper.decode<Preference>(toml)
         assertEquals(preference, actual)
     }
 
     @Test
     fun `Can parse textarea setting with string value`() {
-        val preference = Preferences(
+        val preference = Preference(
             settings = mapOf(
                 "switch-type" to TextareaSetting(
                     category = "textarea",
@@ -80,13 +80,13 @@ class PreferencesTest {
             )
         )
         val toml = defaultMapper.encodeToString(preference)
-        val actual = preferencesMapper.decode<Preferences>(toml)
+        val actual = preferencesMapper.decode<Preference>(toml)
         assertEquals(preference, actual)
     }
 
     @Test
     fun `Can parse select setting with string value`() {
-        val preference = Preferences(
+        val preference = Preference(
             settings = mapOf(
                 "switch-type" to SelectSetting(
                     category = "select",
@@ -98,13 +98,13 @@ class PreferencesTest {
             )
         )
         val toml = defaultMapper.encodeToString(preference)
-        val actual = preferencesMapper.decode<Preferences>(toml)
+        val actual = preferencesMapper.decode<Preference>(toml)
         assertEquals(preference, actual)
     }
 
     @Test
     fun `Can parse nullable attribute`() {
-        val preference = Preferences(
+        val preference = Preference(
             settings = mapOf(
                 "switch-type" to SelectSetting(
                     category = "select",
@@ -116,7 +116,7 @@ class PreferencesTest {
             )
         )
         val toml = defaultMapper.encodeToString(preference)
-        val actual = preferencesMapper.decode<Preferences>(toml)
+        val actual = preferencesMapper.decode<Preference>(toml)
         assertEquals(preference, actual)
     }
 
@@ -125,7 +125,7 @@ class PreferencesTest {
         val toml = """
         """.trimIndent()
         assertThrows(IllegalArgumentException::class.java) {
-            preferencesMapper.decode<Preferences>(toml)
+            preferencesMapper.decode<Preference>(toml)
         }
     }
 
@@ -140,7 +140,7 @@ class PreferencesTest {
             placeholder = "Please enter..."
         """.trimIndent()
         assertThrows(IllegalArgumentException::class.java) {
-            preferencesMapper.decode<Preferences>(toml)
+            preferencesMapper.decode<Preference>(toml)
         }
     }
 
@@ -156,7 +156,7 @@ class PreferencesTest {
             placeholder = "Please enter..."
         """.trimIndent()
         assertThrows(IllegalArgumentException::class.java) {
-            preferencesMapper.decode<Preferences>(toml)
+            preferencesMapper.decode<Preference>(toml)
         }
     }
 
@@ -170,7 +170,7 @@ class PreferencesTest {
             placeholder = "Please enter..."
         """.trimIndent()
         assertThrows(IllegalArgumentException::class.java) {
-            preferencesMapper.decode<Preferences>(toml)
+            preferencesMapper.decode<Preference>(toml)
         }
     }
 }
