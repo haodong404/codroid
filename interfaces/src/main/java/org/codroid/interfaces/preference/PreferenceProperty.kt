@@ -31,18 +31,20 @@ class PreferenceProperty : Property<Preference>, PreferenceOperation {
     }
 
     fun init() {
-        entity?.settings?.forEach { (k, v) ->
-            when (v) {
-                is InputSetting -> {
-                    if (v.valueType == "STRING") {
-                        putString(k, v.valueType)
-                    } else {
-                        putInt(k, v.defaultValue.toInt())
+        if (mmkv.count() == 0L) {
+            entity?.settings?.forEach { (k, v) ->
+                when (v) {
+                    is InputSetting -> {
+                        if (v.valueType == "STRING") {
+                            putString(k, v.valueType)
+                        } else {
+                            putInt(k, v.defaultValue.toInt())
+                        }
                     }
+                    is TextareaSetting -> putString(k, v.defaultValue)
+                    is SwitchSetting -> putBoolean(k, v.defaultValue)
+                    is SelectSetting -> putInt(k, v.defaultValue)
                 }
-                is TextareaSetting -> putString(k, v.defaultValue)
-                is SwitchSetting -> putBoolean(k, v.defaultValue)
-                is SelectSetting -> putInt(k, v.defaultValue)
             }
         }
     }

@@ -2,6 +2,7 @@ package org.codroid.body.ui.preferences
 
 import android.util.Log
 import android.webkit.JavascriptInterface
+import org.codroid.interfaces.addon.Addon
 import org.codroid.interfaces.addon.AddonManager
 import org.codroid.interfaces.preference.CodroidPreferenceGroup
 import org.codroid.interfaces.preference.PreferenceOperation
@@ -34,7 +35,9 @@ class PreferencesInjection : PreferenceOperation {
         }
 
         // Insert a divider to distinguish between Codroid Preferences and Custom Preferences.
-        builder.append("\"DIVIDER\": {}")
+        if (AddonManager.get().customPreferences.isNotEmpty()) {
+            builder.append("\"DIVIDER\": {}")
+        }
 
         AddonManager.get().customPreferences.forEach {
             builder.append("\"${it.key}\":")
@@ -68,6 +71,7 @@ class PreferencesInjection : PreferenceOperation {
     @JavascriptInterface
     override fun putInt(key: String, value: Int) {
         this.currentPreference?.run {
+            Log.i("Zac", "$key : $value")
             this.putInt(key, value)
         }
     }
@@ -82,6 +86,7 @@ class PreferencesInjection : PreferenceOperation {
     @JavascriptInterface
     override fun getString(key: String): String {
         this.currentPreference?.run {
+            Log.i("Zac", "GET: ${this.getString(key)}")
             return this.getString(key)
         }
         return ""

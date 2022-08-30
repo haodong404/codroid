@@ -33,7 +33,10 @@ if (import.meta.env.PROD) {
       title: (value as any).title,
       settings: (value as any).settings,
     });
-    isFirst = false;
+    if (isFirst) {
+      isFirst = false;
+      PreferencesInjection.selectPreference(key, true);
+    }
   }
 } else {
   let isFirst = true;
@@ -64,7 +67,6 @@ export default class Preference extends Component {
     this.setState({
       preference: preferences[index],
     });
-    console.log(this.state.preference);
   };
 
   render(): ComponentChild {

@@ -35,14 +35,14 @@ export const textEditorPreference: PreferencesProps = {
       category: SettingCategory.Switch,
       title:
         "Bracket Pair Colorization: Independent Color Pool Per Bracket Type",
-      defaultValue: false,
+      defaultValue: true,
     },
     "Column Selection": {
       category: SettingCategory.Switch,
       title: "Column Selection",
       summary:
         "Enable that the selection with the mouse and keys is doing column selection.",
-      default: true,
+      defaultValue: false,
     },
     "Code Actions On Save": {
       category: SettingCategory.Textarea,
@@ -60,6 +60,7 @@ export const generalSetting: PreferencesProps = {
       title: "无障碍页面大小",
       summary:
         "控制编辑器中可被屏幕阅读器一次性读出的行数。当我们检测到一个屏幕阅读器时，我们会自动将默认值设置为500。警告：对于大于默认值的数字，这对性能会有影响。",
+      placeholder: "请输入数字。",
     },
     "Accessibility Support": {
       category: SettingCategory.Dropdown,
@@ -67,14 +68,14 @@ export const generalSetting: PreferencesProps = {
       summary:
         "控制编辑器是否应该在为屏幕阅读器优化的模式下运行。设置为 on 将禁用文字包装。",
       options: ["自动", "关闭", "开启"],
-      defaultValue: 2,
+      defaultValue: 1,
     },
     "Auto Closing Brackets": {
       category: SettingCategory.Dropdown,
       title: "自动闭合括号",
       summary: "控制编辑器是否应该在用户添加开括号后自动关闭括号。",
       options: ["总是", "根据语言", "空字符之后", "从不"],
-      defaultValue: 0,
+      defaultValue: 1,
     },
     "Bracket Pair Colorization": {
       category: SettingCategory.Switch,
@@ -85,12 +86,13 @@ export const generalSetting: PreferencesProps = {
       category: SettingCategory.Switch,
       title: "可选择列",
       summary: "启用鼠标和按键的选择是做列选择。",
-      default: true,
+      defaultValue: true,
     },
     "Code Actions On Save": {
       category: SettingCategory.Textarea,
       title: "代码保存时执行操作",
       summary: "代码在保存是执行的操作种类",
+      defaultValue: "默认值",
     },
   },
 };

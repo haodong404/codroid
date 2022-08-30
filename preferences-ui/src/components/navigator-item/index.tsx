@@ -35,7 +35,7 @@ export class NavigatorItem extends Component<NavigatorItemProps> {
             name={this.props.icon}
           ></SvgIcon>
           <span
-            class="text-base font-sans font-medium overflow-hidden text-ellipsis w-full px-2 text-center"
+            class="text-base font-sans font-medium overflow-hidden whitespace-nowrap text-ellipsis w-full px-2 text-center"
             style={`color:${this.props.color?.[900]}`}
           >
             {this.props.title}

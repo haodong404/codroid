@@ -24,10 +24,11 @@ export default class Dropdown extends Component<DropdownProps> {
     super();
   }
 
+  componentWillMount() {
+    this.state.current = this.props.defaultValue;
+  }
+
   componentDidMount() {
-    this.setState({
-      current: this.props.defaultValue,
-    });
     document.addEventListener("click", () => {
       if (this.state.isExpanded) {
         this.setState({
@@ -35,6 +36,12 @@ export default class Dropdown extends Component<DropdownProps> {
         });
       }
     });
+  }
+
+  componentWillReceiveProps(props: DropdownProps) {
+    if (props.defaultValue !== this.props.defaultValue) {
+      this.state.current = props.defaultValue;
+    }
   }
 
   itemClicked = (e: Event, index: number) => {

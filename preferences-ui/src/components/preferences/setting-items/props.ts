@@ -18,12 +18,12 @@ export interface SettingItem {
 }
 
 export interface DropdownSettingItem extends SettingItem {
-  defaultValue: number;
+  defaultValue?: number;
   options: Array<string>;
 }
 
 export interface SwitchSettingItem extends SettingItem {
-  defaultValue: boolean;
+  defaultValue?: boolean;
 }
 
 export interface TextfieldSettingItem extends SettingItem {

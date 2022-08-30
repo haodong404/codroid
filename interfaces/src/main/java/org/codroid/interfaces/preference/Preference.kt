@@ -1,9 +1,13 @@
+@file:OptIn(ExperimentalSerializationApi::class)
+
 package org.codroid.interfaces.preference
 
 import cc.ekblad.toml.model.TomlValue
 import cc.ekblad.toml.tomlMapper
 import cc.ekblad.toml.transcoding.TomlDecoder
 import cc.ekblad.toml.transcoding.decode
+import kotlinx.serialization.EncodeDefault
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import java.lang.IllegalArgumentException
 import kotlin.reflect.KClass
@@ -33,8 +37,8 @@ data class InputSetting(
     override val title: String,
     override val summary: String?,
     val placeholder: String,
-    val valueType: String = "STRING",
-    var defaultValue: String = "",
+    @EncodeDefault val valueType: String = "STRING",
+    @EncodeDefault var defaultValue: String = "",
 ) : Setting()
 
 @Serializable
@@ -42,7 +46,7 @@ data class SwitchSetting(
     override val category: String,
     override val title: String,
     override val summary: String?,
-    var defaultValue: Boolean = false
+    @EncodeDefault var defaultValue: Boolean = false
 ) : Setting()
 
 @Serializable
@@ -51,7 +55,7 @@ data class TextareaSetting(
     override val title: String,
     override val summary: String?,
     val placeholder: String,
-    var defaultValue: String = "",
+    @EncodeDefault var defaultValue: String = "",
 ) : Setting()
 
 @Serializable
@@ -60,7 +64,7 @@ data class SelectSetting(
     override val title: String,
     override val summary: String?,
     val options: List<String>,
-    var defaultValue: Int = 0,
+    @EncodeDefault var defaultValue: Int = 0,
 ) : Setting()
 
 val preferencesMapper = tomlMapper {

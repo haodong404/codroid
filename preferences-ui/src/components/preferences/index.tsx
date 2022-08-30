@@ -8,6 +8,7 @@ import {
   DropdownSettingItem,
   SwitchSettingItem,
   TextfieldSettingItem,
+  TextareaSettingItem,
 } from "./setting-items/props";
 import SwitchSetting from "./setting-items/switch";
 import TextfieldSetting from "./setting-items/textfield";
@@ -29,7 +30,7 @@ export default class Preferences extends Component<PreferencesProps> {
       case SettingCategory.Input:
         return h(TextfieldSetting, setting as TextfieldSettingItem);
       case SettingCategory.Textarea:
-        return h(TextareaSetting, setting as TextfieldSettingItem);
+        return h(TextareaSetting, setting as TextareaSettingItem);
       default:
         return <></>;
     }

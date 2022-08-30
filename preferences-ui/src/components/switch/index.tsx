@@ -3,10 +3,25 @@ import { Component, ComponentChild, h } from "preact";
 export interface SwitchProps {
   id: string;
   checked?: boolean;
-  onChanged?: (e: Event) => void;
+  onChanged?: (checked: boolean) => void;
 }
 
 export default class Switch extends Component<SwitchProps> {
+  state = {
+    checked: this.props.checked,
+  };
+
+  toggle = () => {
+    let checked = !this.state.checked;
+    this.setState({ checked: checked });
+    this.props.onChanged?.call(null, checked);
+  };
+
+  componentWillReceiveProps(props: SwitchProps): boolean {
+    this.state.checked = props.checked;
+    return true;
+  }
+
   render(): ComponentChild {
     return (
       <>
@@ -16,9 +31,9 @@ export default class Switch extends Component<SwitchProps> {
         >
           <input
             type="checkbox"
-            checked={this.props.checked}
+            checked={this.state.checked}
             id={this.props.id}
-            onChange={this.props.onChanged}
+            onClick={this.toggle}
             class="sr-only peer"
           />
           <div
