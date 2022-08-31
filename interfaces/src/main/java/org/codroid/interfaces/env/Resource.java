@@ -19,6 +19,8 @@
 
 package org.codroid.interfaces.env;
 
+import androidx.annotation.NonNull;
+
 import org.codroid.interfaces.utils.PathUtils;
 
 import java.io.File;
@@ -27,7 +29,7 @@ import java.nio.file.Path;
 public abstract class Resource {
     private Path path;
 
-    public Resource(AddonEnv addonEnv, String path) {
+    public Resource(@NonNull AddonEnv addonEnv, String path) {
         this.path = PathUtils.splice(addonEnv.getAddonRootDir(), path);
     }
 

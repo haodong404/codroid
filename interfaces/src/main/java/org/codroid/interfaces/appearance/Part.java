@@ -22,12 +22,10 @@ package org.codroid.interfaces.appearance;
 import android.graphics.Color;
 
 import org.codroid.interfaces.addon.AddonManager;
-import org.codroid.interfaces.exceptions.AttributeNotFoundException;
 
 import java.util.Map;
 import java.util.Optional;
 
-import me.grison.jtoml.impl.Toml;
 
 /**
  * This class is a superclass for each appearance part in Codroid.
@@ -35,23 +33,18 @@ import me.grison.jtoml.impl.Toml;
  */
 public abstract class Part {
 
-    private Toml toml;
+    private final Map<?, ?> mAttributes;
 
     public interface OnFound<T> {
         void found(T value);
     }
 
-    /**
-     * Construct it with a instance of Toml.
-     *
-     * @param toml instance.
-     * @throws IllegalArgumentException if toml is null.
-     */
-    public Part(Toml toml) throws IllegalArgumentException {
-        if (toml == null) {
-            throw new IllegalArgumentException("Toml is null !");
+
+    public Part(Map<?, ?> attr) throws IllegalArgumentException {
+        if (attr == null) {
+            throw new IllegalArgumentException("Attributes cannot be null !");
         }
-        this.toml = toml;
+        this.mAttributes = attr;
     }
 
     /**
@@ -63,10 +56,8 @@ public abstract class Part {
     public Optional<Color> getColor(String attribute) {
         String value = null;
         try {
-            value = (String) get().get(attribute);
+            value = (String) mAttributes.get(attribute);
             return Optional.of(Color.valueOf(Color.parseColor(value)));
-        } catch (AttributeNotFoundException e) {
-            e.printStackTrace(AddonManager.get().getLogger());
         } catch (Exception e) {
             AddonManager.get().getLogger().e("Unknown color: " + value);
         }
@@ -78,21 +69,6 @@ public abstract class Part {
             if (callback != null) {
                 callback.found(getColor(attr).get());
             }
-        }
-    }
-
-    /**
-     * Get the map of this part.
-     *
-     * @return k-v map.
-     * @throws AttributeNotFoundException if no part found.
-     */
-    public Map<String, Object> get() throws AttributeNotFoundException {
-        try {
-            return toml.getMap(part().value());
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new AttributeNotFoundException("Part: " + part().value() + " not found! (" + e.getMessage() + "0)");
         }
     }
 

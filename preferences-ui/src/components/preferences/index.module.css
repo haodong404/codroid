@@ -1,0 +1,7 @@
+.settings_head {
+  @apply flex justify-between items-center mb-4;
+}
+
+.settings_title {
+  @apply text-2xl max-w-xs overflow-hidden text-ellipsis;
+}

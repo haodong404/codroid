@@ -1,0 +1,24 @@
+{
+  "name": "preferences-ui",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host",
+    "build": "tsc && vite build --emptyOutDir",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "cssnano": "^5.1.13",
+    "preact": "^10.10.1"
+  },
+  "devDependencies": {
+    "@preact/preset-vite": "^2.3.0",
+    "@types/node": "^18.7.13",
+    "postcss": "^8.4.16",
+    "tailwindcss": "^3.1.8",
+    "typescript": "^4.6.4",
+    "vite": "^3.0.7",
+    "vite-plugin-svg-icons": "^2.0.1"
+  }
+}

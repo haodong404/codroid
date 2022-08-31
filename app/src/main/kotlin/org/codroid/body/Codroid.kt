@@ -32,8 +32,6 @@ import org.codroid.interfaces.database.AddonDatabase
 class Codroid : Application() {
 
     val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
-
-    lateinit var context: Context;
     lateinit var THEME: Preferences.Key<String>
 
     companion object {
@@ -43,13 +41,8 @@ class Codroid : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        context = this;
-        addonDb =
-            Room.databaseBuilder(this, AddonDatabase::class.java, "addon-database")
-                .allowMainThreadQueries()
-                .build()
         THEME = stringPreferencesKey("theme")
-        AddonManager.get().initialize(getExternalFilesDir(null), addonDb);
+        AddonManager.get().initialize(this);
         AddonManager.get().loadAddons()
     }
 }

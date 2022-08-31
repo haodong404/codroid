@@ -124,7 +124,7 @@ public final class AddonLoader {
             InputStream inputStream = jarFile.getInputStream(addonDesEntry);
             byte[] desBytes = new byte[inputStream.available()];
             inputStream.read(desBytes);
-            AddonDescription description = AddonDescription.parseString(new String(desBytes));
+            AddonDescription description = new AddonDescription(desBytes);
             if (!description.checkIntegrity().isEmpty()) {
                 throw new IncompleteAddonDescriptionException(description.checkIntegrity());
             }

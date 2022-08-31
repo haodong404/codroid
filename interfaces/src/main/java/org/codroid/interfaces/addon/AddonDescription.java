@@ -20,50 +20,31 @@
 package org.codroid.interfaces.addon;
 
 import org.codroid.interfaces.env.Property;
+import org.codroid.interfaces.utils.TomlKt;
 
+import java.io.ByteArrayInputStream;
 import java.lang.reflect.Field;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-import me.grison.jtoml.annotations.SerializedName;
-import me.grison.jtoml.impl.Toml;
-
 
 /**
  * This class manages the property file of addons.
  * Serializing and defining
  */
-public final class AddonDescription extends Property {
-    private Addon entity;
-
+public final class AddonDescription extends Property<AddonDescription.Addon> {
     public static String ADDON_DESCRIPTION_FILE_NAME = "addon-des.toml";
 
-
-    private void serialize() {
-        entity = toml.getAs("addon", Addon.class);
-        if (entity == null) {
-            entity = new Addon();
-        }
-    }
-
-    public AddonDescription(){
-        super(null);
+    public AddonDescription(byte[] bytes) {
+        super(new ByteArrayInputStream(bytes), Addon.class);
     }
 
     public AddonDescription(Path file) {
-        super(file);
-        open();
-        serialize();
-    }
-
-    public static AddonDescription parseString(String content) {
-        AddonDescription description = new AddonDescription();
-        description.toml = Toml.parse(content);
-        description.serialize();
-        return description;
+        super(file, Addon.class);
     }
 
     /**
@@ -72,13 +53,13 @@ public final class AddonDescription extends Property {
      * @return empty set if it's not broken.
      */
     public Set<String> checkIntegrity() {
-        Class<? extends Addon> entityClass = entity.getClass();
+        Class<? extends Addon> entityClass = getEntity().getClass();
         Set<String> brokenField = new HashSet<>();
         for (Field field : entityClass.getDeclaredFields()) {
             try {
                 field.setAccessible(true);
                 if (!field.isAnnotationPresent(OptionalField.class)) {
-                    if (Objects.isNull(field.get(entity))) {
+                    if (Objects.isNull(field.get(getEntity()))) {
                         brokenField.add(field.getName());
                     }
                 }
@@ -91,13 +72,12 @@ public final class AddonDescription extends Property {
 
 
     public Addon get() {
-        return entity;
+        return getEntity();
     }
 
     public static class Addon {
         private String name;
 
-        @SerializedName("package")
         private String _package;
 
         private String enterPoint;

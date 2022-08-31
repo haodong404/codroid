@@ -19,7 +19,13 @@
 
 package org.codroid.interfaces.addon;
 
+import android.content.Context;
 import android.text.TextUtils;
+import android.util.Log;
+
+import androidx.room.Room;
+
+import com.tencent.mmkv.MMKV;
 
 import org.codroid.interfaces.appearance.AppearanceProperty;
 import org.codroid.interfaces.appearance.ThemeBase;
@@ -35,6 +41,8 @@ import org.codroid.interfaces.exceptions.IncompleteAddonDescriptionException;
 import org.codroid.interfaces.exceptions.NoAddonDescriptionFoundException;
 import org.codroid.interfaces.exceptions.PropertyInitException;
 import org.codroid.interfaces.log.Logger;
+import org.codroid.interfaces.preference.CodroidPreferenceGroup;
+import org.codroid.interfaces.preference.PreferenceProperty;
 import org.codroid.interfaces.utils.PathUtils;
 
 import java.io.File;
@@ -58,6 +66,7 @@ import java.util.stream.Collectors;
 public final class AddonManager extends CodroidEnv {
 
     private static AddonManager mInstance = null;
+    private Context context = null;
 
     public static synchronized AddonManager get() {
         if (mInstance == null) mInstance = new AddonManager();
@@ -77,6 +86,22 @@ public final class AddonManager extends CodroidEnv {
         }
     }
 
+    @Override
+    protected void registerPreference(String path) {
+        try {
+            var preferences = this.context.getAssets().list("preferences");
+            for (String preference : preferences) {
+                if (TextUtils.equals(preference, "text-editor.toml")) {
+                    var inputStream = this.context.getAssets().open("preferences/" + preference);
+                    codroidPreferences.put(CodroidPreferenceGroup.TEXT_EDITOR,
+                            new PreferenceProperty("preference-text-editor-kv", getPreferencesDir().getPath(), inputStream));
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
 
     public enum ImportStage {
         READING_DESCRIPTION,
@@ -152,7 +177,7 @@ public final class AddonManager extends CodroidEnv {
             for (var it : eventCenter().<AddonImportEvent>execute(EventCenter.EventsEnum.ADDON_IMPORT)) {
                 try {
                     temp = it.beforeImport(temp);
-                } catch (Exception e){
+                } catch (Exception e) {
                     getLogger().e("Event: " + it.getClass().getName() + ", calls failed! (" + e.toString() + ")");
                 }
             }
@@ -282,12 +307,15 @@ public final class AddonManager extends CodroidEnv {
     /**
      * Initialize the AddonManager.
      * It must be called at Application.
-     *
-     * @param rootFIle {@code} context.getExternalFileDir(null), It's used to store logs, addons, and etc.
      */
-    public void initialize(File rootFIle, AddonDatabase database) {
-        createCodroidEnv(rootFIle);
-        this.database = database;
+    public void initialize(Context context) {
+        this.context = context;
+        MMKV.initialize(context);
+        createCodroidEnv(context.getExternalFilesDir(null));
+        this.database = Room.databaseBuilder(context, AddonDatabase.class, "addon-database")
+                .allowMainThreadQueries()
+                .build();
+        registerPreference("");
     }
 
     /**

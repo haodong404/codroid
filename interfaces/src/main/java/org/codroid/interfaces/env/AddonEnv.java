@@ -20,7 +20,9 @@
 package org.codroid.interfaces.env;
 
 import org.codroid.interfaces.appearance.AppearanceProperty;
+import org.codroid.interfaces.exceptions.PreferenceNotFoundException;
 import org.codroid.interfaces.log.Logger;
+import org.codroid.interfaces.preference.PreferenceProperty;
 
 import java.io.File;
 
@@ -30,6 +32,8 @@ import java.io.File;
  */
 public class AddonEnv extends CodroidEnv {
 
+    private final static String PREFERENCE_FILE = "preferences.toml";
+
     // This field aims to identify an addon uniquely.
     // The addon package name is usually used.
     private String identify;
@@ -37,9 +41,21 @@ public class AddonEnv extends CodroidEnv {
     private Logger logger;
 
     private ResourceFactory resourceFactory = new ResourceFactory();
+    private PreferenceProperty preference = null;
 
     public AddonEnv() {
 
+    }
+
+    /**
+     * You don't need to call this method for register.
+     * Codroid will register a preference(preferences.toml) in your root path by default.
+     *
+     * @param relativePath relative path
+     */
+    @Override
+    protected void registerPreference(String relativePath) {
+        this.preference = (PreferenceProperty) getResourceByType(relativePath, ResourceFactory.PREFERENCES_PROPERTY);
     }
 
     public AddonEnv(String identify) {
@@ -62,7 +78,7 @@ public class AddonEnv extends CodroidEnv {
      * @return an {@link AppearanceProperty}.
      */
     public AppearanceProperty getAppearanceProperty(String relativePath) {
-        return (AppearanceProperty) getResourceByType(relativePath, ResourceFactory.APPEARANCE_PROPERTY);
+        return new AppearanceProperty(this, relativePath);
     }
 
     /**
@@ -114,5 +130,17 @@ public class AddonEnv extends CodroidEnv {
     public Logger getLogger() {
         if (logger == null) logger = new Logger(getLogsDir());
         return logger.with(getIdentify());
+    }
+
+    public PreferenceProperty getPreference() throws PreferenceNotFoundException {
+        if (this.preference == null) {
+            try {
+                this.preference = new PreferenceProperty(this, PREFERENCE_FILE);
+                customPreferences.put(getIdentify(), preference);
+            } catch (Exception e) {
+                throw new PreferenceNotFoundException(getIdentify());
+            }
+        }
+        return this.preference;
     }
 }

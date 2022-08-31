@@ -22,11 +22,9 @@ package org.codroid.interfaces.log;
 import androidx.annotation.NonNull;
 
 import java.nio.charset.StandardCharsets;
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Locale;
 import java.util.TimeZone;
 
 public class LogStructure {

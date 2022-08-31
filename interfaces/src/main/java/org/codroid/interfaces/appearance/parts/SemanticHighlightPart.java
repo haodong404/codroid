@@ -22,23 +22,18 @@ package org.codroid.interfaces.appearance.parts;
 import org.codroid.interfaces.appearance.AppearanceProperty;
 import org.codroid.interfaces.appearance.Part;
 
-import me.grison.jtoml.impl.Toml;
+import java.util.Map;
 
 public class SemanticHighlightPart extends Part {
 
     public interface Attribute {
+
         String KEYWORD = "keyword";
         String OPERATOR = "operator";
     }
 
-    /**
-     * Construct it with a instance of Toml.
-     *
-     * @param toml instance.
-     * @throws IllegalArgumentException if toml is null.
-     */
-    public SemanticHighlightPart(Toml toml) throws IllegalArgumentException {
-        super(toml);
+    public SemanticHighlightPart(Map<?, ?> attr) throws IllegalArgumentException {
+        super(attr);
     }
 
     @Override
