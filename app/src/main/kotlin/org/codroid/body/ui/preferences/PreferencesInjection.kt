@@ -9,9 +9,14 @@ import org.codroid.interfaces.preference.PreferenceOperation
 import org.codroid.interfaces.preference.PreferenceProperty
 import kotlin.text.StringBuilder
 
-class PreferencesInjection : PreferenceOperation {
+class PreferencesInjection(private val back: (() -> Unit)? = null) : PreferenceOperation {
 
     private var currentPreference: PreferenceProperty? = null
+
+    @JavascriptInterface
+    fun onBackClicked() {
+        this.back?.run { this() }
+    }
 
     /**
      * The json example:
@@ -46,7 +51,6 @@ class PreferencesInjection : PreferenceOperation {
         }
         builder.deleteCharAt(builder.length - 1)
         builder.append("}")
-        Log.i("Zac", builder.toString())
         return builder.toString()
     }
 
@@ -86,7 +90,6 @@ class PreferencesInjection : PreferenceOperation {
     @JavascriptInterface
     override fun getString(key: String): String {
         this.currentPreference?.run {
-            Log.i("Zac", "GET: ${this.getString(key)}")
             return this.getString(key)
         }
         return ""

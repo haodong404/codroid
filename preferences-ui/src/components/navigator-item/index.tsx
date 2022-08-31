@@ -22,7 +22,7 @@ export class NavigatorItem extends Component<NavigatorItemProps> {
     }
     return (
       <div
-        class={`${selected} border-2 m-1 p-0.5 rounded-3xl transition-all`}
+        class={`${selected} border-2 m-1 p-0.5 rounded-[1.7rem] transition-all`}
         onClick={this.props.onclick}
       >
         <div

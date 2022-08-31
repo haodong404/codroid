@@ -1,4 +1,6 @@
 declare const PreferencesInjection: {
+  onBackClicked: () => void;
+
   allPreferences: () => string;
   selectPreference: (id: string, fromCodroid: boolean) => void;
 
