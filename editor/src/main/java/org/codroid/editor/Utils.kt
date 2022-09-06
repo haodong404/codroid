@@ -132,6 +132,8 @@ class LineAnchor(paint: TextPaint) {
     var bottom = mLineHeight
     var baseline = mBaselineHeight
 
+    fun height(): Float = bottom - top
+
     fun increase() {
         this.top = bottom
         this.bottom += mLineHeight

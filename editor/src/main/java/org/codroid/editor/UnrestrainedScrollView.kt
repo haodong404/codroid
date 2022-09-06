@@ -29,6 +29,11 @@ import android.view.VelocityTracker
 import android.view.View
 import android.widget.FrameLayout
 import android.widget.OverScroller
+import android.widget.Toast
+import androidx.lifecycle.coroutineScope
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.roundToInt
@@ -54,13 +59,12 @@ class UnrestrainedScrollView : FrameLayout {
     private var mScrollThreshold = 0
     private var mLastMotion = Vector()
     private val mScroller = OverScroller(context)
-    private val mVelocityTracker by lazy {
-        VelocityTracker.obtain()
-    }
+    private var mVelocityTracker: VelocityTracker? = null
+
+    var onScrollStated: (() -> Unit)? = null
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec)
-        Log.i("Zac", "$measuredHeight")
         if (childCount > 0) {
             getChildAt(0)?.let {
                 measureChild(it, widthMeasureSpec, heightMeasureSpec)
@@ -91,22 +95,27 @@ class UnrestrainedScrollView : FrameLayout {
 
     override fun onInterceptTouchEvent(ev: MotionEvent?): Boolean {
         ev?.let {
+            if (ev.action == MotionEvent.ACTION_MOVE && mIsScrolling) {
+                return true
+            }
             when (it.action) {
                 MotionEvent.ACTION_DOWN -> {
                     mLastMotion.reset(it.x.roundToInt(), it.y.roundToInt())
+                    mScroller.computeScrollOffset()
+                    mIsScrolling = !mScroller.isFinished
                 }
-
                 MotionEvent.ACTION_MOVE -> {
                     val delta = mLastMotion.deltaFrom(it.x.roundToInt(), it.y.roundToInt())
-                    parent?.also {
-                        requestDisallowInterceptTouchEvent(true)
-                    }
                     if (abs(delta.x) >= mScrollThreshold || abs(delta.y) >= mScrollThreshold) {
+                        parent?.run {
+                            requestDisallowInterceptTouchEvent(true)
+                        }
                         mIsScrolling = true
                         mLastMotion.reset(it.x.roundToInt(), it.y.roundToInt())
                     }
                 }
 
+                MotionEvent.ACTION_CANCEL,
                 MotionEvent.ACTION_UP -> {
                     mIsScrolling = false;
                 }
@@ -117,46 +126,47 @@ class UnrestrainedScrollView : FrameLayout {
 
     override fun onTouchEvent(event: MotionEvent?): Boolean {
         event?.let {
-            mVelocityTracker.addMovement(event)
+            initVelocityTrackerIfNotExists()
+            mVelocityTracker!!.addMovement(event)
             when (it.action) {
                 MotionEvent.ACTION_DOWN -> {
+                    mIsScrolling = !mScroller.isFinished
                     if (!mScroller.isFinished) {
+                        parent?.run {
+                            requestDisallowInterceptTouchEvent(true)
+                        }
                         mScroller.abortAnimation()
                     }
                 }
 
                 MotionEvent.ACTION_MOVE -> {
-                    val delta = -mLastMotion.deltaFrom(event.x.roundToInt(), event.y.roundToInt())
-                    val range = getScrollRange()
-                    parent?.also {
-                        requestDisallowInterceptTouchEvent(true)
-                    }
-                    mLastMotion.reset(event.x.roundToInt(), event.y.roundToInt())
-                    if (overScrollBy(
-                            delta.x,
-                            delta.y,
-                            scrollX,
-                            scrollY,
-                            range.x,
-                            range.y,
-                            0,
-                            0,
+                    if (mIsScrolling) {
+                        val delta =
+                            -mLastMotion.deltaFrom(event.x.roundToInt(), event.y.roundToInt())
+                        val range = getScrollRange()
+                        mLastMotion.reset(event.x.roundToInt(), event.y.roundToInt())
+                        overScrollBy(
+                            delta.x, delta.y,
+                            scrollX, scrollY,
+                            range.x, range.y,
+                            0, 0,
                             true
                         )
-                    ) {
-                        mVelocityTracker.clear()
                     }
                 }
 
                 MotionEvent.ACTION_UP -> {
-                    mVelocityTracker.computeCurrentVelocity(1000, mMaximumVelocity)
-                    mIsScrolling = false
-                    fling(
-                        Vector(
-                            mVelocityTracker.xVelocity.roundToInt(),
-                            mVelocityTracker.yVelocity.roundToInt()
+                    if (mIsScrolling) {
+                        mVelocityTracker!!.computeCurrentVelocity(1000, mMaximumVelocity)
+                        mIsScrolling = false
+                        fling(
+                            Vector(
+                                mVelocityTracker!!.xVelocity.roundToInt(),
+                                mVelocityTracker!!.yVelocity.roundToInt()
+                            )
                         )
-                    )
+                        recycleVelocityTracker()
+                    }
                 }
             }
         }
@@ -168,8 +178,8 @@ class UnrestrainedScrollView : FrameLayout {
         if (childCount > 0) {
             getChildAt(0)?.let {
                 result.reset(
-                    it.width,
-                    it.height
+                    it.width - (width - paddingLeft - paddingRight),
+                    it.height - (height - paddingTop - paddingBottom)
                 )
             }
         }
@@ -192,6 +202,13 @@ class UnrestrainedScrollView : FrameLayout {
     }
 
     override fun onOverScrolled(scrollX: Int, scrollY: Int, clampedX: Boolean, clampedY: Boolean) {
+        if (!mScroller.isFinished) {
+            val oldX = this.scrollX
+            val oldY = this.scrollY
+            this.scrollX = scrollX
+            this.scrollY = scrollY
+            onScrollChanged(this.scrollX, this.scrollY, oldX, oldY)
+        }
         super.scrollTo(scrollX, scrollY)
     }
 
@@ -205,6 +222,19 @@ class UnrestrainedScrollView : FrameLayout {
                 overScrollBy(delta.x, delta.y, scrollX, scrollY, range.x, range.y, 0, 0, false)
                 onScrollChanged(scrollX, scrollY, old.x, old.y)
             }
+        }
+    }
+
+    private fun initVelocityTrackerIfNotExists() {
+        if (mVelocityTracker == null) {
+            mVelocityTracker = VelocityTracker.obtain()
+        }
+    }
+
+    private fun recycleVelocityTracker() {
+        if (mVelocityTracker != null) {
+            mVelocityTracker!!.recycle()
+            mVelocityTracker = null
         }
     }
 }

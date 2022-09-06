@@ -19,26 +19,31 @@
 
 package org.codroid.editor
 
+import android.annotation.SuppressLint
 import android.content.Context
-import android.graphics.*
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Typeface
 import android.text.InputType
 import android.util.AttributeSet
 import android.util.Log
+import android.view.MotionEvent
 import android.view.View
 import android.view.inputmethod.BaseInputConnection
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.LifecycleRegistry
-import androidx.lifecycle.lifecycleScope
+import android.widget.Toast
+import androidx.lifecycle.*
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import org.codroid.editor.analysis.*
+import org.codroid.editor.analysis.GrammarRegistration
+import org.codroid.editor.analysis.LanguageRegistration
+import org.codroid.editor.analysis.registerGrammar
+import org.codroid.editor.analysis.registerLanguage
 import org.codroid.editor.buffer.linearr.LineArray
-import org.codroid.editor.decoration.*
 import org.codroid.editor.graphics.RowsRender
-import org.codroid.editor.graphics.TextPaint
 import org.codroid.textmate.parseJson
 import org.codroid.textmate.parsePLIST
 import org.codroid.textmate.parseRawGrammar
@@ -49,30 +54,36 @@ import java.nio.file.Path
 class CodroidEditor : View, View.OnClickListener, LifecycleOwner {
 
     init {
-//        setOnClickListener(this)
         isFocusable = true
         isFocusableInTouchMode = true
+//        this.setOnClickListener(this)
 //        showInput()
     }
 
-    constructor(context: Context) : super(context) {}
+    constructor(context: Context) : super(context)
 
-    constructor(context: Context, attrs: AttributeSet?) : super(context, attrs) {}
+    constructor(context: Context, attrs: AttributeSet?) : super(context, attrs)
 
     constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : super(
         context,
         attrs,
         defStyleAttr
-    ) {
-    }
+    )
 
     private val mLifecycleRegistry = LifecycleRegistry(this)
 
     private val mInputMethodManager =
         context?.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
     private var mEditContent: EditContent? = null
-    private val mRowsRender = RowsRender(this)
-
+    private val mRowsRender by lazy {
+        RowsRender(this)
+    }
+    private val mParentScrollView by lazy {
+        if (parent !is UnrestrainedScrollView) {
+            throw IllegalArgumentException("The parent of CodroidEditor must be UnrestrainedScrollView!!")
+        }
+        parent as UnrestrainedScrollView
+    }
 
     companion object {
         var DefaultRawTheme: RawTheme? = null
@@ -176,8 +187,46 @@ class CodroidEditor : View, View.OnClickListener, LifecycleOwner {
         }
     }
 
-    override fun onClick(p0: View?) {
-        showInput()
+    private var mActionDownStartTime = 0L
+    private var longPressJob: Job? = null
+
+    @SuppressLint("ClickableViewAccessibility")
+    override fun onTouchEvent(event: MotionEvent?): Boolean {
+        event?.run {
+            return when (event.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    mActionDownStartTime = System.currentTimeMillis()
+                    true
+                }
+                MotionEvent.ACTION_MOVE -> {
+                    println("MOVE")
+                    true
+                }
+                MotionEvent.ACTION_UP -> {
+                    if (System.currentTimeMillis() - mActionDownStartTime < 300) {
+                        longPressJob?.cancel()
+                        onClicked(makePair(event.y.toInt(), event.x.toInt()))
+                    }
+                    true
+                }
+                else -> {
+                    false
+                }
+            }
+        }
+        return false
+    }
+
+    private fun onClicked(position: IntPair) {
+        println("${position.first()} | ${position.second()}")
+        mRowsRender.computeRowCol(position).run {
+            mRowsRender.focusLine(this.first())
+        }
+    }
+
+    private fun onLongPressed(position: IntPair) {
+        Log.i("Zac", "OnLongClicked")
+        Toast.makeText(this.context, "onLongClick", Toast.LENGTH_SHORT).show()
     }
 
     fun load(input: InputStream, path: Path) {
@@ -244,4 +293,7 @@ class CodroidEditor : View, View.OnClickListener, LifecycleOwner {
     }
 
     override fun getLifecycle(): Lifecycle = this.mLifecycleRegistry
+    override fun onClick(v: View?) {
+        this.onClicked(makePair(0, 0))
+    }
 }
