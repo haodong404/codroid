@@ -22,18 +22,17 @@
 package org.codroid.editor
 
 import android.content.Context
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.Rect
 import android.util.AttributeSet
-import android.util.Log
 import android.view.MotionEvent
 import android.view.VelocityTracker
 import android.view.View
 import android.widget.FrameLayout
 import android.widget.OverScroller
-import android.widget.Toast
-import androidx.lifecycle.coroutineScope
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import androidx.appcompat.widget.DrawableUtils
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.roundToInt
@@ -54,6 +53,10 @@ class UnrestrainedScrollView : FrameLayout {
         defStyleRes: Int
     ) : super(context, attrs, defStyleAttr, defStyleRes)
 
+    init {
+        setWillNotDraw(false)
+    }
+
     private val mMaximumVelocity: Float = 8000F
     private var mIsScrolling = false
     private var mScrollThreshold = 0
@@ -61,13 +64,27 @@ class UnrestrainedScrollView : FrameLayout {
     private val mScroller = OverScroller(context)
     private var mVelocityTracker: VelocityTracker? = null
 
-    var onScrollStated: (() -> Unit)? = null
+    private var scrollCurrent: IntPair = 0u
+    private val barPaint = Paint().apply {
+        color = Color.LTGRAY
+        style = Paint.Style.FILL
+    }
+    private var barHeight = 0
+    private var barWidth = 0
+    private var barLeft = 0
+    private var barTop = 0
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec)
         if (childCount > 0) {
             getChildAt(0)?.let {
                 measureChild(it, widthMeasureSpec, heightMeasureSpec)
+                barHeight = height * height / it.measuredHeight
+                barWidth = if (it.measuredWidth == 0) {
+                    0
+                } else {
+                    width * width / it.measuredWidth
+                }
             }
         }
     }
@@ -173,6 +190,39 @@ class UnrestrainedScrollView : FrameLayout {
         return true
     }
 
+    override fun onDraw(canvas: Canvas?) {
+        super.onDraw(canvas)
+    }
+
+    override fun onDrawForeground(canvas: Canvas?) {
+        canvas?.run {
+            barTop = height * scrollCurrent.second() / getScrollableSize().second()
+            barLeft = if (getScrollableSize().first() == 0) {
+                0
+            } else {
+                width * scrollCurrent.first() / getScrollableSize().first()
+            }
+            drawRect(
+                Rect(
+                    scrollCurrent.first() + width - 20,
+                    scrollCurrent.second() + barTop,
+                    scrollCurrent.first() + width,
+                    scrollCurrent.second() + barTop + barHeight
+                ),
+                barPaint
+            )
+            drawRect(
+                Rect(
+                    scrollCurrent.first() + barLeft,
+                    scrollCurrent.second() + height - 20,
+                    scrollCurrent.first() + barLeft + barWidth,
+                    scrollCurrent.second() + height
+                ),
+                barPaint
+            )
+        }
+    }
+
     private fun getScrollRange(): Vector {
         val result = Vector()
         if (childCount > 0) {
@@ -184,6 +234,13 @@ class UnrestrainedScrollView : FrameLayout {
             }
         }
         return result
+    }
+
+    private fun getScrollableSize(): IntPair {
+        getChildAt(0)?.let {
+            return makePair(it.width, it.height)
+        }
+        return 0U
     }
 
     private fun fling(velocity: Vector) {
@@ -223,6 +280,11 @@ class UnrestrainedScrollView : FrameLayout {
                 onScrollChanged(scrollX, scrollY, old.x, old.y)
             }
         }
+    }
+
+    override fun onScrollChanged(l: Int, t: Int, oldl: Int, oldt: Int) {
+        super.onScrollChanged(l, t, oldl, oldt)
+        scrollCurrent = makePair(l, t)
     }
 
     private fun initVelocityTrackerIfNotExists() {
