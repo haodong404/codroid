@@ -21,6 +21,7 @@
 
 package org.codroid.editor
 
+import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
@@ -32,7 +33,7 @@ import android.view.VelocityTracker
 import android.view.View
 import android.widget.FrameLayout
 import android.widget.OverScroller
-import androidx.appcompat.widget.DrawableUtils
+import kotlinx.coroutines.*
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.roundToInt
@@ -46,13 +47,6 @@ class UnrestrainedScrollView : FrameLayout {
         defStyleAttr
     )
 
-    constructor(
-        context: Context,
-        attrs: AttributeSet?,
-        defStyleAttr: Int,
-        defStyleRes: Int
-    ) : super(context, attrs, defStyleAttr, defStyleRes)
-
     init {
         setWillNotDraw(false)
     }
@@ -64,23 +58,69 @@ class UnrestrainedScrollView : FrameLayout {
     private val mScroller = OverScroller(context)
     private var mVelocityTracker: VelocityTracker? = null
 
-    private var scrollCurrent: IntPair = 0u
-    private val barPaint = Paint().apply {
-        color = Color.LTGRAY
+    // The current distance from the top and left. Updated by onScrollChanged();
+    private var mScrollCurrent: IntPair = 0u
+
+    private val mColorNormal = Color.argb(0xEA, 0xDC, 0xDC, 0xDC)
+    private val mColorPressed = Color.argb(0xEA, 0x20, 0x20, 0x20)
+    private val mBarPaint = Paint().apply {
+        color = Color.argb(0xEA, 0xDC, 0xDC, 0xDC)
         style = Paint.Style.FILL
     }
-    private var barHeight = 0
-    private var barWidth = 0
-    private var barLeft = 0
-    private var barTop = 0
+
+    // How thick is the scroll bar.
+    private val mBarSize = 30
+
+    // The height of the vertical bar.
+    private var mBarHeight = 0
+
+    // The width of the horizontal bar.
+    private var mBarWidth = 0
+    private var mBarLeft = 0
+    private var mBarTop = 0
+
+    // true if touched vertical scroll bar.
+    private var isHitVerticalBar = false
+
+    // true if touched horizontal scroll bar.
+    private var isHitHorizontalBar = false
+
+    // When the scrollbar is pressed, its color will be changed.
+    private var mCurrentScrollBarColor = mColorNormal
+    private val mScrollBarColorAnimator = ValueAnimator.ofArgb(mColorNormal, mColorPressed).apply {
+        duration = 150
+        addUpdateListener {
+            mCurrentScrollBarColor = animatedValue as Int
+            postInvalidateOnAnimation()
+        }
+    }
+
+    // true if scroll bars are hidden.
+    private var isScrollBarHidden = true
+
+    // The color from transparent to normal.
+    private var mCurrentScrollBarColorNormal = Color.TRANSPARENT
+
+    // This job will be executed when you end a scroll event,
+    // and will be cancelled when you scrolled again within a specific duration.
+    private var mHiddenJob: Job? = null
+    private val mHiddenDuration = 3000L
+    private val mScrollBarVisibleAnimator =
+        ValueAnimator.ofArgb(Color.argb(0, 0xDC, 0xDC, 0xDC), mColorNormal).apply {
+            duration = 300
+            addUpdateListener {
+                mCurrentScrollBarColorNormal = animatedValue as Int
+                postInvalidateOnAnimation()
+            }
+        }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec)
         if (childCount > 0) {
             getChildAt(0)?.let {
                 measureChild(it, widthMeasureSpec, heightMeasureSpec)
-                barHeight = height * height / it.measuredHeight
-                barWidth = if (it.measuredWidth == 0) {
+                mBarHeight = height * height / it.measuredHeight
+                mBarWidth = if (it.measuredWidth == 0) {
                     0
                 } else {
                     width * width / it.measuredWidth
@@ -120,6 +160,13 @@ class UnrestrainedScrollView : FrameLayout {
                     mLastMotion.reset(it.x.roundToInt(), it.y.roundToInt())
                     mScroller.computeScrollOffset()
                     mIsScrolling = !mScroller.isFinished
+                    if (checkIsHitScrollBar(it)) {
+                        // A scroll bar is hit.
+                        mScrollBarColorAnimator.start()
+                        isScrollBarHidden = false
+                        mHiddenJob?.cancel()
+                        mHiddenJob = null
+                    }
                 }
                 MotionEvent.ACTION_MOVE -> {
                     val delta = mLastMotion.deltaFrom(it.x.roundToInt(), it.y.roundToInt())
@@ -138,7 +185,15 @@ class UnrestrainedScrollView : FrameLayout {
                 }
             }
         }
-        return mIsScrolling
+        return mIsScrolling || isHitVerticalBar || isHitHorizontalBar
+    }
+
+    private fun checkIsHitScrollBar(event: MotionEvent): Boolean {
+        isHitVerticalBar = event.x.toInt() in (width - mBarSize)..width
+                && event.y.toInt() in mBarTop..(mBarTop + mBarHeight)
+        isHitHorizontalBar = event.x.toInt() in mBarLeft..(mBarLeft + mBarWidth)
+                && event.y.toInt() in (height - mBarSize)..height
+        return isHitHorizontalBar || isHitVerticalBar
     }
 
     override fun onTouchEvent(event: MotionEvent?): Boolean {
@@ -157,11 +212,36 @@ class UnrestrainedScrollView : FrameLayout {
                 }
 
                 MotionEvent.ACTION_MOVE -> {
-                    if (mIsScrolling) {
-                        val delta =
-                            -mLastMotion.deltaFrom(event.x.roundToInt(), event.y.roundToInt())
-                        val range = getScrollRange()
-                        mLastMotion.reset(event.x.roundToInt(), event.y.roundToInt())
+                    val delta =
+                        -mLastMotion.deltaFrom(event.x.roundToInt(), event.y.roundToInt())
+                    val range = getScrollRange()
+                    mLastMotion.reset(event.x.roundToInt(), event.y.roundToInt())
+                    parent?.run {
+                        requestDisallowInterceptTouchEvent(true)
+                    }
+                    if (isScrollBarHidden) {
+                        mScrollBarVisibleAnimator.start()
+                        isScrollBarHidden = false
+                    }
+                    mHiddenJob?.cancel()
+                    mHiddenJob = null
+                    if (isHitVerticalBar) {
+                        overScrollBy(
+                            0, -(delta.y * height / mBarHeight),
+                            scrollX, scrollY,
+                            range.x, range.y,
+                            0, 0,
+                            false
+                        )
+                    } else if (isHitHorizontalBar) {
+                        overScrollBy(
+                            -(delta.x * width / mBarWidth), 0,
+                            scrollX, scrollY,
+                            range.x, range.y,
+                            0, 0,
+                            false
+                        )
+                    } else if (mIsScrolling) {
                         overScrollBy(
                             delta.x, delta.y,
                             scrollX, scrollY,
@@ -170,10 +250,14 @@ class UnrestrainedScrollView : FrameLayout {
                             true
                         )
                     }
+                    return@let
                 }
 
+                MotionEvent.ACTION_CANCEL,
                 MotionEvent.ACTION_UP -> {
-                    if (mIsScrolling) {
+                    if (isHitHorizontalBar || isHitVerticalBar) {
+                        mScrollBarColorAnimator.reverse()
+                    } else if (mIsScrolling) {
                         mVelocityTracker!!.computeCurrentVelocity(1000, mMaximumVelocity)
                         mIsScrolling = false
                         fling(
@@ -183,6 +267,17 @@ class UnrestrainedScrollView : FrameLayout {
                             )
                         )
                         recycleVelocityTracker()
+                    }
+                    if (mHiddenJob == null) {
+                        mHiddenJob = CoroutineScope(Dispatchers.IO).launch {
+                            delay(mHiddenDuration)
+                            withContext(Dispatchers.Main) {
+                                isHitHorizontalBar = false
+                                isHitVerticalBar = false
+                                mScrollBarVisibleAnimator.reverse()
+                                isScrollBarHidden = true
+                            }
+                        }
                     }
                 }
             }
@@ -196,33 +291,68 @@ class UnrestrainedScrollView : FrameLayout {
 
     override fun onDrawForeground(canvas: Canvas?) {
         canvas?.run {
-            barTop = height * scrollCurrent.second() / getScrollableSize().second()
-            barLeft = if (getScrollableSize().first() == 0) {
-                0
+            // Draw the scroll bars.
+            mBarPaint.color = if (isHitVerticalBar) {
+                mCurrentScrollBarColor
             } else {
-                width * scrollCurrent.first() / getScrollableSize().first()
+                mCurrentScrollBarColorNormal
             }
             drawRect(
-                Rect(
-                    scrollCurrent.first() + width - 20,
-                    scrollCurrent.second() + barTop,
-                    scrollCurrent.first() + width,
-                    scrollCurrent.second() + barTop + barHeight
-                ),
-                barPaint
+                getVerticalScrollBarRect(),
+                mBarPaint
             )
+
+            mBarPaint.color = if (isHitHorizontalBar) {
+                mCurrentScrollBarColor
+            } else {
+                mCurrentScrollBarColorNormal
+            }
             drawRect(
-                Rect(
-                    scrollCurrent.first() + barLeft,
-                    scrollCurrent.second() + height - 20,
-                    scrollCurrent.first() + barLeft + barWidth,
-                    scrollCurrent.second() + height
-                ),
-                barPaint
+                getHorizontalScrollBarRect(),
+                mBarPaint
             )
         }
     }
 
+    /**
+     * Returns a [Rect], also the vertical scroll bar.
+     * It contains the actual position, so the position is changed as you scroll the canvas.
+     *
+     * @return The [Rect] of vertical scroll bar.
+     */
+    private fun getVerticalScrollBarRect(): Rect {
+        mBarTop = height * mScrollCurrent.second() / getScrollableSize().second()
+        return Rect(
+            mScrollCurrent.first() + width - mBarSize,
+            mScrollCurrent.second() + mBarTop,
+            mScrollCurrent.first() + width,
+            mScrollCurrent.second() + mBarTop + mBarHeight
+        )
+    }
+
+    /**
+     * Returns a [Rect] also the horizontal scroll bar.
+     * It contains the actual position, so the position is changed as you scroll the canvas.
+     *
+     * @return The [Rect] of horizontal scroll bar.
+     */
+    private fun getHorizontalScrollBarRect(): Rect {
+        mBarLeft = if (getScrollableSize().first() == 0) {
+            0
+        } else {
+            width * mScrollCurrent.first() / getScrollableSize().first()
+        }
+        return Rect(
+            mScrollCurrent.first() + mBarLeft,
+            mScrollCurrent.second() + height - mBarSize,
+            mScrollCurrent.first() + mBarLeft + mBarWidth,
+            mScrollCurrent.second() + height
+        )
+    }
+
+    /**
+     * Returns the border of the content.
+     */
     private fun getScrollRange(): Vector {
         val result = Vector()
         if (childCount > 0) {
@@ -236,6 +366,9 @@ class UnrestrainedScrollView : FrameLayout {
         return result
     }
 
+    /**
+     * Returns the full size of the child.
+     */
     private fun getScrollableSize(): IntPair {
         getChildAt(0)?.let {
             return makePair(it.width, it.height)
@@ -284,7 +417,7 @@ class UnrestrainedScrollView : FrameLayout {
 
     override fun onScrollChanged(l: Int, t: Int, oldl: Int, oldt: Int) {
         super.onScrollChanged(l, t, oldl, oldt)
-        scrollCurrent = makePair(l, t)
+        mScrollCurrent = makePair(l, t)
     }
 
     private fun initVelocityTrackerIfNotExists() {
