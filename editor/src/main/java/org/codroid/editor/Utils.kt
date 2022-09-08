@@ -131,6 +131,7 @@ class LineAnchor(paint: TextPaint) {
     var top = 0F
     var bottom = mLineHeight
     var baseline = mBaselineHeight
+    var lineNumber = 0
 
     fun height(): Float = bottom - top
 
@@ -138,12 +139,18 @@ class LineAnchor(paint: TextPaint) {
         this.top = bottom
         this.bottom += mLineHeight
         this.baseline = top + mBaselineHeight
+        this.lineNumber++
     }
 
     fun reset() {
-        this.top = 0F
-        this.bottom = mLineHeight
-        this.baseline = mBaselineHeight
+        resetByRow(0)
+    }
+
+    fun resetByRow(row: Int) {
+        this.lineNumber = row + 1
+        this.top = row * mLineHeight
+        this.bottom = (row + 1) * mLineHeight
+        this.baseline = (row + 1) * mBaselineHeight
     }
 }
 

@@ -76,7 +76,11 @@ class UnrestrainedScrollView : FrameLayout {
 
     // The width of the horizontal bar.
     private var mBarWidth = 0
+
+    // Left margin for horizontal bar. It's changed as scrolling the canvas.
     private var mBarLeft = 0
+
+    // Top margin for vertical bar. It's changed as scrolling the canvas.
     private var mBarTop = 0
 
     // true if touched vertical scroll bar.
@@ -113,6 +117,9 @@ class UnrestrainedScrollView : FrameLayout {
                 postInvalidateOnAnimation()
             }
         }
+
+    private var mOnScrollWithRow: ((start: Int, old: Int) -> Unit)? = null
+    private var mLastRow = 0
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec)
@@ -415,9 +422,32 @@ class UnrestrainedScrollView : FrameLayout {
         }
     }
 
+    fun setOnScrollWithRowListener(callback: (start: Int, old: Int) -> Unit) {
+        mOnScrollWithRow = callback
+    }
+
     override fun onScrollChanged(l: Int, t: Int, oldl: Int, oldt: Int) {
         super.onScrollChanged(l, t, oldl, oldt)
         mScrollCurrent = makePair(l, t)
+        getChildAsEditor()?.run {
+            if (oldt != t) {
+                val current = (t / getLineHeight()).roundToInt()
+                if (current != mLastRow) {
+                    mOnScrollWithRow?.invoke(current, mLastRow)
+                    mLastRow = current
+                }
+            }
+        }
+    }
+
+    private fun getChildAsEditor(): CodroidEditor? {
+        if (childCount > 0) {
+            val temp = getChildAt(0)
+            if (temp is CodroidEditor) {
+                return temp
+            }
+        }
+        return null
     }
 
     private fun initVelocityTrackerIfNotExists() {

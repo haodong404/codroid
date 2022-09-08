@@ -65,6 +65,13 @@ class LineArray : TextSequence {
         return mBuffer[index]
     }
 
+    override fun rowAtOrNull(index: Int): String? {
+        if (mBuffer.size < index) {
+            return null
+        }
+        return rowAt(index)
+    }
+
     override fun insert(content: String, position: Int) {
         var ptr = 0
         var row = 0

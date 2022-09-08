@@ -53,6 +53,8 @@ abstract class TextSequence : Iterable<String> {
      */
     abstract fun rowAt(index: Int): String
 
+    abstract fun rowAtOrNull(index: Int): String?
+
     /**
      * Inserts a string to this sequence at the specific position.
      *

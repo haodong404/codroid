@@ -34,7 +34,10 @@ import org.codroid.editor.decoration.Decorator
 import org.codroid.editor.decoration.SpanDecoration
 import org.codroid.textmate.EncodedTokenAttributes
 import java.nio.file.Path
+import java.util.*
+import java.util.concurrent.ConcurrentLinkedDeque
 import kotlin.math.abs
+import kotlin.math.max
 import kotlin.math.min
 
 @OptIn(ExperimentalUnsignedTypes::class)
@@ -43,16 +46,17 @@ class EditContent(
     private val mPath: Path,
     private val editor: CodroidEditor,
     visibleLines: Int = 10,
-    bufferSize: Int = 10
 ) : Iterable<Row> {
 
     private val mDecorator: Decorator = Decorator()
-    private val mRange = Range(visibleLines, bufferSize)
+    private val mRange = RowsRange(visibleLines)
 
     private val mSyntaxAnalyser = SyntaxAnalyser(editor.theme!!)
+    private var mNewLineStartPos = 0
 
     init {
         editor.lifecycleScope.launch(Dispatchers.IO) {
+            var current = 0
             mSyntaxAnalyser.analyze(mTextSequence, mPath)
                 .buffer()
                 .onCompletion {
@@ -78,6 +82,10 @@ class EditContent(
                         )
                     }
                     mDecorator.appendSpan(spans)
+                    if (current == getRange().getEnd()) {
+                        editor.postInvalidate()
+                    }
+                    current++
                 }
         }
     }
@@ -100,14 +108,6 @@ class EditContent(
         out[range] = span
     }
 
-    fun up() {
-        mRange.moveUp(1)
-    }
-
-    fun down() {
-        mRange.moveDown(1)
-    }
-
     fun length(): Int {
         return mTextSequence.length()
     }
@@ -116,35 +116,42 @@ class EditContent(
         return mTextSequence.rows()
     }
 
-    fun getRange(): Range {
+    fun getRange(): RowsRange {
         return mRange
     }
+
+    private fun makeRow(row: Int): Row =
+        Row().apply {
+            mTextSequence.rowAtOrNull(row)?.let { line ->
+                val syntaxSpans = mDecorator.syntaxSpans().getOrNull(row)
+                if (syntaxSpans != null) {
+                    syntaxSpans.forEach {
+                        appendBlock(Block(line.substring(it.key), it.value))
+                    }
+                    return@apply
+                }
+                appendBlock(Block(line))
+                mNewLineStartPos += line.length
+            }
+        }
+
 
     fun longestLineLength(): Int {
         return mTextSequence.longestLineLength()
     }
 
-    override fun iterator(): Iterator<Row> = RowIterator(mTextSequence.iterator())
+    override fun iterator(): Iterator<Row> = RowIterator()
 
-    inner class RowIterator(private val iterator: Iterator<String>) : Iterator<Row> {
+    inner class RowIterator() : Iterator<Row> {
 
-        private var mNewLineStartPos = 0
-        private val mSyntaxSpansIt = mDecorator.syntaxSpans().iterator()
+        private var mCurrentRow = getRange().getBegin()
 
-        override fun hasNext() = iterator.hasNext()
+        override fun hasNext() = mCurrentRow <= getRange().getEnd()
 
         override fun next(): Row {
-            return Row().apply {
-                val textContent = iterator.next()
-                if (mSyntaxSpansIt.hasNext()) {
-                    mSyntaxSpansIt.next().forEach {
-                        appendBlock(Block(textContent.substring(it.key), it.value))
-                    }
-                    return@apply
-                }
-                appendBlock(Block(textContent))
-                mNewLineStartPos += textContent.length
-            }
+            val temp = makeRow(mCurrentRow)
+            mCurrentRow++
+            return temp
         }
     }
 
@@ -155,70 +162,19 @@ class EditContent(
      * @constructor
      * TODO
      *
-     * @param visibleLines
+     * @param mVisibleRows
      */
-    inner class Range(visibleLines: Int, val bufferSize: Int) {
-        // inclusive
-        private var mBufferBegin = 0
-
-        // inclusive
-        private var mBufferEnd = min(visibleLines + bufferSize * 2 - 1, endEdge())
-
+    inner class RowsRange(private val mVisibleRows: Int) {
         // inclusive
         private var mVisibleBegin = 0
 
         // inclusive
-        private var mVisibleEnd = min(visibleLines - 1, endEdge())
+        private var mVisibleEnd = min(mVisibleRows - 1, endEdge())
 
-        fun moveUp(distance: Int) {
-            slide(-distance)
-        }
-
-        fun moveDown(distance: Int) {
-            slide(distance)
-        }
-
-        private fun slide(distance: Int) {
-            val visibleOffset = computeOffset(mVisibleBegin, mVisibleEnd, distance)
-            slideVisibleWindow(visibleOffset)
-            val topGap = mVisibleBegin - mBufferBegin
-            val bottomGap = mBufferEnd - mVisibleEnd
-            (topGap - bottomGap).let {
-                val offset = computeOffset(mBufferBegin, mBufferEnd, it)
-                if (abs(offset) < abs(distance)) {
-                    slideBufferWindow(offset)
-                } else {
-                    slideBufferWindow(distance)
-                }
-            }
-        }
-
-        private fun slideVisibleWindow(distance: Int) {
-            mVisibleBegin += distance
-            mVisibleEnd += distance
-        }
-
-        private fun slideBufferWindow(distance: Int) {
-            mBufferBegin += distance
-            mBufferEnd += distance
-        }
-
-        private fun computeOffset(top: Int, bottom: Int, distance: Int): Int {
-            var offset = distance
-            if (top + distance < 0) {
-                offset = -top
-            } else if (bottom + distance > endEdge()) {
-                offset = endEdge() - bottom
-            }
-            return offset
-        }
-
-        fun getBufferBegin(): Int {
-            return mBufferBegin
-        }
-
-        fun getBufferEnd(): Int {
-            return mBufferEnd
+        fun bindScroll(start: Int, old: Int) {
+            mVisibleBegin = max(0, start - 2)
+            mVisibleEnd = min(endEdge(), mVisibleRows + start + 1)
+            editor.invalidate()
         }
 
         fun getBegin(): Int {
@@ -226,11 +182,14 @@ class EditContent(
         }
 
         fun getEnd(): Int {
-            return mVisibleEnd
+            return min(mTextSequence.rows(), mVisibleEnd)
         }
 
         private fun endEdge(): Int {
             return mTextSequence.rows() - 1
         }
+
+        override fun toString(): String =
+            "VisibleBegin: $mVisibleBegin, VisibleEnd: $mVisibleEnd"
     }
 }

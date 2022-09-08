@@ -50,6 +50,7 @@ import org.codroid.textmate.parseRawGrammar
 import org.codroid.textmate.theme.RawTheme
 import java.io.InputStream
 import java.nio.file.Path
+import kotlin.math.ceil
 
 class CodroidEditor : View, View.OnClickListener, LifecycleOwner {
 
@@ -78,12 +79,8 @@ class CodroidEditor : View, View.OnClickListener, LifecycleOwner {
     private val mRowsRender by lazy {
         RowsRender(this)
     }
-    private val mParentScrollView by lazy {
-        if (parent !is UnrestrainedScrollView) {
-            throw IllegalArgumentException("The parent of CodroidEditor must be UnrestrainedScrollView!!")
-        }
-        parent as UnrestrainedScrollView
-    }
+
+    private var mVisibleRows = 0
 
     companion object {
         var DefaultRawTheme: RawTheme? = null
@@ -179,6 +176,9 @@ class CodroidEditor : View, View.OnClickListener, LifecycleOwner {
         mRowsRender.measure().run {
             setMeasuredDimension(first(), second())
         }
+        mVisibleRows =
+            ceil(MeasureSpec.getSize(heightMeasureSpec) / mRowsRender.getLineHeight()).toInt()
+        println(mVisibleRows)
     }
 
     override fun onDraw(canvas: Canvas?) {
@@ -230,7 +230,8 @@ class CodroidEditor : View, View.OnClickListener, LifecycleOwner {
     }
 
     fun load(input: InputStream, path: Path) {
-        mEditContent = EditContent(LineArray(input), path, this)
+        mEditContent =
+            EditContent(LineArray(input), path, this, mVisibleRows)
         mRowsRender.loadContent(mEditContent!!)
         lifecycleScope.launch(Dispatchers.Main) {
             requestLayout()
@@ -272,6 +273,11 @@ class CodroidEditor : View, View.OnClickListener, LifecycleOwner {
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
         mLifecycleRegistry.currentState = Lifecycle.State.CREATED
+        getParentAsUnrestrainedScroll()?.run {
+            setOnScrollWithRowListener { start, old ->
+                mEditContent?.getRange()?.bindScroll(start, old)
+            }
+        }
     }
 
     override fun onWindowVisibilityChanged(visibility: Int) {
@@ -285,6 +291,17 @@ class CodroidEditor : View, View.OnClickListener, LifecycleOwner {
             mLifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_PAUSE)
             mLifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_STOP)
         }
+    }
+
+    fun getLineHeight(): Float = mRowsRender.getLineHeight()
+
+    fun getSingleCharWidth(): Float = mRowsRender.getSingleCharWidth()
+
+    private fun getParentAsUnrestrainedScroll(): UnrestrainedScrollView? {
+        if (parent is UnrestrainedScrollView) {
+            return parent as UnrestrainedScrollView
+        }
+        return null
     }
 
     override fun onDetachedFromWindow() {

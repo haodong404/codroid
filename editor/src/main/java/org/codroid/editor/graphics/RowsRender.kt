@@ -44,7 +44,7 @@ class RowsRender(private val mEditor: CodroidEditor, private var mContent: EditC
     private fun drawLineNumber(canvas: Canvas, index: Int) {
         mTextPaint.textAlign = Paint.Align.RIGHT
         canvas.drawText(
-            (index + 1).toString(),
+            index.toString(),
             mOffsetX - 20,
             mLineAnchor.baseline,
             mTextPaint.withBlackColor()
@@ -53,12 +53,12 @@ class RowsRender(private val mEditor: CodroidEditor, private var mContent: EditC
     }
 
     private fun drawing(canvas: Canvas) {
-        mLineAnchor.reset()
-        mContent?.forEachIndexed { index, row ->
-            if (index == mHighlightLine) {
+        mLineAnchor.resetByRow(mContent?.getRange()?.getBegin() ?: 0)
+        mContent?.forEach { row ->
+            if (mLineAnchor.lineNumber == mHighlightLine) {
                 drawLineHighlight(canvas)
             }
-            drawLineNumber(canvas, index)
+            drawLineNumber(canvas, mLineAnchor.lineNumber)
             var offsetXinLine = mOffsetX
             row.blocks.forEach { block ->
                 var blockWidth = mTextPaint.measureText(block.substring)
@@ -130,4 +130,8 @@ class RowsRender(private val mEditor: CodroidEditor, private var mContent: EditC
         val col = ceil(position.second() / mTextPaint.singleWidth()).toInt() - 1
         return makePair(row, col)
     }
+
+    fun getLineHeight(): Float = mTextPaint.getLineHeight()
+
+    fun getSingleCharWidth(): Float = mTextPaint.singleWidth()
 }
