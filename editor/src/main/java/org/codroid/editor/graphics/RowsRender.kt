@@ -120,8 +120,8 @@ class RowsRender(private val mEditor: CodroidEditor, private var mContent: EditC
     fun focusRow(line: Int, originalPosition: IntPair) {
         if (line != this.mHighlightLine) {
             ValueAnimator.ofInt(
-                computeAbsoluteRowTop(mHighlightLine).toInt(),
-                computeAbsoluteRowTop(line).toInt()
+                computeAbsolutePos(mHighlightLine, 0).first.toInt(),
+                computeAbsolutePos(line, 0).first.toInt()
             ).run {
                 duration = 300
                 addUpdateListener {
@@ -140,11 +140,17 @@ class RowsRender(private val mEditor: CodroidEditor, private var mContent: EditC
 
     fun computeRowCol(position: IntPair): IntPair {
         val row = ceil(position.first() / mLineAnchor.height()).toInt() - 1
-        val col = ceil(position.second() / mTextPaint.singleWidth()).toInt() - 1
+        val col =
+            ceil((position.second() - lineNumberOffset()) / mTextPaint.singleWidth()).toInt() - 1
         return makePair(row, col)
     }
 
-    fun computeAbsoluteRowTop(row: Int) = row * getLineHeight()
+    fun computeAbsolutePos(row: Int, col: Int): Pair<Float, Float> {
+        return row * mEditor.getLineHeight() to
+                col * mEditor.getSingleCharWidth() + mEditor.getRowsRender().lineNumberOffset()
+    }
+
+    fun lineNumberOffset() = mOffsetX
 
     fun getLineHeight() = mTextPaint.getLineHeight()
 

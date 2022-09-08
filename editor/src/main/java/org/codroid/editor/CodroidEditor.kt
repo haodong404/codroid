@@ -42,6 +42,7 @@ import org.codroid.editor.analysis.LanguageRegistration
 import org.codroid.editor.analysis.registerGrammar
 import org.codroid.editor.analysis.registerLanguage
 import org.codroid.editor.buffer.linearr.LineArray
+import org.codroid.editor.graphics.Cursor
 import org.codroid.editor.graphics.RowsRender
 import org.codroid.textmate.parseJson
 import org.codroid.textmate.parsePLIST
@@ -77,6 +78,10 @@ class CodroidEditor : View, LifecycleOwner {
     private var mEditContent: EditContent? = null
     private val mRowsRender by lazy {
         RowsRender(this)
+    }
+
+    private val mCursor by lazy {
+        Cursor(this)
     }
 
     private var mVisibleRows = 0
@@ -169,6 +174,25 @@ class CodroidEditor : View, LifecycleOwner {
             DefaultTypeface = Typeface.createFromAsset(context.assets, "CascadiaCodePL-Regular.ttf")
         }
         typeface = DefaultTypeface
+        lifecycleScope.launchWhenCreated {
+            getParentAsUnrestrainedScroll()?.run {
+                setOnScrollWithRowListener { start, old ->
+                    mEditContent?.getRange()?.let {
+                        it.bindScroll(start, old)
+                        if (mCursor.getCurrentRow() in it.getBegin()..it.getEnd()) {
+                            mCursor.start()
+                        } else {
+                            mCursor.stop()
+                        }
+                    }
+
+
+                }
+            }
+            mCursor.addCursorChangedListener { row, col ->
+                println("ROW: $row, COL: $col")
+            }
+        }
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -183,6 +207,7 @@ class CodroidEditor : View, LifecycleOwner {
     override fun onDraw(canvas: Canvas?) {
         canvas?.let {
             mRowsRender.drawRows(canvas)
+            mCursor.drawCursor(canvas)
         }
     }
 
@@ -229,9 +254,12 @@ class CodroidEditor : View, LifecycleOwner {
     }
 
     private fun onClicked(position: IntPair) {
-        println("${position.first()} | ${position.second()}")
-        mRowsRender.computeRowCol(position).run {
-            mRowsRender.focusRow(this.first(), position)
+        if (position.second() >= mRowsRender.lineNumberOffset()) {
+            mRowsRender.computeRowCol(position).run {
+                mRowsRender.focusRow(this.first(), position)
+                mCursor.moveCursor(this.first(), this.second())
+                mCursor.start()
+            }
         }
     }
 
@@ -284,11 +312,6 @@ class CodroidEditor : View, LifecycleOwner {
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
         mLifecycleRegistry.currentState = Lifecycle.State.CREATED
-        getParentAsUnrestrainedScroll()?.run {
-            setOnScrollWithRowListener { start, old ->
-                mEditContent?.getRange()?.bindScroll(start, old)
-            }
-        }
     }
 
     override fun onWindowVisibilityChanged(visibility: Int) {
@@ -303,6 +326,8 @@ class CodroidEditor : View, LifecycleOwner {
             mLifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_STOP)
         }
     }
+
+    fun getRowsRender(): RowsRender = this.mRowsRender
 
     fun getLineHeight(): Float = mRowsRender.getLineHeight()
 
