@@ -22,7 +22,6 @@ package org.codroid.editor
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
-import android.graphics.Color
 import android.graphics.Typeface
 import android.text.InputType
 import android.util.AttributeSet
@@ -52,7 +51,7 @@ import java.io.InputStream
 import java.nio.file.Path
 import kotlin.math.ceil
 
-class CodroidEditor : View, View.OnClickListener, LifecycleOwner {
+class CodroidEditor : View, LifecycleOwner {
 
     init {
         isFocusable = true
@@ -196,15 +195,27 @@ class CodroidEditor : View, View.OnClickListener, LifecycleOwner {
             return when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
                     mActionDownStartTime = System.currentTimeMillis()
+                    if (longPressJob == null) {
+                        longPressJob = lifecycleScope.launch {
+                            delay(500)
+                            onLongPressed(makePair(event.y.toInt(), event.x.toInt()))
+                        }
+                    }
                     true
                 }
                 MotionEvent.ACTION_MOVE -> {
-                    println("MOVE")
+                    true
+                }
+
+                MotionEvent.ACTION_CANCEL -> {
+                    longPressJob?.cancel()
+                    longPressJob = null
                     true
                 }
                 MotionEvent.ACTION_UP -> {
+                    longPressJob?.cancel()
+                    longPressJob = null
                     if (System.currentTimeMillis() - mActionDownStartTime < 300) {
-                        longPressJob?.cancel()
                         onClicked(makePair(event.y.toInt(), event.x.toInt()))
                     }
                     true
@@ -220,7 +231,7 @@ class CodroidEditor : View, View.OnClickListener, LifecycleOwner {
     private fun onClicked(position: IntPair) {
         println("${position.first()} | ${position.second()}")
         mRowsRender.computeRowCol(position).run {
-            mRowsRender.focusLine(this.first())
+            mRowsRender.focusRow(this.first(), position)
         }
     }
 
@@ -310,7 +321,4 @@ class CodroidEditor : View, View.OnClickListener, LifecycleOwner {
     }
 
     override fun getLifecycle(): Lifecycle = this.mLifecycleRegistry
-    override fun onClick(v: View?) {
-        this.onClicked(makePair(0, 0))
-    }
 }

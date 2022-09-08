@@ -1,5 +1,6 @@
 package org.codroid.editor.graphics
 
+import android.animation.ValueAnimator
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
@@ -24,6 +25,8 @@ class RowsRender(private val mEditor: CodroidEditor, private var mContent: EditC
      * It might be changed by [org.codroid.editor.decoration.ReplacementSpan]
      */
     private var mLongestLineLength = 0F
+
+    private var mCurrentHeightLineTop = 0
 
     fun measure(): IntPair {
         mOffsetX = mTextPaint.measureText(mContent?.rows()?.toString() ?: "0") + 40
@@ -105,19 +108,29 @@ class RowsRender(private val mEditor: CodroidEditor, private var mContent: EditC
     private fun drawLineHighlight(canvas: Canvas) {
         canvas.drawRect(
             mOffsetX,
-            mLineAnchor.top,
+            mCurrentHeightLineTop.toFloat(),
             mLongestLineLength,
-            mLineAnchor.bottom,
+            mCurrentHeightLineTop + mLineAnchor.height(),
             mTextPaint.withColor(getHighlightColor())
         )
     }
 
     private fun getHighlightColor(): Int = Color.LTGRAY
 
-    fun focusLine(line: Int) {
+    fun focusRow(line: Int, originalPosition: IntPair) {
         if (line != this.mHighlightLine) {
+            ValueAnimator.ofInt(
+                computeAbsoluteRowTop(mHighlightLine).toInt(),
+                computeAbsoluteRowTop(line).toInt()
+            ).run {
+                duration = 300
+                addUpdateListener {
+                    mCurrentHeightLineTop = animatedValue as Int
+                    mEditor.postInvalidateOnAnimation()
+                }
+                start()
+            }
             this.mHighlightLine = line
-            mEditor.invalidate()
         }
     }
 
@@ -131,7 +144,9 @@ class RowsRender(private val mEditor: CodroidEditor, private var mContent: EditC
         return makePair(row, col)
     }
 
-    fun getLineHeight(): Float = mTextPaint.getLineHeight()
+    fun computeAbsoluteRowTop(row: Int) = row * getLineHeight()
 
-    fun getSingleCharWidth(): Float = mTextPaint.singleWidth()
+    fun getLineHeight() = mTextPaint.getLineHeight()
+
+    fun getSingleCharWidth() = mTextPaint.singleWidth()
 }

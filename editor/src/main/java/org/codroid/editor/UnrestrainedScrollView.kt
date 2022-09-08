@@ -53,7 +53,7 @@ class UnrestrainedScrollView : FrameLayout {
 
     private val mMaximumVelocity: Float = 8000F
     private var mIsScrolling = false
-    private var mScrollThreshold = 0
+    private var mScrollThreshold = 5
     private var mLastMotion = Vector()
     private val mScroller = OverScroller(context)
     private var mVelocityTracker: VelocityTracker? = null
@@ -265,8 +265,8 @@ class UnrestrainedScrollView : FrameLayout {
                     if (isHitHorizontalBar || isHitVerticalBar) {
                         mScrollBarColorAnimator.reverse()
                     } else if (mIsScrolling) {
-                        mVelocityTracker!!.computeCurrentVelocity(1000, mMaximumVelocity)
                         mIsScrolling = false
+                        mVelocityTracker!!.computeCurrentVelocity(1000, mMaximumVelocity)
                         fling(
                             Vector(
                                 mVelocityTracker!!.xVelocity.roundToInt(),
