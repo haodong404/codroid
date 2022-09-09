@@ -123,15 +123,19 @@ class UnrestrainedScrollView : FrameLayout {
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec)
-        if (childCount > 0) {
-            getChildAt(0)?.let {
-                measureChild(it, widthMeasureSpec, heightMeasureSpec)
-                mBarHeight = height * height / it.measuredHeight
-                mBarWidth = if (it.measuredWidth == 0) {
-                    0
-                } else {
-                    width * width / it.measuredWidth
-                }
+        getChild()?.let {
+            measureChild(it, widthMeasureSpec, heightMeasureSpec)
+        }
+    }
+
+    override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
+        super.onLayout(changed, left, top, right, bottom)
+        getChildAsEditor()?.let {
+            mBarHeight = height * height / it.measuredHeight
+            mBarWidth = if (it.measuredWidth == 0) {
+                0
+            } else {
+                width * width / it.measuredWidth
             }
         }
     }
@@ -441,11 +445,17 @@ class UnrestrainedScrollView : FrameLayout {
     }
 
     private fun getChildAsEditor(): CodroidEditor? {
-        if (childCount > 0) {
-            val temp = getChildAt(0)
-            if (temp is CodroidEditor) {
-                return temp
+        getChild()?.let {
+            if (it is CodroidEditor) {
+                return it
             }
+        }
+        return null
+    }
+
+    private fun getChild(): View? {
+        if (childCount > 0) {
+            return getChildAt(0)
         }
         return null
     }

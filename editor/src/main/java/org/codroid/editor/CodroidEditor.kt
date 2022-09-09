@@ -28,8 +28,8 @@ import android.util.AttributeSet
 import android.util.Log
 import android.view.MotionEvent
 import android.view.View
-import android.view.inputmethod.BaseInputConnection
 import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputConnection
 import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import androidx.lifecycle.*
@@ -54,13 +54,6 @@ import kotlin.math.ceil
 
 class CodroidEditor : View, LifecycleOwner {
 
-    init {
-        isFocusable = true
-        isFocusableInTouchMode = true
-//        this.setOnClickListener(this)
-//        showInput()
-    }
-
     constructor(context: Context) : super(context)
 
     constructor(context: Context, attrs: AttributeSet?) : super(context, attrs)
@@ -70,6 +63,11 @@ class CodroidEditor : View, LifecycleOwner {
         attrs,
         defStyleAttr
     )
+
+    init {
+        isFocusable = true
+        isFocusableInTouchMode = true
+    }
 
     private val mLifecycleRegistry = LifecycleRegistry(this)
 
@@ -85,6 +83,9 @@ class CodroidEditor : View, LifecycleOwner {
     }
 
     private var mVisibleRows = 0
+    private val mInputConnection by lazy {
+        CodroidInputConnection(this, true)
+    }
 
     companion object {
         var DefaultRawTheme: RawTheme? = null
@@ -177,19 +178,17 @@ class CodroidEditor : View, LifecycleOwner {
         lifecycleScope.launchWhenCreated {
             getParentAsUnrestrainedScroll()?.run {
                 setOnScrollWithRowListener { start, old ->
-                    mEditContent?.getRange()?.let {
+                    mEditContent?.getVisibleRowsRange()?.let {
                         it.bindScroll(start, old)
-                        if (mCursor.getCurrentRow() in it.getBegin()..it.getEnd()) {
-                            mCursor.start()
+                        if (getCursor().getCurrentRow() in it.getBegin()..it.getEnd()) {
+                            getCursor().show()
                         } else {
-                            mCursor.stop()
+                            getCursor().hide()
                         }
                     }
-
-
                 }
             }
-            mCursor.addCursorChangedListener { row, col ->
+            getCursor().addCursorChangedListener { row, col ->
                 println("ROW: $row, COL: $col")
             }
         }
@@ -258,8 +257,9 @@ class CodroidEditor : View, LifecycleOwner {
             mRowsRender.computeRowCol(position).run {
                 mRowsRender.focusRow(this.first(), position)
                 mCursor.moveCursor(this.first(), this.second())
-                mCursor.start()
+                mCursor.show()
             }
+            showInput()
         }
     }
 
@@ -278,35 +278,32 @@ class CodroidEditor : View, LifecycleOwner {
         }
     }
 
+    fun getEditContent() = mEditContent
+
+    fun getCursor() = mCursor
+
     override fun onCheckIsTextEditor(): Boolean {
         return true
     }
 
     override fun onCreateInputConnection(outAttrs: EditorInfo?): InputConnection {
-        outAttrs?.imeOptions = EditorInfo.IME_FLAG_NO_EXTRACT_UI
-        outAttrs?.inputType = InputType.TYPE_NULL
-        return InputConnection(this, true)
+        outAttrs?.run {
+            initialSelStart = mCursor.getCurrentCol()
+            initialSelEnd = mCursor.getCurrentCol() + 1
+            imeOptions = EditorInfo.IME_FLAG_NO_EXTRACT_UI
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE
+        }
+        return mInputConnection
     }
 
     fun showInput() {
-        mInputMethodManager.showSoftInput(this@CodroidEditor, InputMethodManager.SHOW_FORCED)
+        if (requestFocus()) {
+            mInputMethodManager.showSoftInput(this, InputMethodManager.SHOW_IMPLICIT)
+        }
     }
 
     fun closeInput() {
         mInputMethodManager.hideSoftInputFromWindow(this.windowToken, 0)
-    }
-
-    inner class InputConnection(targetView: View, fullEditor: Boolean) :
-        BaseInputConnection(targetView, fullEditor) {
-        override fun commitText(text: CharSequence?, newCursorPosition: Int): Boolean {
-            this@CodroidEditor.postInvalidate()
-            return true
-        }
-
-        override fun closeConnection() {
-            super.closeConnection()
-            Log.i("Zac", "CloseConnection")
-        }
     }
 
     override fun onAttachedToWindow() {

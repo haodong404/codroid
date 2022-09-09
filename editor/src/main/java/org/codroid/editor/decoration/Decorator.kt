@@ -39,7 +39,7 @@ class Decorator {
             return@TreeMap 0
         }
 
-    private val mSyntaxSpans = mutableListOf<Map<IntRange, Spans>>()
+    private val mSyntaxSpans = TreeMap<Int, Map<IntRange, Spans>>()
 
     private val mDynamicDecorationSet: HashSet<DynamicDecoration> = HashSet()
 
@@ -60,14 +60,14 @@ class Decorator {
         mStaticDecorationSet.add(decoration)
     }
 
-    fun appendSpan(map: Map<IntRange, SpanDecoration>) {
+    fun appendSpan(rowIndex: Int, map: Map<IntRange, SpanDecoration>) {
         val temp = mutableMapOf<IntRange, Spans>()
         map.forEach {
             val spans = Spans()
             convertSpan(it.value, spans)
             temp[it.key] = spans
         }
-        mSyntaxSpans.add(temp)
+        mSyntaxSpans[rowIndex] = temp
     }
 
     private fun convertSpan(span: SpanDecoration, out: Spans) {
@@ -106,7 +106,7 @@ class Decorator {
         return mStaticDecorationSet.asSequence()
     }
 
-    fun syntaxSpans(): List<Map<IntRange, Spans>> {
+    fun syntaxSpans(): TreeMap<Int, Map<IntRange, Spans>> {
         return mSyntaxSpans
     }
 

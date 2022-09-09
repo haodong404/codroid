@@ -5,10 +5,11 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.RectF
+import android.os.Parcel
+import android.view.inputmethod.CursorAnchorInfo
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.*
 import org.codroid.editor.*
-import kotlin.time.Duration
 
 class Cursor(private val mEditor: CodroidEditor) {
 
@@ -84,7 +85,7 @@ class Cursor(private val mEditor: CodroidEditor) {
         this.mCursorListeners.add(callback)
     }
 
-    fun moveCursor(row: Int, col: Int) {
+    fun moveCursor(row: Int = mCurrentRow, col: Int = mCurrentCol) {
         mCurrentRow = row
         mCurrentCol = col
         mCursorListeners.forEach {
@@ -97,17 +98,27 @@ class Cursor(private val mEditor: CodroidEditor) {
         )
     }
 
+    fun move(distance: Int) {
+        moveCursor(col = mCurrentCol + distance)
+    }
+
     fun getCurrentRow() = mCurrentRow
 
     fun getCurrentCol() = mCurrentCol
 
-    fun stop() {
+    fun toCursorAnchorInfo(): CursorAnchorInfo =
+        CursorAnchorInfo.Builder()
+            .setSelectionRange(getCurrentCol(), getCurrentCol())
+            .build()
+
+
+    fun hide() {
         if (mVisible) {
             mVisible = false
         }
     }
 
-    fun start() {
+    fun show() {
         if (!mVisible) {
             mVisible = true
         }

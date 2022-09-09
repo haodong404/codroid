@@ -4,11 +4,9 @@ import android.animation.ValueAnimator
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
-import android.graphics.RectF
 import org.codroid.editor.*
 import org.codroid.editor.decoration.SpanRect
 import kotlin.math.ceil
-import kotlin.math.roundToInt
 
 class RowsRender(private val mEditor: CodroidEditor, private var mContent: EditContent? = null) {
     private val mTextPaint = TextPaint().apply {
@@ -56,7 +54,7 @@ class RowsRender(private val mEditor: CodroidEditor, private var mContent: EditC
     }
 
     private fun drawing(canvas: Canvas) {
-        mLineAnchor.resetByRow(mContent?.getRange()?.getBegin() ?: 0)
+        mLineAnchor.resetByRow(mContent?.getVisibleRowsRange()?.getBegin() ?: 0)
         mContent?.forEach { row ->
             if (mLineAnchor.lineNumber == mHighlightLine) {
                 drawLineHighlight(canvas)

@@ -15,12 +15,17 @@ import org.codroid.textmate.Tokenizer
 import org.codroid.textmate.grammar.StateStack
 import org.codroid.textmate.theme.RawTheme
 import java.nio.file.Path
+import java.util.*
 import kotlin.io.path.extension
 
-class SyntaxAnalyser(rawTheme: RawTheme) {
+@OptIn(DelicateCoroutinesApi::class)
+class SyntaxAnalyser(rawTheme: RawTheme, private val mSequence: TextSequence, path: Path) {
 
     // It presents the end position of all the tokenized text.
     private var mLastEnd = 0
+    private val mStateStacks = TreeMap<Int, StateStack>()
+    private val mTokenizer: Tokenizer?
+    private val mThreadContext = newSingleThreadContext("Syntax analyzer: #${hashCode()}")
 
     companion object {
         var registry: Registry? = null
@@ -32,27 +37,29 @@ class SyntaxAnalyser(rawTheme: RawTheme) {
             resolver = Resolver(rawTheme)
             registry = Registry(resolver!!)
         }
+        mTokenizer = prepareTokenizer(path)
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
-    suspend fun analyze(
-        sequence: TextSequence,
-        path: Path
-    ): Flow<Pair<IntPair, TokenizeLineResult2>> {
+    suspend fun analyze(startRow: Int = 0): Flow<Pair<IntPair, TokenizeLineResult2>> {
         // IntPair: first -> index of current row, second -> length of current row.
-        mLastEnd = 0
+        mLastEnd = startRow
         return flow {
-            prepareTokenizer(path)?.run {
-                var ruleStack = StateStack.Null
-                for (line in sequence) {
-                    val result = tokenizeLine2(line, ruleStack, 0)
-                    emit(makePair(mLastEnd, line.length) to result)
+            mTokenizer?.run {
+                var ruleStack = findStateStack(startRow)
+                for (rowIndex in startRow until mSequence.rows()) {
+                    val current = mSequence.rowAt(rowIndex)
+                    val result = tokenizeLine2(current, ruleStack, 0)
+                    emit(makePair(mLastEnd, current.length) to result)
                     ruleStack = result.ruleStack
-                    mLastEnd += line.length
+                    mStateStacks[mLastEnd] = result.ruleStack
+                    mLastEnd += current.length
                 }
-                registry
             }
-        }.flowOn(newSingleThreadContext("Syntax analyzer: #${hashCode()}"))
+        }.flowOn(mThreadContext)
+    }
+
+    private fun findStateStack(rowIndex: Int): StateStack {
+        return mStateStacks[rowIndex - 1] ?: StateStack.Null
     }
 
     private fun prepareTokenizer(path: Path): Tokenizer? {

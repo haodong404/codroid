@@ -71,7 +71,7 @@ abstract class TextSequence : Iterable<String> {
      * @param row which row, starting from 0.
      * @param col which column, starting from 0.
      */
-    abstract fun insert(content: String, row: Int, col: Int)
+    abstract fun insert(content: CharSequence, row: Int, col: Int)
 
     /**
      * Removes the characters in a substring of this sequence.
@@ -83,7 +83,7 @@ abstract class TextSequence : Iterable<String> {
     abstract fun delete(start: Int, end: Int)
 
     /**
-     * Replaces the characters in a substring of this sequence with characters in the specified
+     * Replaces the characters in a substring of this sequence with characters in the specified.
      * The substring begins at the specified start and extends to the character at index end - 1
      *
      * @param content String that will replace previous contents.
@@ -91,6 +91,8 @@ abstract class TextSequence : Iterable<String> {
      * @param end The ending index, exclusive.
      */
     abstract fun replace(content: String, start: Int, end: Int)
+
+    abstract fun charIndex(row: Int, col: Int): Int
 
     /**
      * Returns the length of this sequence.

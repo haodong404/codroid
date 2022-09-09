@@ -21,7 +21,6 @@
 
 package org.codroid.editor.buffer.linearr
 
-import android.util.Log
 import org.codroid.editor.buffer.TextSequence
 import org.codroid.editor.config.TextBufferConfig
 import java.io.InputStream
@@ -88,7 +87,10 @@ class LineArray : TextSequence {
         insert(content, row, col)
     }
 
-    override fun insert(content: String, row: Int, col: Int) {
+    override fun insert(content: CharSequence, row: Int, col: Int) {
+        if (content.isEmpty()) {
+            return
+        }
         val old = mBuffer[row]
         var offset = row
         for ((index, now) in content.lineSequence().withIndex()) {
@@ -122,7 +124,7 @@ class LineArray : TextSequence {
         var offset = 0
         for ((idx, now) in mBuffer.withIndex()) {
             rightEdge = leftEdge + now.length
-            if (leftEdge in start..end || rightEdge in start..end) {
+            if (hasInterception(leftEdge..rightEdge, start..end)) {
                 if (from == -1) {
                     from = idx
                     offset = leftEdge
@@ -144,6 +146,10 @@ class LineArray : TextSequence {
         length = length - (end - start) + content.length
         expandRow(pos)
 
+    }
+
+    private fun hasInterception(a: IntRange, b: IntRange): Boolean {
+        return !(b.first - a.last > 0 || a.first - b.last > 0)
     }
 
     /**
@@ -172,7 +178,7 @@ class LineArray : TextSequence {
             }
         }
         mBuffer[next - 1] = builder.toString()
-        return next - 1
+        return max(0, next - 1)
     }
 
 
@@ -207,6 +213,13 @@ class LineArray : TextSequence {
 
     override fun longestLineLength(): Int = this.longest
 
+    override fun charIndex(row: Int, col: Int): Int {
+        var acc = 0
+        repeat(row) {
+            acc += rowAt(it).length + 1
+        }
+        return col + acc
+    }
 
     override fun toString(): String {
         val result = StringBuffer()
