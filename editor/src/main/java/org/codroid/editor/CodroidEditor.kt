@@ -215,10 +215,13 @@ class CodroidEditor : View, LifecycleOwner {
     private var mClickCounter = 0
     private var mFirstClickTime = 0L
 
+    // true if cursor has intercepted the scroll event.
+    private var isCursorIntercepted = false
+
     @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(event: MotionEvent?): Boolean {
         event?.run {
-            return when (event.action) {
+            when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
                     mActionDownStartTime = System.currentTimeMillis()
                     if (mLongPressJob == null) {
@@ -227,16 +230,19 @@ class CodroidEditor : View, LifecycleOwner {
                             onLongPress(makePair(event.y.toInt(), event.x.toInt()))
                         }
                     }
-                    true
                 }
                 MotionEvent.ACTION_MOVE -> {
-                    true
+                    if (isCursorIntercepted) {
+                        mLongPressJob?.cancel()
+                        mLongPressJob = null
+                        parent.requestDisallowInterceptTouchEvent(true)
+                        getCursor().handleCursorHandleMovement(event.x, event.y)
+                    }
                 }
 
                 MotionEvent.ACTION_CANCEL -> {
                     mLongPressJob?.cancel()
                     mLongPressJob = null
-                    true
                 }
                 MotionEvent.ACTION_UP -> {
                     mLongPressJob?.cancel()
@@ -252,20 +258,15 @@ class CodroidEditor : View, LifecycleOwner {
                             onClick(event.x, event.y)
                         }
                     }
-                    true
-                }
-                else -> {
-                    false
                 }
             }
         }
-        return false
+        return true
     }
 
     private fun onClick(x: Float, y: Float) {
         if (x >= mRowsRender.lineNumberOffset()) {
             mRowsRender.computeRowCol(x, y).run {
-                mRowsRender.focusRow(this.first())
                 mCursor.moveCursor(this.first(), this.second())
                 mCursor.show()
             }
@@ -280,12 +281,12 @@ class CodroidEditor : View, LifecycleOwner {
 
     /**
      * Called when double clicked. Because I don't want to have a delay in clicking on events,
-     * So it doesn't discard the first click event.
+     * So it doesn't discard the first click event. That means it will trigger a click event when you double clicked.
      *
      * @param x the position of x
      * @param x the position of y
      */
-    fun onDoubleClick(x: Float, y: Float) {
+    private fun onDoubleClick(x: Float, y: Float) {
         Log.i("Zac", "onDoubleClick")
         Toast.makeText(this.context, "onDoubleClick", Toast.LENGTH_SHORT).show()
     }
@@ -303,6 +304,11 @@ class CodroidEditor : View, LifecycleOwner {
     fun getEditContent() = mEditContent
 
     fun getCursor() = mCursor
+
+    fun interceptParentScroll(absoluteX: Float, absoluteY: Float): Boolean {
+        isCursorIntercepted = getCursor().hitCursorHandle(absoluteX, absoluteY)
+        return isCursorIntercepted
+    }
 
     override fun onCheckIsTextEditor(): Boolean {
         return true

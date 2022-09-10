@@ -5,17 +5,17 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.RectF
-import android.os.Parcel
-import android.view.inputmethod.CursorAnchorInfo
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.*
 import org.codroid.editor.*
 
+@OptIn(DelicateCoroutinesApi::class)
 class Cursor(private val mEditor: CodroidEditor) {
 
     private val mCursorPaint = Paint().apply {
         style = Paint.Style.FILL
         color = Color.RED
+        isAntiAlias = true
     }
 
     private val mCursorWidth = 4F
@@ -29,7 +29,22 @@ class Cursor(private val mEditor: CodroidEditor) {
     private var mCurrentAlpha = 1F
     private val mDuration = 500L
 
-    private val mBlinkJob: Job
+    private var isBlinking = false
+    private val mBlinkingTimer = Timer.create(1000, {
+        while (isActive) {
+            if (mVisible && isBlinking) {
+                withContext(Dispatchers.Main) {
+                    mBlinkAnimator.start()
+                }
+                delay(mDuration)
+                withContext(Dispatchers.Main) {
+                    mBlinkAnimator.reverse()
+                }
+                delay(mDuration)
+            }
+        }
+    }, mEditor.lifecycleScope)
+
     private val mBlinkAnimator = ValueAnimator.ofFloat(1F, 0F).apply {
         duration = 200
         addUpdateListener {
@@ -40,26 +55,15 @@ class Cursor(private val mEditor: CodroidEditor) {
     private var mCursorListeners = mutableListOf<(row: Int, col: Int) -> Unit>()
     private var mVisible = true
 
+    private val mCursorHandleRadius = 25F
+
     init {
         mEditor.getRowsRender().computeAbsolutePos(mCurrentRow, mCurrentCol).let {
-            mPositionTop = it.first
-            mPositionLeft = it.second
+            mPositionLeft = it.first
+            mPositionTop = it.second
         }
-        mBlinkJob = mEditor.lifecycleScope.launchWhenCreated {
-            withContext(Dispatchers.IO) {
-                while (isActive) {
-                    if (mVisible) {
-                        withContext(Dispatchers.Main) {
-                            mBlinkAnimator.start()
-                        }
-                        delay(mDuration)
-                        withContext(Dispatchers.Main) {
-                            mBlinkAnimator.reverse()
-                        }
-                        delay(mDuration)
-                    }
-                }
-            }
+        mEditor.lifecycleScope.launchWhenCreated {
+            mBlinkingTimer.start()
         }
     }
 
@@ -73,6 +77,13 @@ class Cursor(private val mEditor: CodroidEditor) {
                     mPositionLeft + mCursorWidth,
                     mPositionTop + mEditor.getLineHeight() - 8
                 ), mCursorWidth, mCursorWidth, mCursorPaint
+            )
+
+            canvas.drawCircle(
+                mPositionLeft + mCursorWidth / 2,
+                mPositionTop + mEditor.getLineHeight() + mCursorHandleRadius,
+                mCursorHandleRadius,
+                mCursorPaint
             )
         }
     }
@@ -88,6 +99,7 @@ class Cursor(private val mEditor: CodroidEditor) {
     }
 
     fun moveCursor(row: Int = mCurrentRow, col: Int = mCurrentCol) {
+        mEditor.getRowsRender().focusRow(row)
         mCurrentRow = row
         mCurrentCol = col
         mCursorListeners.forEach {
@@ -95,16 +107,18 @@ class Cursor(private val mEditor: CodroidEditor) {
         }
         val temp = mEditor.getRowsRender().computeAbsolutePos(row, col)
         moveCursor(
-            temp.second,
-            temp.first
+            temp.first,
+            temp.second
         )
     }
 
-    fun move(distance: Int) {
+    fun moveCursor(distance: Int) {
         moveCursor(col = mCurrentCol + distance)
     }
 
     fun getCurrentRow() = mCurrentRow
+
+    fun getCurrentLine() = mCurrentRow + 1
 
     fun getCurrentCol() = mCurrentCol
 
@@ -112,11 +126,43 @@ class Cursor(private val mEditor: CodroidEditor) {
 
     fun getEnd() = mEnd
 
-    fun toCursorAnchorInfo(): CursorAnchorInfo =
-        CursorAnchorInfo.Builder()
-            .setSelectionRange(getCurrentCol(), getCurrentCol())
-            .build()
+    /**
+     * Intercepts the scroll event when handle is hit.
+     *
+     * @param x the absolute position of x.
+     * @param y the absolute position of y.
+     */
+    fun hitCursorHandle(x: Float, y: Float): Boolean {
+        getCursorHandleRectF().run {
+            return x in left..right && y in top..bottom
+        }
+    }
 
+    fun handleCursorHandleMovement(x: Float, y: Float) {
+        mEditor.getRowsRender().computeRowCol(x, y).run {
+            val actualRow = first() - 1
+            val actualCol = second()
+            if (actualRow != getCurrentRow() || actualCol != getCurrentCol()) {
+                moveCursor(actualRow, actualCol)
+            }
+        }
+    }
+
+    private fun getCursorHandleRectF(): RectF = RectF(
+        mPositionLeft - mCursorHandleRadius,
+        mPositionTop + mEditor.getLineHeight(),
+        mPositionLeft + mCursorHandleRadius,
+        mPositionTop + mEditor.getLineHeight() + 2 * mCursorHandleRadius
+    )
+
+
+    fun startBlinking() {
+        isBlinking = true
+    }
+
+    fun stopBlinking() {
+        isBlinking = false
+    }
 
     fun hide() {
         if (mVisible) {

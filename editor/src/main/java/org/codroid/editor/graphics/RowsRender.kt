@@ -17,7 +17,6 @@ class RowsRender(private val mEditor: CodroidEditor, private var mContent: EditC
     private val mLineAnchor = LineAnchor(mTextPaint)
     private var isWrapped = false
     private val mLineHeight = mTextPaint.getLineHeight()
-    private var mHighlightRow = 0
 
     /**
      * It might be changed by [org.codroid.editor.decoration.ReplacementSpan]
@@ -45,7 +44,7 @@ class RowsRender(private val mEditor: CodroidEditor, private var mContent: EditC
     private fun drawLineNumber(canvas: Canvas, index: Int) {
         mTextPaint.textAlign = Paint.Align.RIGHT
         var tempPaint = mTextPaint.withBlackColor()
-        if (index == mHighlightRow + 1) {
+        if (index == mEditor.getCursor().getCurrentLine()) {
             tempPaint = mTextPaint.withColor(Color.RED)
         }
         canvas.drawText(
@@ -60,7 +59,7 @@ class RowsRender(private val mEditor: CodroidEditor, private var mContent: EditC
     private fun drawing(canvas: Canvas) {
         mLineAnchor.resetByRow(mContent?.getVisibleRowsRange()?.getBegin() ?: 0)
         mContent?.forEach { row ->
-            if (mLineAnchor.lineNumber == mHighlightRow) {
+            if (mLineAnchor.lineNumber == mEditor.getCursor().getCurrentLine()) {
                 drawLineHighlight(canvas)
             }
             drawLineNumber(canvas, mLineAnchor.lineNumber)
@@ -117,13 +116,13 @@ class RowsRender(private val mEditor: CodroidEditor, private var mContent: EditC
         )
     }
 
-    private fun getHighlightColor(): Int = Color.LTGRAY
+    private fun getHighlightColor(): Int = Color.argb(0xA0, 0xDC, 0xDC, 0xDC)
 
-    fun focusRow(line: Int) {
-        if (line != this.mHighlightRow) {
+    fun focusRow(row: Int) {
+        if (row != mEditor.getCursor().getCurrentRow()) {
             ValueAnimator.ofInt(
-                computeAbsolutePos(mHighlightRow, 0).first.toInt(),
-                computeAbsolutePos(line, 0).first.toInt()
+                computeAbsolutePos(mEditor.getCursor().getCurrentRow(), 0).second.toInt(),
+                computeAbsolutePos(row, 0).second.toInt()
             ).run {
                 duration = 300
                 addUpdateListener {
@@ -132,7 +131,6 @@ class RowsRender(private val mEditor: CodroidEditor, private var mContent: EditC
                 }
                 start()
             }
-            this.mHighlightRow = line
         }
     }
 
@@ -147,9 +145,16 @@ class RowsRender(private val mEditor: CodroidEditor, private var mContent: EditC
         return makePair(row, col)
     }
 
+    /**
+     * Returns the absolute position of specific row and col.
+     *
+     * @param row row
+     * @param col col
+     * @return a pair of x and y
+     */
     fun computeAbsolutePos(row: Int, col: Int): Pair<Float, Float> {
-        return row * mEditor.getLineHeight() to
-                col * mEditor.getSingleCharWidth() + mEditor.getRowsRender().lineNumberOffset()
+        return col * mEditor.getSingleCharWidth() + mEditor.getRowsRender().lineNumberOffset() to
+                row * mEditor.getLineHeight()
     }
 
     fun lineNumberOffset() = mOffsetX
