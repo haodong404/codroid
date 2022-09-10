@@ -31,9 +31,9 @@ class CodroidInputConnection(
                     val pos = mTargetView.getEditContent()?.getTextSequence()
                         ?.charIndex(getCursor().getCurrentRow(), getCursor().getCurrentCol())
                     if (pos != null) {
-                        println(pos)
                         mTargetView.getEditContent()?.getTextSequence()?.delete(pos - 1, pos)
                         getCursor().move(-1)
+                        mTargetView.getEditContent()?.pushAnalyseTask(getCursor().getCurrentRow())
                     }
                 }
             }

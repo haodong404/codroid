@@ -73,12 +73,6 @@ class EditContent(
                 var current = mStartRowChannel.receive()
                 mSyntaxAnalyser.analyze(current)
                     .buffer()
-                    .onCompletion {
-                        withContext(Dispatchers.Main) {
-                            editor.requestLayout()
-                            editor.invalidate()
-                        }
-                    }
                     .collect { pair ->
                         val tokenLength = pair.second.tokens.size / 2
                         val spans = mutableMapOf<IntRange, SpanDecoration>()
@@ -101,6 +95,10 @@ class EditContent(
                         }
                         current++
                     }
+                withContext(Dispatchers.Main) {
+                    editor.requestLayout()
+                    editor.invalidate()
+                }
             }
         }
     }

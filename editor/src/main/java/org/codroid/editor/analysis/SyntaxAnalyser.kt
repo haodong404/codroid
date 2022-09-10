@@ -42,7 +42,7 @@ class SyntaxAnalyser(rawTheme: RawTheme, private val mSequence: TextSequence, pa
 
     suspend fun analyze(startRow: Int = 0): Flow<Pair<IntPair, TokenizeLineResult2>> {
         // IntPair: first -> index of current row, second -> length of current row.
-        mLastEnd = startRow
+        mLastEnd = 0
         return flow {
             mTokenizer?.run {
                 var ruleStack = findStateStack(startRow)
@@ -51,7 +51,7 @@ class SyntaxAnalyser(rawTheme: RawTheme, private val mSequence: TextSequence, pa
                     val result = tokenizeLine2(current, ruleStack, 0)
                     emit(makePair(mLastEnd, current.length) to result)
                     ruleStack = result.ruleStack
-                    mStateStacks[mLastEnd] = result.ruleStack
+                    mStateStacks[startRow + rowIndex] = result.ruleStack
                     mLastEnd += current.length
                 }
             }

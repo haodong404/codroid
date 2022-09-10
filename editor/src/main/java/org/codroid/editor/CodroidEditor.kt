@@ -211,7 +211,9 @@ class CodroidEditor : View, LifecycleOwner {
     }
 
     private var mActionDownStartTime = 0L
-    private var longPressJob: Job? = null
+    private var mLongPressJob: Job? = null
+    private var mClickCounter = 0
+    private var mFirstClickTime = 0L
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(event: MotionEvent?): Boolean {
@@ -219,10 +221,10 @@ class CodroidEditor : View, LifecycleOwner {
             return when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
                     mActionDownStartTime = System.currentTimeMillis()
-                    if (longPressJob == null) {
-                        longPressJob = lifecycleScope.launch {
+                    if (mLongPressJob == null) {
+                        mLongPressJob = lifecycleScope.launch {
                             delay(500)
-                            onLongPressed(makePair(event.y.toInt(), event.x.toInt()))
+                            onLongPress(makePair(event.y.toInt(), event.x.toInt()))
                         }
                     }
                     true
@@ -232,15 +234,23 @@ class CodroidEditor : View, LifecycleOwner {
                 }
 
                 MotionEvent.ACTION_CANCEL -> {
-                    longPressJob?.cancel()
-                    longPressJob = null
+                    mLongPressJob?.cancel()
+                    mLongPressJob = null
                     true
                 }
                 MotionEvent.ACTION_UP -> {
-                    longPressJob?.cancel()
-                    longPressJob = null
-                    if (System.currentTimeMillis() - mActionDownStartTime < 300) {
-                        onClicked(makePair(event.y.toInt(), event.x.toInt()))
+                    mLongPressJob?.cancel()
+                    mLongPressJob = null
+                    mClickCounter++
+                    val currentTime = System.currentTimeMillis()
+                    if (currentTime - mActionDownStartTime < 300) {
+                        if (mClickCounter >= 2 && currentTime - mFirstClickTime < 200) {
+                            onDoubleClick(x, y)
+                            mClickCounter = 0
+                        } else {
+                            mFirstClickTime = currentTime
+                            onClick(event.x, event.y)
+                        }
                     }
                     true
                 }
@@ -252,10 +262,10 @@ class CodroidEditor : View, LifecycleOwner {
         return false
     }
 
-    private fun onClicked(position: IntPair) {
-        if (position.second() >= mRowsRender.lineNumberOffset()) {
-            mRowsRender.computeRowCol(position).run {
-                mRowsRender.focusRow(this.first(), position)
+    private fun onClick(x: Float, y: Float) {
+        if (x >= mRowsRender.lineNumberOffset()) {
+            mRowsRender.computeRowCol(x, y).run {
+                mRowsRender.focusRow(this.first())
                 mCursor.moveCursor(this.first(), this.second())
                 mCursor.show()
             }
@@ -263,9 +273,21 @@ class CodroidEditor : View, LifecycleOwner {
         }
     }
 
-    private fun onLongPressed(position: IntPair) {
+    private fun onLongPress(position: IntPair) {
         Log.i("Zac", "OnLongClicked")
         Toast.makeText(this.context, "onLongClick", Toast.LENGTH_SHORT).show()
+    }
+
+    /**
+     * Called when double clicked. Because I don't want to have a delay in clicking on events,
+     * So it doesn't discard the first click event.
+     *
+     * @param x the position of x
+     * @param x the position of y
+     */
+    fun onDoubleClick(x: Float, y: Float) {
+        Log.i("Zac", "onDoubleClick")
+        Toast.makeText(this.context, "onDoubleClick", Toast.LENGTH_SHORT).show()
     }
 
     fun load(input: InputStream, path: Path) {

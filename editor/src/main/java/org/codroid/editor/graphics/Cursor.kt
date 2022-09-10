@@ -21,6 +21,8 @@ class Cursor(private val mEditor: CodroidEditor) {
     private val mCursorWidth = 4F
     private var mCurrentRow = 0
     private var mCurrentCol = 1
+    private var mStart = 0
+    private val mEnd = 0
     private var mPositionLeft = 0F
     private var mPositionTop = 0F
 
@@ -105,6 +107,10 @@ class Cursor(private val mEditor: CodroidEditor) {
     fun getCurrentRow() = mCurrentRow
 
     fun getCurrentCol() = mCurrentCol
+
+    fun getStart() = mStart
+
+    fun getEnd() = mEnd
 
     fun toCursorAnchorInfo(): CursorAnchorInfo =
         CursorAnchorInfo.Builder()
