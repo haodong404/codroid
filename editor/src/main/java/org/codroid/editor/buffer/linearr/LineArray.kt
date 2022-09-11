@@ -21,11 +21,17 @@
 
 package org.codroid.editor.buffer.linearr
 
+import org.codroid.editor.IntPair
 import org.codroid.editor.buffer.TextSequence
 import org.codroid.editor.config.TextBufferConfig
+import org.codroid.editor.makePair
 import java.io.InputStream
 import kotlin.math.max
 
+/**
+ * Represents a [TextSequence] with line array.
+ * Lines are stored in an [ArrayList] of [String], from 0 to lines.size - 1, and each are not contain the new line character(LF or CR).
+ */
 class LineArray : TextSequence {
 
     private val mBuffer: ArrayList<String> = ArrayList(20)
@@ -214,11 +220,42 @@ class LineArray : TextSequence {
     override fun longestLineLength(): Int = this.longest
 
     override fun charIndex(row: Int, col: Int): Int {
-        var acc = 0
-        repeat(row) {
-            acc += rowAt(it).length + 1
+        var acc = -1
+        var isFirstLine = true
+        repeat(row + 1) {
+            if (isFirstLine) {
+                isFirstLine = false
+            } else {
+                acc++ // new line
+            }
+            if (it != row) {
+                acc += rowAt(it).length
+            }
         }
-        return col + acc
+        return acc + col
+    }
+
+    override fun getRowAndCol(position: Int): IntPair {
+        var total = position + 1
+        var row = 0
+        var col = 0
+        var isFirstLine = true
+        for (line in this) {
+            if (isFirstLine) {
+                isFirstLine = false
+            } else {
+                total -= 1 // consume a new-line character
+            }
+            val temp = total - line.length
+            if (temp > 0) {
+                row++
+                total = temp
+            } else {
+                col = total
+                break
+            }
+        }
+        return makePair(row, col)
     }
 
     override fun toString(): String {

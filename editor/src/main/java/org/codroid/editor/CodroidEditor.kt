@@ -267,7 +267,7 @@ class CodroidEditor : View, LifecycleOwner {
     private fun onClick(x: Float, y: Float) {
         if (x >= mRowsRender.lineNumberOffset()) {
             mRowsRender.computeRowCol(x, y).run {
-                mCursor.moveCursor(this.first(), this.second())
+                mCursor.moveCursorBy(this.first(), this.second())
                 mCursor.show()
             }
             showInput()

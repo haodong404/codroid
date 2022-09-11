@@ -22,7 +22,7 @@ class Cursor(private val mEditor: CodroidEditor) {
     private var mCurrentRow = 0
     private var mCurrentCol = 1
     private var mStart = 0
-    private val mEnd = 0
+    private var mEnd = 0
     private var mPositionLeft = 0F
     private var mPositionTop = 0F
 
@@ -88,7 +88,7 @@ class Cursor(private val mEditor: CodroidEditor) {
         }
     }
 
-    private fun moveCursor(left: Float, top: Float) {
+    private fun moveCursorBy(left: Float, top: Float) {
         mPositionLeft = left
         mPositionTop = top
         mEditor.invalidate()
@@ -98,7 +98,7 @@ class Cursor(private val mEditor: CodroidEditor) {
         this.mCursorListeners.add(callback)
     }
 
-    fun moveCursor(row: Int = mCurrentRow, col: Int = mCurrentCol) {
+    fun moveCursorBy(row: Int = mCurrentRow, col: Int = mCurrentCol) {
         mEditor.getRowsRender().focusRow(row)
         mCurrentRow = row
         mCurrentCol = col
@@ -106,14 +106,18 @@ class Cursor(private val mEditor: CodroidEditor) {
             it.invoke(row, col)
         }
         val temp = mEditor.getRowsRender().computeAbsolutePos(row, col)
-        moveCursor(
+        moveCursorBy(
             temp.first,
             temp.second
         )
     }
 
-    fun moveCursor(distance: Int) {
-        moveCursor(col = mCurrentCol + distance)
+    fun moveCursorBy(distance: Int) {
+        moveCursorBy(col = mCurrentCol + distance)
+    }
+
+    fun moveCursorTo(position: Int) {
+
     }
 
     fun getCurrentRow() = mCurrentRow
@@ -143,7 +147,7 @@ class Cursor(private val mEditor: CodroidEditor) {
             val actualRow = first() - 1
             val actualCol = second()
             if (actualRow != getCurrentRow() || actualCol != getCurrentCol()) {
-                moveCursor(actualRow, actualCol)
+                moveCursorBy(actualRow, actualCol)
             }
         }
     }
@@ -155,6 +159,12 @@ class Cursor(private val mEditor: CodroidEditor) {
         mPositionTop + mEditor.getLineHeight() + 2 * mCursorHandleRadius
     )
 
+    fun select(start: Int, end: Int) {
+        mStart = start
+        mEnd = end
+    }
+
+    fun getTextSequence() = mEditor.getEditContent()?.getTextSequence()
 
     fun startBlinking() {
         isBlinking = true

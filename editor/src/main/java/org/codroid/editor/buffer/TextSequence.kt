@@ -20,6 +20,7 @@
 
 package org.codroid.editor.buffer
 
+import org.codroid.editor.IntPair
 import java.io.InputStream
 
 /**
@@ -92,7 +93,29 @@ abstract class TextSequence : Iterable<String> {
      */
     abstract fun replace(content: String, start: Int, end: Int)
 
+    /**
+     * Returns an index of a char using the position of row and column.
+     * In each row, col '0' represents a line separator if this row is a new line.
+     * e.g.
+     * pos(0, 0) is the line separator of first line, but no lines above the first line. so pos(0, 0) is an invalid position.
+     * pos(1, 1) is the first character in the second line.
+     *
+     * @param row a [Int] starting from 0.
+     * @param col a [Int] starting from 0.
+     *
+     * @return an index for a a given row and column position
+     */
     abstract fun charIndex(row: Int, col: Int): Int
+
+    /**
+     * Returns an [IntPair], the first value represents a row, and the second represents a column.
+     * The principle of representing a character using row and column can be found in [charIndex].
+     *
+     * @param position the index of a character, starting from 0.
+     *
+     * @return an [IntPair], the first is a row, and the second is a column.
+     */
+    abstract fun getRowAndCol(position: Int): IntPair
 
     /**
      * Returns the length of this sequence.

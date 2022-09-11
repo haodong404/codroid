@@ -1,5 +1,6 @@
 package org.codroid.editor.buffer.linearr
 
+import org.codroid.editor.makePair
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -182,5 +183,44 @@ class LineArrayTest {
         for ((index, line) in seq.withIndex()) {
             assertEquals(seq.rowAt(index), line)
         }
+    }
+
+    @Test
+    fun `test charIndex`() {
+        val seq = LineArray(
+            "package org.codroid.interfaces.exceptions;\n" +
+                    "\n" +
+                    "\n" +
+                    "import org.codroid.interfaces.log.Logger;\n" +
+                    "\n" +
+                    "/**\n" +
+                    " * This is a superclass that should only be inherited by the exceptions about addon.\n" +
+                    " */"
+        )
+        assertEquals(0, seq.charIndex(0, 1))
+        assertEquals(5, seq.charIndex(0, 6))
+        assertEquals(41, seq.charIndex(0, 42))
+        assertEquals(42, seq.charIndex(1, 0)) // New line
+        assertEquals(47, seq.charIndex(3, 3))
+        assertEquals(179, seq.charIndex(7, 3))
+    }
+
+    @Test
+    fun `test get row and col`() {
+        val seq = LineArray(
+            "package org.codroid.interfaces.exceptions;\n" +
+                    "\n" +
+                    "\n" +
+                    "import org.codroid.interfaces.log.Logger;\n" +
+                    "\n" +
+                    "/**\n" +
+                    " * This is a superclass that should only be inherited by the exceptions about addon.\n" +
+                    " */"
+        )
+        assertEquals(makePair(0, 1), seq.getRowAndCol(0))
+        assertEquals(makePair(0, 6), seq.getRowAndCol(5))
+        assertEquals(makePair(1, 0), seq.getRowAndCol(42))
+        assertEquals(makePair(3, 3), seq.getRowAndCol(47))
+        assertEquals(makePair(7, 3), seq.getRowAndCol(179))
     }
 }

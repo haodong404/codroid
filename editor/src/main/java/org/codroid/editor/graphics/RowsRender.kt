@@ -23,8 +23,6 @@ class RowsRender(private val mEditor: CodroidEditor, private var mContent: EditC
      */
     private var mLongestLineLength = 0F
 
-    private var mCurrentHeightLineTop = 0
-
     fun measure(): IntPair {
         mOffsetX = mTextPaint.measureText(mContent?.rows()?.toString() ?: "0") + 40
         mLongestLineLength = (mContent?.longestLineLength() ?: 0) * mTextPaint.singleWidth()
@@ -109,9 +107,9 @@ class RowsRender(private val mEditor: CodroidEditor, private var mContent: EditC
     private fun drawLineHighlight(canvas: Canvas) {
         canvas.drawRect(
             mOffsetX,
-            mCurrentHeightLineTop.toFloat(),
+            mEditor.getCursor().getCurrentRow() * getLineHeight(),
             mLongestLineLength,
-            mCurrentHeightLineTop + mLineAnchor.height(),
+            (mEditor.getCursor().getCurrentRow() + 1) * mLineAnchor.height(),
             mTextPaint.withColor(getHighlightColor())
         )
     }
@@ -119,19 +117,7 @@ class RowsRender(private val mEditor: CodroidEditor, private var mContent: EditC
     private fun getHighlightColor(): Int = Color.argb(0xA0, 0xDC, 0xDC, 0xDC)
 
     fun focusRow(row: Int) {
-        if (row != mEditor.getCursor().getCurrentRow()) {
-            ValueAnimator.ofInt(
-                computeAbsolutePos(mEditor.getCursor().getCurrentRow(), 0).second.toInt(),
-                computeAbsolutePos(row, 0).second.toInt()
-            ).run {
-                duration = 300
-                addUpdateListener {
-                    mCurrentHeightLineTop = animatedValue as Int
-                    mEditor.postInvalidateOnAnimation()
-                }
-                start()
-            }
-        }
+        // Do something like animation here if needed.
     }
 
     fun loadContent(content: EditContent) {
@@ -159,7 +145,7 @@ class RowsRender(private val mEditor: CodroidEditor, private var mContent: EditC
 
     fun lineNumberOffset() = mOffsetX
 
-    fun getLineHeight() = mTextPaint.getLineHeight()
+    fun getLineHeight() = mLineAnchor.height()
 
     fun getSingleCharWidth() = mTextPaint.singleWidth()
 }

@@ -13,7 +13,7 @@ class CodroidInputConnection(
     override fun commitText(text: CharSequence?, newCursorPosition: Int): Boolean {
         mTargetView.getEditContent()?.getTextSequence()
             ?.insert(text ?: "", getCursor().getCurrentRow(), getCursor().getCurrentCol())
-        getCursor().moveCursor(text?.length ?: 0)
+        getCursor().moveCursorBy(text?.length ?: 0)
         mTargetView.getEditContent()?.pushAnalyseTask(getCursor().getCurrentRow())
         invalidate()
         return true
@@ -24,7 +24,6 @@ class CodroidInputConnection(
     }
 
     override fun sendKeyEvent(event: KeyEvent?): Boolean {
-        println(event)
         event?.let { ev ->
             if (ev.keyCode == KeyEvent.KEYCODE_DEL) {
                 if (ev.action == KeyEvent.ACTION_UP) {
@@ -32,7 +31,7 @@ class CodroidInputConnection(
                         ?.charIndex(getCursor().getCurrentRow(), getCursor().getCurrentCol())
                     if (pos != null) {
                         mTargetView.getEditContent()?.getTextSequence()?.delete(pos - 1, pos)
-                        getCursor().moveCursor(-1)
+                        getCursor().moveCursorBy(-1)
                         mTargetView.getEditContent()?.pushAnalyseTask(getCursor().getCurrentRow())
                     }
                 }
