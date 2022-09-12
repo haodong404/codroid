@@ -20,9 +20,8 @@
 
 package org.codroid.editor.decoration
 
-import android.graphics.*
-import android.util.Log
-import org.codroid.editor.LineAnchor
+import android.graphics.Canvas
+import android.graphics.Typeface
 import org.codroid.editor.graphics.TextPaint
 import org.codroid.textmate.theme.FontStyle
 import kotlin.experimental.and

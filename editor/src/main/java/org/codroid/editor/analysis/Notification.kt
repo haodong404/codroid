@@ -1,12 +1,9 @@
 package org.codroid.editor.analysis
 
-import android.app.Notification
 import android.content.Context
 import androidx.core.app.NotificationChannelCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.launch
 import org.codroid.editor.R
 
 const val GrammarAnalysisChannelId = "GrammarAnalysisChannel"

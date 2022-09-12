@@ -20,12 +20,8 @@
 
 package org.codroid.editor.decoration
 
-import android.graphics.Paint
-import org.codroid.editor.Interval
-import org.codroid.editor.Vector
 import org.codroid.editor.graphics.TextPaint
-import org.codroid.editor.isIn
-import org.codroid.editor.makePair
+import org.codroid.editor.utils.isIn
 import java.util.*
 
 class Decorator {
@@ -49,7 +45,7 @@ class Decorator {
         if (!mSpanDecorationTree.containsKey(range)) {
             mSpanDecorationTree[range] = Spans()
         }
-        convertSpan(decoration, mSpanDecorationTree[range]!!)
+        disassembleSpan(decoration, mSpanDecorationTree[range]!!)
     }
 
     fun addSpan(decoration: DynamicDecoration) {
@@ -64,13 +60,13 @@ class Decorator {
         val temp = mutableMapOf<IntRange, Spans>()
         map.forEach {
             val spans = Spans()
-            convertSpan(it.value, spans)
+            disassembleSpan(it.value, spans)
             temp[it.key] = spans
         }
         mSyntaxSpans[rowIndex] = temp
     }
 
-    private fun convertSpan(span: SpanDecoration, out: Spans) {
+    private fun disassembleSpan(span: SpanDecoration, out: Spans) {
         if (span is RepaintSpan) {
             val temp = out.repaint
             if (temp != null) {

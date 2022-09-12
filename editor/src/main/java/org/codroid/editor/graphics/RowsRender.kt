@@ -1,11 +1,13 @@
 package org.codroid.editor.graphics
 
-import android.animation.ValueAnimator
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import org.codroid.editor.*
 import org.codroid.editor.decoration.SpanRect
+import org.codroid.editor.utils.IntPair
+import org.codroid.editor.utils.LineAnchor
+import org.codroid.editor.utils.makePair
 import kotlin.math.ceil
 
 class RowsRender(private val mEditor: CodroidEditor, private var mContent: EditContent? = null) {
@@ -94,7 +96,7 @@ class RowsRender(private val mEditor: CodroidEditor, private var mContent: EditC
                 } else {
                     canvas.drawText(
                         block.substring,
-                        mOffsetX,
+                        offsetXinLine,
                         mLineAnchor.baseline,
                         mTextPaint.withBlackColor()
                     )

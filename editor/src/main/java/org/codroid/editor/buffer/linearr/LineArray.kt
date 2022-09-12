@@ -21,10 +21,11 @@
 
 package org.codroid.editor.buffer.linearr
 
-import org.codroid.editor.IntPair
 import org.codroid.editor.buffer.TextSequence
 import org.codroid.editor.config.TextBufferConfig
-import org.codroid.editor.makePair
+import org.codroid.editor.utils.IntPair
+import org.codroid.editor.utils.hasInterception
+import org.codroid.editor.utils.makePair
 import java.io.InputStream
 import kotlin.math.max
 
@@ -130,7 +131,7 @@ class LineArray : TextSequence {
         var offset = 0
         for ((idx, now) in mBuffer.withIndex()) {
             rightEdge = leftEdge + now.length
-            if (hasInterception(leftEdge..rightEdge, start..end)) {
+            if ((leftEdge..rightEdge).hasInterception(start..end)) {
                 if (from == -1) {
                     from = idx
                     offset = leftEdge
@@ -152,10 +153,6 @@ class LineArray : TextSequence {
         length = length - (end - start) + content.length
         expandRow(pos)
 
-    }
-
-    private fun hasInterception(a: IntRange, b: IntRange): Boolean {
-        return !(b.first - a.last > 0 || a.first - b.last > 0)
     }
 
     /**

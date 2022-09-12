@@ -26,7 +26,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.Channel.Factory.CONFLATED
 import kotlinx.coroutines.flow.buffer
-import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -35,6 +34,9 @@ import org.codroid.editor.buffer.TextSequence
 import org.codroid.editor.decoration.CharacterSpan
 import org.codroid.editor.decoration.Decorator
 import org.codroid.editor.decoration.SpanDecoration
+import org.codroid.editor.utils.Block
+import org.codroid.editor.utils.Row
+import org.codroid.editor.utils.second
 import org.codroid.textmate.EncodedTokenAttributes
 import java.nio.file.Path
 import java.util.*
@@ -45,14 +47,14 @@ import kotlin.math.min
 class EditContent(
     private val mTextSequence: TextSequence,
     private val mPath: Path,
-    private val editor: CodroidEditor,
+    private val mEditor: CodroidEditor,
     visibleLines: Int = 10,
 ) : Iterable<Row> {
 
     private val mDecorator: Decorator = Decorator()
     private val mRange = RowsRange(visibleLines)
 
-    private val mSyntaxAnalyser = SyntaxAnalyser(editor.theme!!, mTextSequence, mPath)
+    private val mSyntaxAnalyser = SyntaxAnalyser(mEditor.theme!!, mTextSequence, mPath)
     private var mNewLineStartPos = 0
     private val mStartRowChannel = Channel<Int>(CONFLATED)
 
@@ -62,13 +64,13 @@ class EditContent(
     }
 
     fun pushAnalyseTask(startRow: Int = 0) {
-        editor.lifecycleScope.launch {
+        mEditor.lifecycleScope.launch {
             mStartRowChannel.send(startRow)
         }
     }
 
     private fun startAnalysing() {
-        editor.lifecycleScope.launch(Dispatchers.IO) {
+        mEditor.lifecycleScope.launch(Dispatchers.IO) {
             while (isActive) {
                 var current = mStartRowChannel.receive()
                 mSyntaxAnalyser.analyze(current)
@@ -91,13 +93,13 @@ class EditContent(
                         }
                         mDecorator.appendSpan(current, spans)
                         if (current == getVisibleRowsRange().getEnd()) {
-                            editor.postInvalidate()
+                            mEditor.postInvalidate()
                         }
                         current++
                     }
                 withContext(Dispatchers.Main) {
-                    editor.requestLayout()
-                    editor.invalidate()
+                    mEditor.requestLayout()
+                    mEditor.invalidate()
                 }
             }
         }
@@ -135,28 +137,42 @@ class EditContent(
 
     fun getTextSequence() = mTextSequence
 
-    private fun makeRow(row: Int): Row =
-        Row().apply {
-            mTextSequence.rowAtOrNull(row)?.let { line ->
-                val syntaxSpans = mDecorator.syntaxSpans()[row]
-                if (syntaxSpans != null) {
-                    syntaxSpans.forEach {
-                        appendBlock(
-                            Block(
-                                line.substring(
-                                    it.key.first,
-                                    min(line.length, it.key.last + 1)
-                                ), it.value
-                            )
-                        )
+    private fun makeRow(row: Int): Row = Row().apply {
+        mTextSequence.rowAtOrNull(row)?.let { line ->
+            var offset = 0
+            val syntaxSpanIterator = mDecorator.syntaxSpans()[row]?.iterator()
+            while (offset < line.length) {
+                var syntax: Map.Entry<IntRange, Decorator.Spans>? = null
+                syntaxSpanIterator?.run {
+                    if (hasNext()) {
+                        syntax = next()
                     }
-                    return@apply
                 }
-                appendBlock(Block(line))
-                mNewLineStartPos += line.length
+                if (syntax != null) {
+                    // append a plain block
+                    val str = line.substringRestricted(offset until syntax!!.key.first, offset)
+                    appendBlock(Block(str))
+                    offset += str.length
+
+                    // append a syntax block
+                    val syntaxStr = line.substringRestricted(syntax!!.key, offset)
+                    appendBlock(Block(syntaxStr, syntax!!.value))
+                    offset += syntaxStr.length
+                } else {
+                    val str = line.substring(offset until line.length)
+                    appendBlock(Block(str))
+                    break
+                }
             }
         }
+    }
 
+    private fun String.substringRestricted(range: IntRange, offset: Int): String {
+        if (range.first > length || range.last < 0) {
+            return ""
+        }
+        return substring(max(offset, range.first), min(length, range.last + 1))
+    }
 
     fun longestLineLength(): Int {
         return mTextSequence.longestLineLength()
@@ -196,7 +212,7 @@ class EditContent(
         fun bindScroll(start: Int, old: Int) {
             mVisibleBegin = max(0, start - 2)
             mVisibleEnd = min(endEdge(), mVisibleRows + start + 1)
-            editor.invalidate()
+            mEditor.invalidate()
         }
 
         fun getBegin(): Int {

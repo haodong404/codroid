@@ -18,8 +18,30 @@
  *
  */
 
-package org.codroid.editor.decoration
+package org.codroid.editor.utils
 
-interface BackgroundSpan : SpanDecoration, Drawable {
+import org.codroid.editor.decoration.Decorator
+import java.util.*
+
+data class Block(val substring: String, val spans: Decorator.Spans? = null) {
+    fun isEmpty() = substring.isEmpty()
+}
+
+@JvmInline
+value class Row(val blocks: LinkedList<Block> = LinkedList()) {
+
+    fun appendBlock(block: Block) {
+        if (!block.isEmpty()) {
+            blocks.add(block)
+        }
+    }
+
+    override fun toString(): String {
+        val builder = StringBuilder()
+        for (item in blocks) {
+            builder.append(item.substring)
+        }
+        return builder.toString()
+    }
 
 }

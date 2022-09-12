@@ -1,6 +1,5 @@
 package org.codroid.editor.analysis
 
-import android.util.Log
 import oniguruma.OnigLib
 import org.codroid.textmate.RegistryOptions
 import org.codroid.textmate.exceptions.TextMateException

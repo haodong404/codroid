@@ -5,9 +5,9 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.newSingleThreadContext
-import org.codroid.editor.IntPair
 import org.codroid.editor.buffer.TextSequence
-import org.codroid.editor.makePair
+import org.codroid.editor.utils.IntPair
+import org.codroid.editor.utils.makePair
 import org.codroid.textmate.EmbeddedLanguagesMap
 import org.codroid.textmate.Registry
 import org.codroid.textmate.TokenizeLineResult2

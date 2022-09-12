@@ -2,8 +2,6 @@ package org.codroid.editor
 
 import android.view.KeyEvent
 import android.view.inputmethod.BaseInputConnection
-import kotlin.math.max
-import kotlin.math.min
 
 class CodroidInputConnection(
     private val mTargetView: CodroidEditor,
@@ -30,7 +28,7 @@ class CodroidInputConnection(
                     val pos = mTargetView.getEditContent()?.getTextSequence()
                         ?.charIndex(getCursor().getCurrentRow(), getCursor().getCurrentCol())
                     if (pos != null) {
-                        mTargetView.getEditContent()?.getTextSequence()?.delete(pos - 1, pos)
+                        mTargetView.getEditContent()?.getTextSequence()?.delete(pos, pos + 1)
                         getCursor().moveCursorBy(-1)
                         mTargetView.getEditContent()?.pushAnalyseTask(getCursor().getCurrentRow())
                     }
@@ -41,31 +39,31 @@ class CodroidInputConnection(
     }
 
     override fun getTextBeforeCursor(length: Int, flags: Int): CharSequence? {
-        mTargetView.getEditContent()?.run {
-            getTextSequence().rowAtOrNull(mTargetView.getCursor().getCurrentRow())?.let {
-                return it.substring(
-                    max(
-                        0,
-                        mTargetView.getCursor().getCurrentCol() - length
-                    ) until min(it.length, mTargetView.getCursor().getCurrentCol())
-                )
-            }
-        }
+//        mTargetView.getEditContent()?.run {
+//            getTextSequence().rowAtOrNull(mTargetView.getCursor().getCurrentRow())?.let {
+//                return it.substring(
+//                    max(
+//                        0,
+//                        mTargetView.getCursor().getCurrentCol() - length
+//                    ) until min(it.length, mTargetView.getCursor().getCurrentCol())
+//                )
+//            }
+//        }
         return null
     }
 
     override fun getTextAfterCursor(length: Int, flags: Int): CharSequence? {
-        mTargetView.getEditContent()?.run {
-            getTextSequence().rowAtOrNull(mTargetView.getCursor().getCurrentRow())?.let {
-                return it.substring(
-                    mTargetView.getCursor().getCurrentCol() until
-                            min(
-                                it.length,
-                                mTargetView.getCursor().getCurrentCol() + length
-                            )
-                )
-            }
-        }
+//        mTargetView.getEditContent()?.run {
+//            getTextSequence().rowAtOrNull(mTargetView.getCursor().getCurrentRow())?.let {
+//                return it.substring(
+//                    mTargetView.getCursor().getCurrentCol() until
+//                            min(
+//                                it.length,
+//                                mTargetView.getCursor().getCurrentCol() + length
+//                            )
+//                )
+//            }
+//        }
         return null
     }
 

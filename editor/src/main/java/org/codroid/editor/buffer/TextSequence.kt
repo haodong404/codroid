@@ -20,7 +20,7 @@
 
 package org.codroid.editor.buffer
 
-import org.codroid.editor.IntPair
+import org.codroid.editor.utils.IntPair
 import java.io.InputStream
 
 /**

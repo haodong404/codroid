@@ -19,8 +19,6 @@
 
 package org.codroid.editor.algorithm.exceptions
 
-import java.lang.Exception
-
 class TooLongPiecesException : Exception() {
     override val message: String
         get() = "Too long pieces."

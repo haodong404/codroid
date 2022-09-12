@@ -34,10 +34,10 @@ import android.view.View
 import android.widget.FrameLayout
 import android.widget.OverScroller
 import kotlinx.coroutines.*
+import org.codroid.editor.utils.*
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.roundToInt
-import kotlin.time.Duration
 
 class UnrestrainedScrollView : FrameLayout {
     constructor(context: Context) : super(context)
