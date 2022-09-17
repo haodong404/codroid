@@ -1,5 +1,6 @@
 package org.codroid.editor
 
+import org.codroid.editor.utils.Vector
 import org.junit.Assert.assertEquals
 import org.junit.Test
 

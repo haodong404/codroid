@@ -1,6 +1,7 @@
-package org.codroid.editor.buffer.linearr
+package org.codroid.editor.algorithm
 
-import org.codroid.editor.makePair
+import org.codroid.editor.algorithm.linearr.LineArray
+import org.codroid.editor.utils.makePair
 import org.junit.Assert.assertEquals
 import org.junit.Test
 

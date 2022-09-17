@@ -41,7 +41,7 @@ import org.codroid.editor.analysis.GrammarRegistration
 import org.codroid.editor.analysis.LanguageRegistration
 import org.codroid.editor.analysis.registerGrammar
 import org.codroid.editor.analysis.registerLanguage
-import org.codroid.editor.buffer.linearr.LineArray
+import org.codroid.editor.algorithm.linearr.LineArray
 import org.codroid.editor.graphics.Cursor
 import org.codroid.editor.graphics.RowsRender
 import org.codroid.editor.utils.IntPair
@@ -204,7 +204,6 @@ class CodroidEditor : View, LifecycleOwner {
         }
         mVisibleRows =
             ceil(MeasureSpec.getSize(heightMeasureSpec) / mRowsRender.getLineHeight()).toInt()
-        println(mVisibleRows)
     }
 
     override fun onDraw(canvas: Canvas?) {
@@ -231,7 +230,7 @@ class CodroidEditor : View, LifecycleOwner {
                     if (mLongPressJob == null) {
                         mLongPressJob = lifecycleScope.launch {
                             delay(500)
-                            onLongPress(makePair(event.y.toInt(), event.x.toInt()))
+                            onLongPress(event.y, event.x)
                         }
                     }
                 }
@@ -278,7 +277,7 @@ class CodroidEditor : View, LifecycleOwner {
         }
     }
 
-    private fun onLongPress(position: IntPair) {
+    private fun onLongPress(x: Float, y: Float) {
         Log.i("Zac", "OnLongClicked")
         Toast.makeText(this.context, "onLongClick", Toast.LENGTH_SHORT).show()
     }
@@ -293,6 +292,20 @@ class CodroidEditor : View, LifecycleOwner {
     private fun onDoubleClick(x: Float, y: Float) {
         Log.i("Zac", "onDoubleClick")
         Toast.makeText(this.context, "onDoubleClick", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun select(x: Float, y: Float) {
+//        val regex = Regex("[^\w]")
+//        getRowsRender().computeRowCol(x, y).run {
+//            getEditContent()?.let {
+//                val line = it.getTextSequence().rowAt(first())
+//                var start = 0
+//                var end = 0
+//                for (i in second() downTo 0) {
+//                    if (line[i])
+//                }
+//            }
+//        }
     }
 
     fun load(input: InputStream, path: Path) {

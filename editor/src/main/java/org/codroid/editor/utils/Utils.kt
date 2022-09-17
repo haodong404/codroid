@@ -20,11 +20,57 @@
 
 package org.codroid.editor.utils
 
-import org.codroid.editor.decoration.Decorator
+import org.codroid.editor.decoration.*
+import org.codroid.editor.graphics.TextPaint
 import java.util.*
 
-data class Block(val substring: String, val spans: Decorator.Spans? = null) {
-    fun isEmpty() = substring.isEmpty()
+class Block(substring: String = "") {
+
+    private var mSpans: Decorator.Spans? = null
+
+    private val mSubstring = StringBuilder(substring)
+
+    fun getSpans() = mSpans
+
+    fun getSubstring() = mSubstring.toString()
+
+    fun isEmpty() = mSubstring.isEmpty()
+
+    fun appendChar(char: Char) {
+        mSubstring.append(char)
+    }
+
+    fun setSpans(spans: Decorator.Spans) {
+        this.mSpans = spans
+    }
+
+    override fun toString(): String {
+        return "Row($mSubstring, ${mSpans.toString()})"
+    }
+}
+
+fun disassembleSpan(span: SpanDecoration, out: Decorator.Spans) {
+    if (span is RepaintSpan) {
+        val temp = out.repaint
+        if (temp != null) {
+            out.repaint = object : RepaintSpan {
+                override fun onRepaint(origin: TextPaint): TextPaint {
+                    return temp.onRepaint(origin)
+                }
+            }
+        } else {
+            out.repaint = span
+        }
+    }
+    if (span is ForegroundSpan) {
+        out.foreground = span
+    }
+    if (span is BackgroundSpan) {
+        out.background = span
+    }
+    if (span is ReplacementSpan) {
+        out.replacement = span
+    }
 }
 
 @JvmInline
@@ -39,7 +85,7 @@ value class Row(val blocks: LinkedList<Block> = LinkedList()) {
     override fun toString(): String {
         val builder = StringBuilder()
         for (item in blocks) {
-            builder.append(item.substring)
+            builder.append(item.getSubstring())
         }
         return builder.toString()
     }

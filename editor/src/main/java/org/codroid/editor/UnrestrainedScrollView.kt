@@ -188,7 +188,7 @@ class UnrestrainedScrollView : FrameLayout {
                             mScrollCurrent.second() + ev.y
                         ) == true
                     ) {
-                        mInterceptedByChildEditor = true
+//                        mInterceptedByChildEditor = true
                     } else {
                         mInterceptedByChildEditor = false
                         if (checkIsHitScrollBar(it)) {
@@ -213,7 +213,6 @@ class UnrestrainedScrollView : FrameLayout {
                     }
                 }
 
-                MotionEvent.ACTION_CANCEL,
                 MotionEvent.ACTION_UP -> {
                     isScrolling = false;
                 }
@@ -411,7 +410,7 @@ class UnrestrainedScrollView : FrameLayout {
             0,
             range.y
         )
-        postInvalidateOnAnimation()
+        postInvalidate()
     }
 
     override fun onOverScrolled(scrollX: Int, scrollY: Int, clampedX: Boolean, clampedY: Boolean) {

@@ -21,31 +21,52 @@
 package org.codroid.editor.decoration
 
 import org.codroid.editor.graphics.TextPaint
-import org.codroid.editor.utils.isIn
+import org.codroid.editor.utils.Block
+import org.codroid.editor.utils.IntPair
+import org.codroid.editor.utils.disassembleSpan
+import org.codroid.editor.utils.hasIntersection
 import java.util.*
+import kotlin.collections.ArrayList
 
 class Decorator {
-    private val mSpanDecorationTree: TreeMap<IntRange, Spans> =
-        TreeMap { t1, t2 ->
-            if (t1.first > t2.first) {
-                return@TreeMap 1
-            } else if (t1.first < t2.first) {
-                return@TreeMap -1
-            }
-            return@TreeMap 0
-        }
 
-    private val mSyntaxSpans = TreeMap<Int, Map<IntRange, Spans>>()
+    private val mSpanDecorations = TreeMap<Int, Spans>()
 
     private val mDynamicDecorationSet: HashSet<DynamicDecoration> = HashSet()
 
     private val mStaticDecorationSet: HashSet<StaticDecoration> = HashSet()
 
     fun addSpan(range: IntRange, decoration: SpanDecoration) {
-        if (!mSpanDecorationTree.containsKey(range)) {
-            mSpanDecorationTree[range] = Spans()
+        val disassembledSpans = Spans()
+        disassembleSpan(decoration, disassembledSpans)
+        for (i in range) {
+            if (mSpanDecorations.containsKey(i)) {
+                mSpanDecorations[i]?.overrideSpans(disassembledSpans)
+            } else {
+                mSpanDecorations[i] = disassembledSpans
+            }
         }
-        disassembleSpan(decoration, mSpanDecorationTree[range]!!)
+    }
+
+    fun addSpans(span: Map<IntRange, SpanDecoration>) {
+        span.forEach {
+            addSpan(it.key, it.value)
+        }
+    }
+
+    private fun Spans.overrideSpans(spans: Decorator.Spans) {
+        if (spans.repaint != null) {
+            this.repaint = spans.repaint
+        }
+        if (spans.background != null) {
+            this.background = spans.background
+        }
+        if (spans.foreground != null) {
+            this.foreground = spans.foreground
+        }
+        if (spans.replacement != null) {
+            this.replacement = spans.replacement
+        }
     }
 
     fun addSpan(decoration: DynamicDecoration) {
@@ -56,70 +77,18 @@ class Decorator {
         mStaticDecorationSet.add(decoration)
     }
 
-    fun appendSpan(rowIndex: Int, map: Map<IntRange, SpanDecoration>) {
-        val temp = mutableMapOf<IntRange, Spans>()
-        map.forEach {
-            val spans = Spans()
-            disassembleSpan(it.value, spans)
-            temp[it.key] = spans
-        }
-        mSyntaxSpans[rowIndex] = temp
+    fun spanDecorations() = mSpanDecorations
+
+    fun dynamicDecorations(): Set<DynamicDecoration> {
+        return mDynamicDecorationSet
     }
 
-    private fun disassembleSpan(span: SpanDecoration, out: Spans) {
-        if (span is RepaintSpan) {
-            val temp = out.repaint
-            if (temp != null) {
-                out.repaint = object : RepaintSpan {
-                    override fun onRepaint(origin: TextPaint): TextPaint {
-                        return temp.onRepaint(origin)
-                    }
-                }
-            } else {
-                out.repaint = span
-            }
-        }
-        if (span is ForegroundSpan) {
-            out.foreground = span
-        }
-        if (span is BackgroundSpan) {
-            out.background = span
-        }
-        if (span is ReplacementSpan) {
-            out.replacement = span
-        }
-    }
-
-    fun spanDecorations(): TreeMap<IntRange, Spans> {
-        return mSpanDecorationTree
-    }
-
-    fun dynamicDecorationSequence(): Sequence<DynamicDecoration> {
-        return mDynamicDecorationSet.asSequence()
-    }
-
-    fun staticDecorationSequence(): Sequence<StaticDecoration> {
-        return mStaticDecorationSet.asSequence()
-    }
-
-    fun syntaxSpans(): TreeMap<Int, Map<IntRange, Spans>> {
-        return mSyntaxSpans
-    }
-
-    fun searchSpan(range: IntRange): Map<IntRange, Spans> {
-        val result = mutableMapOf<IntRange, Spans>()
-        mSpanDecorationTree.forEach {
-            if (it.key.isIn(range)) {
-                result[it.key] = it.value
-            } else if (it.key.first > range.last) {
-                return result
-            }
-        }
-        return result
+    fun staticDecorations(): Set<StaticDecoration> {
+        return mStaticDecorationSet
     }
 
     fun spanSize(): Int {
-        return mSpanDecorationTree.size
+        return mSpanDecorations.size
     }
 
     fun dynamicSize(): Int {
@@ -135,5 +104,22 @@ class Decorator {
         var background: BackgroundSpan? = null,
         var foreground: ForegroundSpan? = null,
         var replacement: ReplacementSpan? = null
-    )
+    ) {
+
+        override fun equals(other: Any?): Boolean {
+            if (other is Spans) {
+                return this.repaint == other.repaint && this.background == other.background
+                        && this.foreground == other.foreground && this.replacement == other.replacement
+            }
+            return false
+        }
+
+        override fun hashCode(): Int {
+            var result = repaint?.hashCode() ?: 0
+            result = 31 * result + (background?.hashCode() ?: 0)
+            result = 31 * result + (foreground?.hashCode() ?: 0)
+            result = 31 * result + (replacement?.hashCode() ?: 0)
+            return result
+        }
+    }
 }

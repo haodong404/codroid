@@ -29,8 +29,9 @@ import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.codroid.editor.algorithm.ScrollableLinkedList
 import org.codroid.editor.analysis.SyntaxAnalyser
-import org.codroid.editor.buffer.TextSequence
+import org.codroid.editor.algorithm.TextSequence
 import org.codroid.editor.decoration.CharacterSpan
 import org.codroid.editor.decoration.Decorator
 import org.codroid.editor.decoration.SpanDecoration
@@ -55,7 +56,6 @@ class EditContent(
     private val mRange = RowsRange(visibleLines)
 
     private val mSyntaxAnalyser = SyntaxAnalyser(mEditor.theme!!, mTextSequence, mPath)
-    private var mNewLineStartPos = 0
     private val mStartRowChannel = Channel<Int>(CONFLATED)
 
     init {
@@ -86,15 +86,19 @@ class EditContent(
                                 pair.first.second()
                             }
                             val metadata = pair.second.tokens[2 * j + 1]
+                            val startPos = mTextSequence.charIndex(current, 1)
                             makeSyntaxSpan(
-                                IntRange(startIndex.toInt(), nextStartIndex - 1),
+                                IntRange(
+                                    startPos + startIndex.toInt(),
+                                    startPos + nextStartIndex - 1
+                                ),
                                 metadata, spans
                             )
                         }
-                        mDecorator.appendSpan(current, spans)
-                        if (current == getVisibleRowsRange().getEnd()) {
-                            mEditor.postInvalidate()
-                        }
+                        mDecorator.addSpans(spans)
+//                        if (current == getVisibleRowsRange().getEnd()) {
+//                            mEditor.postInvalidate()
+//                        }
                         current++
                     }
                 withContext(Dispatchers.Main) {
@@ -131,41 +135,15 @@ class EditContent(
         return mTextSequence.rows()
     }
 
+    fun addDecoration(range: IntRange, span: SpanDecoration) {
+        mDecorator.addSpan(range, span)
+    }
+
     fun getVisibleRowsRange(): RowsRange {
         return mRange
     }
 
     fun getTextSequence() = mTextSequence
-
-    private fun makeRow(row: Int): Row = Row().apply {
-        mTextSequence.rowAtOrNull(row)?.let { line ->
-            var offset = 0
-            val syntaxSpanIterator = mDecorator.syntaxSpans()[row]?.iterator()
-            while (offset < line.length) {
-                var syntax: Map.Entry<IntRange, Decorator.Spans>? = null
-                syntaxSpanIterator?.run {
-                    if (hasNext()) {
-                        syntax = next()
-                    }
-                }
-                if (syntax != null) {
-                    // append a plain block
-                    val str = line.substringRestricted(offset until syntax!!.key.first, offset)
-                    appendBlock(Block(str))
-                    offset += str.length
-
-                    // append a syntax block
-                    val syntaxStr = line.substringRestricted(syntax!!.key, offset)
-                    appendBlock(Block(syntaxStr, syntax!!.value))
-                    offset += syntaxStr.length
-                } else {
-                    val str = line.substring(offset until line.length)
-                    appendBlock(Block(str))
-                    break
-                }
-            }
-        }
-    }
 
     private fun String.substringRestricted(range: IntRange, offset: Int): String {
         if (range.first > length || range.last < 0) {
@@ -183,15 +161,45 @@ class EditContent(
     inner class RowIterator() : Iterator<Row> {
 
         private var mCurrentRow = getVisibleRowsRange().getBegin()
+        private var mStartIndex = getTextSequence().charIndex(mCurrentRow, 1)
 
-        override fun hasNext() = mCurrentRow <= getVisibleRowsRange().getEnd()
+        override fun hasNext() =
+            mCurrentRow <= getVisibleRowsRange().getEnd()
 
         override fun next(): Row {
-            val temp = makeRow(mCurrentRow)
+            val temp = makeRow()
             mCurrentRow++
             return temp
         }
+
+        private fun makeRow() = makeRow(mCurrentRow)
+
+        private fun makeRow(row: Int) = Row().apply {
+            mTextSequence.rowAtOrNull(row)?.let { line ->
+                var offset = 0
+                var newBlock = Block()
+                var old = mDecorator.spanDecorations()[mStartIndex + offset]
+                while (offset < line.length) {
+                    val new = mDecorator.spanDecorations()[mStartIndex + offset]
+                    if (new != old) {
+                        appendBlock(newBlock)
+                        newBlock = Block()
+                    }
+                    newBlock.appendChar(line[offset])
+                    old = new
+                    if (new != null) {
+                        newBlock.setSpans(new)
+                    }
+                    if (offset + 1 == line.length) {
+                        appendBlock(newBlock)
+                    }
+                    offset++
+                }
+                mStartIndex += line.length + 1
+            }
+        }
     }
+
 
     /**
      * The range of buffer window and visible window.
@@ -205,6 +213,7 @@ class EditContent(
     inner class RowsRange(private val mVisibleRows: Int) {
         // inclusive
         private var mVisibleBegin = 0
+        private var mHeaderNode: ScrollableLinkedList.Node<Decorator.Spans>? = null
 
         // inclusive
         private var mVisibleEnd = min(mVisibleRows - 1, endEdge())

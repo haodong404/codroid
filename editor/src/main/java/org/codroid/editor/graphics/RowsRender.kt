@@ -65,42 +65,37 @@ class RowsRender(private val mEditor: CodroidEditor, private var mContent: EditC
             drawLineNumber(canvas, mLineAnchor.lineNumber)
             var offsetXinLine = mOffsetX
             row.blocks.forEach { block ->
-                var blockWidth = mTextPaint.measureText(block.substring)
+                var blockWidth = mTextPaint.measureText(block.getSubstring())
                 var offset = blockWidth
                 var paint = mTextPaint
-                if (block.spans != null) {
+                block.getSpans()?.run {
                     val spanRect by lazy {
                         SpanRect(
                             offsetXinLine, mLineAnchor.top, offsetXinLine + blockWidth,
                             mLineAnchor.bottom, mLineAnchor.baseline
                         )
                     }
-                    if (block.spans.background != null) {
-                        block.spans.background!!.onDraw(canvas, spanRect)
+                    background?.onDraw(canvas, spanRect)
+                    foreground?.onDraw(canvas, spanRect)
+                    repaint?.run {
+                        paint = onRepaint(paint)
+                        blockWidth = paint.measureText(block.getSubstring())
                     }
-                    if (block.spans.foreground != null) {
-                        block.spans.foreground!!.onDraw(canvas, spanRect)
-                    }
-                    if (block.spans.repaint != null) {
-                        paint = block.spans.repaint!!.onRepaint(paint)
-                        blockWidth = paint.measureText(block.substring)
-                    }
-                    if (block.spans.replacement != null) {
-                        offset = block.spans.replacement!!.onReplacing(
-                            canvas, paint, spanRect, block.substring
-                        )
-                    } else {
-                        canvas.drawText(block.substring, offsetXinLine, mLineAnchor.baseline, paint)
-                    }
-                    offsetXinLine += offset
-                } else {
-                    canvas.drawText(
-                        block.substring,
+                    replacement?.run {
+                        offset = onReplacing(canvas, paint, spanRect, block.getSubstring())
+                    } ?: canvas.drawText(
+                        block.getSubstring(),
                         offsetXinLine,
                         mLineAnchor.baseline,
-                        mTextPaint.withBlackColor()
+                        paint
                     )
-                }
+                } ?: canvas.drawText(
+                    block.getSubstring(),
+                    offsetXinLine,
+                    mLineAnchor.baseline,
+                    mTextPaint.withBlackColor()
+                )
+                offsetXinLine += offset
             }
             mLineAnchor.increase()
         }

@@ -1,5 +1,8 @@
 package org.codroid.editor
 
+import org.codroid.editor.utils.first
+import org.codroid.editor.utils.makePair
+import org.codroid.editor.utils.second
 import org.junit.Test
 import org.junit.Assert.*
 

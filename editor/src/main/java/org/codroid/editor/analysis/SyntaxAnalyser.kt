@@ -5,7 +5,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.newSingleThreadContext
-import org.codroid.editor.buffer.TextSequence
+import org.codroid.editor.algorithm.TextSequence
 import org.codroid.editor.utils.IntPair
 import org.codroid.editor.utils.makePair
 import org.codroid.textmate.EmbeddedLanguagesMap
