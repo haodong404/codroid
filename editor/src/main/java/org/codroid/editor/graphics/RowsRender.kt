@@ -75,20 +75,22 @@ class RowsRender(private val mEditor: CodroidEditor, private var mContent: EditC
                             mLineAnchor.bottom, mLineAnchor.baseline
                         )
                     }
-                    background?.onDraw(canvas, spanRect)
-                    foreground?.onDraw(canvas, spanRect)
+                    background.forEach { it.onDraw(canvas, spanRect) }
+                    foreground.forEach { it.onDraw(canvas, spanRect) }
                     repaint?.run {
                         paint = onRepaint(paint)
                         blockWidth = paint.measureText(block.getSubstring())
                     }
-                    replacement?.run {
-                        offset = onReplacing(canvas, paint, spanRect, block.getSubstring())
-                    } ?: canvas.drawText(
-                        block.getSubstring(),
-                        offsetXinLine,
-                        mLineAnchor.baseline,
-                        paint
-                    )
+                    if (replacement.isNotEmpty()) {
+                        replacement.last.onReplacing(canvas, paint, spanRect, block.getSubstring())
+                    } else {
+                        canvas.drawText(
+                            block.getSubstring(),
+                            offsetXinLine,
+                            mLineAnchor.baseline,
+                            paint
+                        )
+                    }
                 } ?: canvas.drawText(
                     block.getSubstring(),
                     offsetXinLine,

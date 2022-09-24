@@ -188,7 +188,7 @@ class UnrestrainedScrollView : FrameLayout {
                             mScrollCurrent.second() + ev.y
                         ) == true
                     ) {
-//                        mInterceptedByChildEditor = true
+                        mInterceptedByChildEditor = true
                     } else {
                         mInterceptedByChildEditor = false
                         if (checkIsHitScrollBar(it)) {

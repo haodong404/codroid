@@ -41,7 +41,9 @@ class Decorator {
         disassembleSpan(decoration, disassembledSpans)
         for (i in range) {
             if (mSpanDecorations.containsKey(i)) {
-                mSpanDecorations[i]?.overrideSpans(disassembledSpans)
+                mSpanDecorations[i]?.overrideSpans(disassembledSpans)?.let {
+                    mSpanDecorations[i] = it
+                }
             } else {
                 mSpanDecorations[i] = disassembledSpans
             }
@@ -54,19 +56,15 @@ class Decorator {
         }
     }
 
-    private fun Spans.overrideSpans(spans: Decorator.Spans) {
+    private fun Spans.overrideSpans(spans: Spans): Spans {
+        val newSpans = this.clone()
         if (spans.repaint != null) {
-            this.repaint = spans.repaint
+            newSpans.repaint = spans.repaint
         }
-        if (spans.background != null) {
-            this.background = spans.background
-        }
-        if (spans.foreground != null) {
-            this.foreground = spans.foreground
-        }
-        if (spans.replacement != null) {
-            this.replacement = spans.replacement
-        }
+        newSpans.background.addAll(spans.background)
+        newSpans.foreground.addAll(spans.foreground)
+        newSpans.replacement.addAll(spans.replacement)
+        return newSpans
     }
 
     fun addSpan(decoration: DynamicDecoration) {
@@ -75,6 +73,25 @@ class Decorator {
 
     fun addSpan(decoration: StaticDecoration) {
         mStaticDecorationSet.add(decoration)
+    }
+
+    fun removeSpan(range: IntRange, span: SpanDecoration) {
+        for (i in range) {
+            mSpanDecorations[i]?.run {
+                if (repaint == span) {
+                    repaint = null
+                }
+                if (background.contains(span)) {
+                    background.remove(span)
+                }
+                if (foreground.contains(span)) {
+                    foreground.remove(span)
+                }
+                if (replacement.contains(span)) {
+                    replacement.remove(span)
+                }
+            }
+        }
     }
 
     fun spanDecorations() = mSpanDecorations
@@ -101,10 +118,10 @@ class Decorator {
 
     data class Spans(
         var repaint: RepaintSpan? = null,
-        var background: BackgroundSpan? = null,
-        var foreground: ForegroundSpan? = null,
-        var replacement: ReplacementSpan? = null
-    ) {
+        var background: LinkedList<BackgroundSpan> = LinkedList(),
+        var foreground: LinkedList<ForegroundSpan> = LinkedList(),
+        var replacement: LinkedList<ReplacementSpan> = LinkedList()
+    ) : Cloneable {
 
         override fun equals(other: Any?): Boolean {
             if (other is Spans) {
@@ -116,10 +133,19 @@ class Decorator {
 
         override fun hashCode(): Int {
             var result = repaint?.hashCode() ?: 0
-            result = 31 * result + (background?.hashCode() ?: 0)
-            result = 31 * result + (foreground?.hashCode() ?: 0)
-            result = 31 * result + (replacement?.hashCode() ?: 0)
+            result = 31 * result + background.hashCode()
+            result = 31 * result + foreground.hashCode()
+            result = 31 * result + replacement.hashCode()
             return result
+        }
+
+        public override fun clone(): Spans {
+            return Spans(
+                repaint,
+                LinkedList(background),
+                LinkedList(foreground),
+                LinkedList(replacement)
+            )
         }
     }
 }

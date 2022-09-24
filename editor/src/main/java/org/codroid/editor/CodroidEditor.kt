@@ -33,10 +33,7 @@ import android.view.inputmethod.InputConnection
 import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import androidx.lifecycle.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import org.codroid.editor.analysis.GrammarRegistration
 import org.codroid.editor.analysis.LanguageRegistration
 import org.codroid.editor.analysis.registerGrammar
@@ -44,9 +41,7 @@ import org.codroid.editor.analysis.registerLanguage
 import org.codroid.editor.algorithm.linearr.LineArray
 import org.codroid.editor.graphics.Cursor
 import org.codroid.editor.graphics.RowsRender
-import org.codroid.editor.utils.IntPair
 import org.codroid.editor.utils.first
-import org.codroid.editor.utils.makePair
 import org.codroid.editor.utils.second
 import org.codroid.textmate.parseJson
 import org.codroid.textmate.parsePLIST
@@ -193,7 +188,7 @@ class CodroidEditor : View, LifecycleOwner {
                 }
             }
             getCursor().addCursorChangedListener { row, col ->
-                println("ROW: $row, COL: $col")
+
             }
         }
     }
@@ -224,13 +219,16 @@ class CodroidEditor : View, LifecycleOwner {
     @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(event: MotionEvent?): Boolean {
         event?.run {
+            if (isCursorIntercepted) {
+                getCursor().handleCursorHandleTouchEvent(event)
+            }
             when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
                     mActionDownStartTime = System.currentTimeMillis()
                     if (mLongPressJob == null) {
                         mLongPressJob = lifecycleScope.launch {
                             delay(500)
-                            onLongPress(event.y, event.x)
+                            onLongPress(event.x, event.y)
                         }
                     }
                 }
@@ -239,7 +237,6 @@ class CodroidEditor : View, LifecycleOwner {
                         mLongPressJob?.cancel()
                         mLongPressJob = null
                         parent.requestDisallowInterceptTouchEvent(true)
-                        getCursor().handleCursorHandleMovement(event.x, event.y)
                     }
                 }
 
@@ -280,6 +277,7 @@ class CodroidEditor : View, LifecycleOwner {
     private fun onLongPress(x: Float, y: Float) {
         Log.i("Zac", "OnLongClicked")
         Toast.makeText(this.context, "onLongClick", Toast.LENGTH_SHORT).show()
+        select(x, y)
     }
 
     /**
@@ -292,20 +290,42 @@ class CodroidEditor : View, LifecycleOwner {
     private fun onDoubleClick(x: Float, y: Float) {
         Log.i("Zac", "onDoubleClick")
         Toast.makeText(this.context, "onDoubleClick", Toast.LENGTH_SHORT).show()
+        select(x, y)
     }
 
     private fun select(x: Float, y: Float) {
-//        val regex = Regex("[^\w]")
-//        getRowsRender().computeRowCol(x, y).run {
-//            getEditContent()?.let {
-//                val line = it.getTextSequence().rowAt(first())
-//                var start = 0
-//                var end = 0
-//                for (i in second() downTo 0) {
-//                    if (line[i])
-//                }
-//            }
-//        }
+        val regex = Regex("\\W")
+        getRowsRender().computeRowCol(x, y).run {
+            getEditContent()?.let {
+                val line = it.getTextSequence().rowAt(first())
+                val startDeffer = lifecycleScope.async {
+                    for (i in second() downTo 0) {
+                        if (regex.containsMatchIn(line[i].toString())) {
+                            return@async i + 1
+                        }
+                    }
+                    return@async -1
+                }
+
+                val endDeffer = lifecycleScope.async {
+                    for (i in second() until line.length) {
+                        if (regex.containsMatchIn(line[i].toString())) {
+                            return@async i
+                        }
+                    }
+                    return@async -1
+                }
+
+                lifecycleScope.launch {
+                    val start = startDeffer.await()
+                    val end = endDeffer.await()
+                    if (end != -1 && start != -1) {
+                        getCursor().select(first(), start, first(), end)
+                    }
+
+                }
+            }
+        }
     }
 
     fun load(input: InputStream, path: Path) {
@@ -323,7 +343,14 @@ class CodroidEditor : View, LifecycleOwner {
     fun getCursor() = mCursor
 
     fun interceptParentScroll(absoluteX: Float, absoluteY: Float): Boolean {
-        isCursorIntercepted = getCursor().hitCursorHandle(absoluteX, absoluteY)
+        isCursorIntercepted = if (getCursor().isSelecting()) {
+            getCursor().isHitSelectingHandleStart(
+                absoluteX,
+                absoluteY
+            ) || getCursor().isHitSelectingHandleEnd(absoluteX, absoluteY)
+        } else {
+            getCursor().isHitCursorHandle(absoluteX, absoluteY)
+        }
         return isCursorIntercepted
     }
 

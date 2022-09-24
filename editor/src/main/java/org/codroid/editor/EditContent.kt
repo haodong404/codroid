@@ -139,6 +139,10 @@ class EditContent(
         mDecorator.addSpan(range, span)
     }
 
+    fun removeSpan(range: IntRange, span: SpanDecoration) {
+        mDecorator.removeSpan(range, span)
+    }
+
     fun getVisibleRowsRange(): RowsRange {
         return mRange
     }

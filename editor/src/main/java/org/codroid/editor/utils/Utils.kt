@@ -63,13 +63,13 @@ fun disassembleSpan(span: SpanDecoration, out: Decorator.Spans) {
         }
     }
     if (span is ForegroundSpan) {
-        out.foreground = span
+        out.foreground.addLast(span)
     }
     if (span is BackgroundSpan) {
-        out.background = span
+        out.background.addLast(span)
     }
     if (span is ReplacementSpan) {
-        out.replacement = span
+        out.replacement.addLast(span)
     }
 }
 

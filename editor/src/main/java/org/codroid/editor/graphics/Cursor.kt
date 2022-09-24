@@ -5,15 +5,19 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.RectF
+import android.util.Log
+import android.view.MotionEvent
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.*
 import org.codroid.editor.CodroidEditor
-import org.codroid.editor.utils.IntPair
-import org.codroid.editor.utils.Timer
-import org.codroid.editor.utils.first
-import org.codroid.editor.utils.second
+import org.codroid.editor.decoration.internal.SelectionSpan
+import org.codroid.editor.utils.*
 
 class Cursor(private val mEditor: CodroidEditor) {
+
+    companion object {
+        const val TAG = "Cursor"
+    }
 
     private val mCursorPaint = Paint().apply {
         style = Paint.Style.FILL
@@ -28,11 +32,17 @@ class Cursor(private val mEditor: CodroidEditor) {
     private var mPositionLeft = 0F
     private var mPositionTop = 0F
 
+    private var mSelectedRange = IntRange.EMPTY
+    private var mSelectionSpan = SelectionSpan()
     private var isSelecting = false
-    private var mStartIndex = 0
-    private var mEndIndex = 0
+
+    // Determine which handle is held. -1: unknown, 1: start, 0: end
+    private var isMovingStartHandle = -1;
+
+    // the position of start and end row.
     private var mStartPosition: IntPair = 0u
     private var mEndPosition: IntPair = 0u
+
     private var mStartPositionLeft = 0F
     private var mStartPositionTop = 0F
 
@@ -78,12 +88,12 @@ class Cursor(private val mEditor: CodroidEditor) {
         mEditor.lifecycleScope.launchWhenCreated {
             mBlinkingTimer.start()
         }
+        this.mCursorListeners.add(this::onCursorChanged)
     }
 
     fun drawCursor(canvas: Canvas) {
         if (mVisible) {
             mCursorPaint.color = Color.argb(mCurrentAlpha, 1F, 0F, 0F)
-
             if (isSelecting) {
                 // Draw start handle.
                 canvas.drawRect(
@@ -95,14 +105,16 @@ class Cursor(private val mEditor: CodroidEditor) {
                     ), mCursorPaint
                 )
 
+                mCursorPaint.color = Color.GREEN
                 canvas.drawCircle(
                     mStartPositionLeft,
-                    mStartPositionTop - mCursorHandleRadius,
+                    mStartPositionTop + mEditor.getLineHeight() + mCursorHandleRadius,
                     mCursorHandleRadius,
                     mCursorPaint
                 )
 
                 // Draw end handle
+                mCursorPaint.color = Color.RED
                 canvas.drawRect(
                     RectF(
                         mEndPositionLeft,
@@ -113,8 +125,8 @@ class Cursor(private val mEditor: CodroidEditor) {
                 )
 
                 canvas.drawCircle(
-                    mStartPositionLeft,
-                    mStartPositionTop + mEditor.getLineHeight() + mCursorHandleRadius,
+                    mEndPositionLeft,
+                    mEndPositionTop + mEditor.getLineHeight() + mCursorHandleRadius,
                     mCursorHandleRadius,
                     mCursorPaint
                 )
@@ -179,9 +191,9 @@ class Cursor(private val mEditor: CodroidEditor) {
 
     fun getCurrentCol() = mCurrentCol
 
-    fun getStart() = mStartIndex
+    fun getStart() = mSelectedRange.first
 
-    fun getEnd() = mEndIndex
+    fun getEnd() = mSelectedRange.last
 
     fun isSelecting() = isSelecting
 
@@ -191,51 +203,172 @@ class Cursor(private val mEditor: CodroidEditor) {
      * @param x the absolute position of x.
      * @param y the absolute position of y.
      */
-    fun hitCursorHandle(x: Float, y: Float): Boolean {
+    fun isHitCursorHandle(x: Float, y: Float): Boolean {
         getCursorHandleRectF().run {
             return x in left..right && y in top..bottom
         }
     }
 
-    fun handleCursorHandleMovement(x: Float, y: Float) {
-        mEditor.getRowsRender().computeRowCol(x, y).run {
-            val actualRow = first() - 1
-            val actualCol = second()
-            if (actualRow != getCurrentRow() || actualCol != getCurrentCol()) {
-                moveCursor(actualRow, actualCol)
+    fun isHitSelectingHandleStart(x: Float, y: Float): Boolean {
+        getSelectingHandleStartRectF().run {
+            return x in left..right && y in top..bottom
+        }
+    }
+
+    fun isHitSelectingHandleEnd(x: Float, y: Float): Boolean {
+        getSelectingHandleEndRectF().run {
+            return x in left..right && y in top..bottom
+        }
+    }
+
+    fun handleCursorHandleTouchEvent(event: MotionEvent) {
+        if (isMovingStartHandle == -1) {
+            isMovingStartHandle = if (isHitSelectingHandleStart(event.x, event.y)) {
+                1
+            } else {
+                0
+            }
+        }
+        when (event.action) {
+            MotionEvent.ACTION_MOVE -> {
+                if (isSelecting) {
+                    mEditor.getRowsRender().computeRowCol(event.x, event.y).run {
+                        val actualRow = first() - 1
+                        val actualCol = second()
+                        if (actualRow != getCurrentRow() || actualCol != getCurrentCol()) {
+
+                            var isFlipped = false
+                            if (isMovingStartHandle == 1) {
+                                if (actualRow > mEndPosition.first() || (actualRow == mEndPosition.first() && actualCol > mEndPosition.second())) {
+                                    isFlipped = true
+                                    isMovingStartHandle = 0
+                                }
+                            } else {
+                                if (actualRow < mStartPosition.first() || (actualRow == mStartPosition.first() && actualCol < mStartPosition.second())) {
+                                    isFlipped = true
+                                    isMovingStartHandle = 1
+                                }
+                            }
+
+                            if (isMovingStartHandle == 1) {
+                                val endPosition = if (isFlipped) {
+                                    mStartPosition
+                                } else {
+                                    mEndPosition
+                                }
+                                select(
+                                    actualRow,
+                                    actualCol,
+                                    endPosition.first(),
+                                    endPosition.second()
+                                )
+                            } else {
+                                val startPosition = if (isFlipped) {
+                                    mEndPosition
+                                } else {
+                                    mStartPosition
+                                }
+                                select(
+                                    startPosition.first(),
+                                    startPosition.second(),
+                                    actualRow,
+                                    actualCol
+                                )
+                            }
+                        }
+                    }
+                } else {
+                    mEditor.getRowsRender().computeRowCol(event.x, event.y).run {
+                        val actualRow = first() - 1
+                        val actualCol = second()
+                        if (actualRow != getCurrentRow() || actualCol != getCurrentCol()) {
+                            moveCursor(actualRow, actualCol)
+                        }
+                    }
+                }
+            }
+            MotionEvent.ACTION_CANCEL,
+            MotionEvent.ACTION_UP -> {
+                isMovingStartHandle = -1
             }
         }
     }
 
-    private fun getCursorHandleRectF(): RectF = RectF(
+    private fun getCursorHandleRectF() = RectF(
         mPositionLeft - mCursorHandleRadius,
         mPositionTop + mEditor.getLineHeight(),
         mPositionLeft + mCursorHandleRadius,
         mPositionTop + mEditor.getLineHeight() + 2 * mCursorHandleRadius
     )
 
-    fun select(start: Int, end: Int) {
-        mStartIndex = start
-        mEndIndex = end
+    private fun getSelectingHandleStartRectF() = RectF(
+        mStartPositionLeft - mCursorHandleRadius,
+        mStartPositionTop + mEditor.getLineHeight(),
+        mStartPositionLeft + mCursorHandleRadius,
+        mStartPositionTop + mEditor.getLineHeight() + 2 * mCursorHandleRadius
+    )
+
+    private fun getSelectingHandleEndRectF() = RectF(
+        mEndPositionLeft - mCursorHandleRadius,
+        mEndPositionTop + mEditor.getLineHeight(),
+        mEndPositionLeft + mCursorHandleRadius,
+        mEndPositionTop + mEditor.getLineHeight() + 2 * mCursorHandleRadius
+    )
+
+    fun select(startRow: Int, startCol: Int, endRow: Int, endCol: Int) {
+        moveCursor(startRow, startCol)
+        if (mSelectedRange.isEmpty()) {
+            mSelectedRange = (getTextSequence()?.charIndex(startRow, startCol + 1)
+                ?: 0)..(getTextSequence()?.charIndex(endRow, endCol) ?: 0)
+        }
         isSelecting = true
+        getEditContent()?.addDecoration(mSelectedRange, mSelectionSpan)
+        mStartPosition = makePair(startRow, startCol)
+        mEditor.getRowsRender().computeAbsolutePos(startRow, startCol).let { pos ->
+            mStartPositionLeft = pos.first
+            mStartPositionTop = pos.second
+        }
+        mEndPosition = makePair(endRow, endCol)
+        mEditor.getRowsRender().computeAbsolutePos(endRow, endCol).let { pos ->
+            mEndPositionLeft = pos.first
+            mEndPositionTop = pos.second
+        }
+        mEditor.postInvalidate()
+    }
+
+    fun select(start: Int, end: Int) {
+        mSelectedRange = start..end
+        var startRow = 0
+        var startCol = 0
+        var endRow = 0
+        var endCol = 0
         getTextSequence()?.getRowAndCol(start)?.let {
-            moveCursor(it.first(), it.second())
-            mStartPosition = it
-            mEditor.getRowsRender().computeAbsolutePos(it.first(), it.second()).let { pos ->
-                mStartPositionLeft = pos.first
-                mStartPositionTop = pos.second
-            }
+            startRow = it.first()
+            startCol = it.second()
         }
         getTextSequence()?.getRowAndCol(end)?.let {
-            mEndPosition = it
-            mEditor.getRowsRender().computeAbsolutePos(it.first(), it.second()).let { pos ->
-                mEndPositionLeft = pos.first
-                mEndPositionTop = pos.second
-            }
+            endRow = it.first()
+            endCol = it.second()
+        }
+        select(startRow, startCol, endRow, endCol)
+    }
+
+    private fun onCursorChanged(row: Int, col: Int) {
+        resetSelection()
+    }
+
+    private fun resetSelection() {
+        if (!mSelectedRange.isEmpty()) {
+            getEditContent()?.removeSpan(mSelectedRange, mSelectionSpan)
+            mSelectedRange = IntRange.EMPTY
+            isSelecting = false
+            mEditor.postInvalidate()
         }
     }
 
     private fun getTextSequence() = mEditor.getEditContent()?.getTextSequence()
+
+    private fun getEditContent() = mEditor.getEditContent()
 
     fun startBlinking() {
         isBlinking = true
