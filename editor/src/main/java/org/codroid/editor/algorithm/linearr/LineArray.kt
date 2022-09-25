@@ -23,10 +23,9 @@ package org.codroid.editor.algorithm.linearr
 
 import org.codroid.editor.algorithm.TextSequence
 import org.codroid.editor.config.TextBufferConfig
-import org.codroid.editor.utils.IntPair
-import org.codroid.editor.utils.hasIntersection
-import org.codroid.editor.utils.makePair
+import org.codroid.editor.utils.*
 import java.io.InputStream
+import java.util.TreeMap
 import kotlin.math.max
 
 /**
@@ -36,35 +35,35 @@ import kotlin.math.max
 class LineArray : TextSequence {
 
     private val mBuffer: ArrayList<String> = ArrayList(20)
+    private val mRow2Index: TreeMap<Int, Int> = TreeMap()
     private var length = 0
     private var longest = 0
 
-    constructor(inputStream: InputStream) : super(
-        inputStream
-    ) {
-
+    constructor(inputStream: InputStream) : super(inputStream) {
         val bytes = String(inputStream.readBytes(), TextBufferConfig.charset())
-        for (i in bytes.lineSequence()) {
-            mBuffer.add(i)
-            // Each line has a line breaker(except the last line).
-            length += i.length + 1
-            if (i.length > longest) {
-                this.longest = i.length
-            }
-        }
-        // There isn't a line breaker in the last line, so I subtracted 1.
-        length--
+        init(bytes)
     }
 
     constructor(str: String) : super(str) {
-        for (i in str.lineSequence()) {
-            mBuffer.add(i)
-            length += i.length + 1
-            if (i.length > longest) {
-                this.longest = i.length
+        init(str)
+    }
+
+    private fun init(str: String) {
+        var isFirstLine = true
+        for ((index, line) in str.lineSequence().withIndex()) {
+            if (isFirstLine) {
+                isFirstLine = false
+            } else {
+                length++
+            }
+            mBuffer.add(line)
+            // Each line has a line breaker(except the last line).
+            length += line.length
+            mRow2Index[index] = length
+            if (line.length > longest) {
+                this.longest = line.length
             }
         }
-        length--
     }
 
     override fun rowAt(index: Int): String {
@@ -78,20 +77,10 @@ class LineArray : TextSequence {
         return rowAt(index)
     }
 
-    override fun insert(content: String, position: Int) {
-        var ptr = 0
-        var row = 0
-        var col = 0
-        for ((idx, now) in mBuffer.withIndex()) {
-            ptr += now.length
-            if (ptr >= position) {
-                row = idx
-                col = position - ptr + now.length
-                break
-            }
-            ptr++
+    override fun insert(content: CharSequence, position: Int) {
+        getRowAndCol(position).run {
+            insert(content, first(), second())
         }
-        insert(content, row, col)
     }
 
     override fun insert(content: CharSequence, row: Int, col: Int) {
@@ -123,7 +112,7 @@ class LineArray : TextSequence {
         replace("", start, end)
     }
 
-    override fun replace(content: String, start: Int, end: Int) {
+    override fun replace(content: CharSequence, start: Int, end: Int) {
         var rightEdge: Int
         var leftEdge = 0
         var from = -1
@@ -217,42 +206,32 @@ class LineArray : TextSequence {
     override fun longestLineLength(): Int = this.longest
 
     override fun charIndex(row: Int, col: Int): Int {
-        var acc = -1
-        var isFirstLine = true
-        repeat(row + 1) {
-            if (isFirstLine) {
-                isFirstLine = false
-            } else {
-                acc++ // new line
-            }
-            if (it != row) {
-                acc += rowAt(it).length
-            }
-        }
-        return acc + col
+        if (row < 0 || col < 0) return 0
+        val actualRow = row - 1
+        return (mRow2Index[actualRow] ?: -1) + col
     }
 
     override fun getRowAndCol(position: Int): IntPair {
-        var total = position + 1
-        var row = 0
-        var col = 0
-        var isFirstLine = true
-        for (line in this) {
-            if (isFirstLine) {
-                isFirstLine = false
-            } else {
-                total -= 1 // consume a new-line character
-            }
-            val temp = total - line.length
-            if (temp > 0) {
+        if (position > length) return 0U
+        var row = (position / length) * rows()
+        var flag = -1
+        while (true) {
+            val temp = mRow2Index.getOrDefault(row, 0)
+            flag = if (position >= temp) {
+                if (flag == 0) {
+                    break
+                }
                 row++
-                total = temp
+                1
             } else {
-                col = total
-                break
+                row--
+                if (flag == 1) {
+                    break
+                }
+                0
             }
         }
-        return makePair(row, col)
+        return makePair(row + 1, position - mRow2Index.getOrDefault(row, -1))
     }
 
     override fun toString(): String {

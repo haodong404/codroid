@@ -36,9 +36,11 @@ class Decorator {
 
     private val mStaticDecorationSet: HashSet<StaticDecoration> = HashSet()
 
-    fun addSpan(range: IntRange, decoration: SpanDecoration) {
+    fun addSpan(range: IntRange, decoration: SpanDecoration? = null) {
         val disassembledSpans = Spans()
-        disassembleSpan(decoration, disassembledSpans)
+        if (decoration != null) {
+            disassembleSpan(decoration, disassembledSpans)
+        }
         for (i in range) {
             if (mSpanDecorations.containsKey(i)) {
                 mSpanDecorations[i]?.overrideSpans(disassembledSpans)?.let {
@@ -48,6 +50,10 @@ class Decorator {
                 mSpanDecorations[i] = disassembledSpans
             }
         }
+    }
+
+    fun insertSpan(range: IntRange, decoration: SpanDecoration? = null) {
+
     }
 
     fun addSpans(span: Map<IntRange, SpanDecoration>) {
@@ -75,19 +81,19 @@ class Decorator {
         mStaticDecorationSet.add(decoration)
     }
 
-    fun removeSpan(range: IntRange, span: SpanDecoration) {
+    fun removeSpan(range: IntRange, span: SpanDecoration? = null) {
         for (i in range) {
             mSpanDecorations[i]?.run {
-                if (repaint == span) {
+                if (repaint == span || span == null) {
                     repaint = null
                 }
-                if (background.contains(span)) {
+                if (background.contains(span) || span == null) {
                     background.remove(span)
                 }
-                if (foreground.contains(span)) {
+                if (foreground.contains(span) || span == null) {
                     foreground.remove(span)
                 }
-                if (replacement.contains(span)) {
+                if (replacement.contains(span) || span == null) {
                     replacement.remove(span)
                 }
             }

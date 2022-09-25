@@ -1,5 +1,7 @@
 package org.codroid.editor.utils
 
+import android.os.Parcel
+import android.os.Parcelable
 import kotlinx.coroutines.*
 import kotlin.time.Duration
 
@@ -29,7 +31,7 @@ object Timer {
 }
 
 /**
- * Delay in executing tasks, and it is cancelable, relay on coroutine context.
+ * Delay in executing tasks, and it is cancelable, relay on a coroutine context.
  *
  * @property mDuration The task will be executed in [mDuration].
  * @property mDoing The task you want to perform.

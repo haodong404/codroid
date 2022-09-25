@@ -50,6 +50,7 @@ import org.codroid.textmate.theme.RawTheme
 import java.io.InputStream
 import java.nio.file.Path
 import kotlin.math.ceil
+import kotlin.math.min
 
 class CodroidEditor : View, LifecycleOwner {
 
@@ -293,36 +294,44 @@ class CodroidEditor : View, LifecycleOwner {
         select(x, y)
     }
 
+    private val mNoWordsRegex = Regex("\\W")
     private fun select(x: Float, y: Float) {
-        val regex = Regex("\\W")
         getRowsRender().computeRowCol(x, y).run {
+            val row = min(mEditContent?.getTextSequence()?.rows() ?: 0, first())
             getEditContent()?.let {
-                val line = it.getTextSequence().rowAt(first())
+                val line = it.getTextSequence().rowAt(row)
+                if (line.isEmpty()) return
+                val col = min(line.length - 1, second())
                 val startDeffer = lifecycleScope.async {
-                    for (i in second() downTo 0) {
-                        if (regex.containsMatchIn(line[i].toString())) {
+                    for (i in col downTo 0) {
+                        if (mNoWordsRegex.containsMatchIn(line[i].toString())) {
                             return@async i + 1
                         }
                     }
-                    return@async -1
+                    return@async 0
                 }
 
                 val endDeffer = lifecycleScope.async {
-                    for (i in second() until line.length) {
-                        if (regex.containsMatchIn(line[i].toString())) {
+                    for (i in col until line.length) {
+                        if (mNoWordsRegex.containsMatchIn(line[i].toString())) {
                             return@async i
                         }
                     }
-                    return@async -1
+                    return@async line.length
                 }
 
                 lifecycleScope.launch {
-                    val start = startDeffer.await()
-                    val end = endDeffer.await()
-                    if (end != -1 && start != -1) {
-                        getCursor().select(first(), start, first(), end)
+                    var start = startDeffer.await()
+                    var end = endDeffer.await()
+                    if (start == end) {
+                        end = min(line.length, end + 1)
+                    } else if (start > end) {
+                        val temp = start
+                        start = end
+                        end = temp
                     }
-
+                    Log.i("CodroidEditor", "start: $start, end: $end")
+                    getCursor().select(row, start, row, end)
                 }
             }
         }

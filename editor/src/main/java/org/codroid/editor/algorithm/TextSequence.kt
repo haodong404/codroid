@@ -62,7 +62,7 @@ abstract class TextSequence : Iterable<String> {
      * @param content Content to insert.
      * @param position Where to insert.
      */
-    abstract fun insert(content: String, position: Int)
+    abstract fun insert(content: CharSequence, position: Int)
 
     /**
      * Inserts a string to this sequence at the specific position,
@@ -91,7 +91,7 @@ abstract class TextSequence : Iterable<String> {
      * @param start The beginning index, inclusive.
      * @param end The ending index, exclusive.
      */
-    abstract fun replace(content: String, start: Int, end: Int)
+    abstract fun replace(content: CharSequence, start: Int, end: Int)
 
     /**
      * Returns an index of a char using the position of row and column.

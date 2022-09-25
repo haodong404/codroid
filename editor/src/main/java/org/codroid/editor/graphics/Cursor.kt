@@ -5,13 +5,13 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.RectF
-import android.util.Log
 import android.view.MotionEvent
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.*
 import org.codroid.editor.CodroidEditor
 import org.codroid.editor.decoration.internal.SelectionSpan
 import org.codroid.editor.utils.*
+import kotlin.math.min
 
 class Cursor(private val mEditor: CodroidEditor) {
 
@@ -42,6 +42,7 @@ class Cursor(private val mEditor: CodroidEditor) {
     // the position of start and end row.
     private var mStartPosition: IntPair = 0u
     private var mEndPosition: IntPair = 0u
+    private var mCursorIndex = 0
 
     private var mStartPositionLeft = 0F
     private var mStartPositionTop = 0F
@@ -51,6 +52,8 @@ class Cursor(private val mEditor: CodroidEditor) {
 
     private var mCurrentAlpha = 1F
     private val mDuration = 500L
+
+    private var isFromMoveTo = false
 
     private var isBlinking = false
     private val mBlinkingTimer = Timer.create(1000, {
@@ -164,11 +167,12 @@ class Cursor(private val mEditor: CodroidEditor) {
     fun moveCursor(row: Int = mCurrentRow, col: Int = mCurrentCol) {
         mEditor.getRowsRender().focusRow(row)
         mCurrentRow = row
-        mCurrentCol = col
+        mCurrentCol = min(getTextSequence()?.rowAt(row)?.length ?: 0, col)
         mCursorListeners.forEach {
-            it.invoke(row, col)
+            it.invoke(mCurrentRow, mCurrentCol)
         }
-        val temp = mEditor.getRowsRender().computeAbsolutePos(row, col)
+        isFromMoveTo = false
+        val temp = mEditor.getRowsRender().computeAbsolutePos(mCurrentRow, mCurrentCol)
         moveCursor(
             temp.first,
             temp.second
@@ -176,11 +180,17 @@ class Cursor(private val mEditor: CodroidEditor) {
     }
 
     fun moveCursorBy(distance: Int) {
-        moveCursor(col = mCurrentCol + distance)
+        if (isSelecting) {
+            resetSelection()
+            return
+        }
+        moveCursorTo(mCursorIndex + distance)
     }
 
-    fun moveCursorTo(position: Int) {
-        getTextSequence()?.getRowAndCol(position)?.run {
+    fun moveCursorTo(index: Int) {
+        getTextSequence()?.getRowAndCol(index)?.run {
+            isFromMoveTo = true
+            mCursorIndex = index
             moveCursor(first(), second())
         }
     }
@@ -191,9 +201,20 @@ class Cursor(private val mEditor: CodroidEditor) {
 
     fun getCurrentCol() = mCurrentCol
 
-    fun getStart() = mSelectedRange.first
+    // Get the start position, inclusive.
+    fun getStart(): Int = if (mSelectedRange.isEmpty()) {
+        mCursorIndex;
+    } else {
+        mSelectedRange.first
+    }
 
-    fun getEnd() = mSelectedRange.last
+
+    // Get the end position, exclusive
+    fun getEnd() = if (mSelectedRange.isEmpty()) {
+        mCursorIndex + 1
+    } else {
+        mSelectedRange.last + 1
+    }
 
     fun isSelecting() = isSelecting
 
@@ -233,7 +254,7 @@ class Cursor(private val mEditor: CodroidEditor) {
             MotionEvent.ACTION_MOVE -> {
                 if (isSelecting) {
                     mEditor.getRowsRender().computeRowCol(event.x, event.y).run {
-                        val actualRow = first() - 1
+                        val actualRow = first()
                         val actualCol = second()
                         if (actualRow != getCurrentRow() || actualCol != getCurrentCol()) {
 
@@ -316,20 +337,29 @@ class Cursor(private val mEditor: CodroidEditor) {
     )
 
     fun select(startRow: Int, startCol: Int, endRow: Int, endCol: Int) {
-        moveCursor(startRow, startCol)
+        if (startRow < 0 || startCol < 0 || endRow < 0 || endCol < 0) {
+            // Illegal arguments.
+            return
+        }
+        val actualStartRow = min(getTextSequence()?.rows() ?: 0, startRow)
+        val actualStartCol = min(getTextSequence()?.rowAt(actualStartRow)?.length ?: 0, startCol)
+        val actualEndRow = min(getTextSequence()?.rows() ?: 0, endRow)
+        val actualEndCol = min(getTextSequence()?.rowAt(actualEndRow)?.length ?: 0, endCol)
+
+        moveCursor(actualStartRow, actualStartCol)
         if (mSelectedRange.isEmpty()) {
-            mSelectedRange = (getTextSequence()?.charIndex(startRow, startCol + 1)
-                ?: 0)..(getTextSequence()?.charIndex(endRow, endCol) ?: 0)
+            mSelectedRange = (getTextSequence()?.charIndex(actualStartRow, actualStartCol + 1)
+                ?: 0)..(getTextSequence()?.charIndex(actualEndRow, actualEndCol) ?: 0)
         }
         isSelecting = true
         getEditContent()?.addDecoration(mSelectedRange, mSelectionSpan)
-        mStartPosition = makePair(startRow, startCol)
-        mEditor.getRowsRender().computeAbsolutePos(startRow, startCol).let { pos ->
+        mStartPosition = makePair(actualStartRow, actualStartCol)
+        mEditor.getRowsRender().computeAbsolutePos(actualStartRow, actualStartCol).let { pos ->
             mStartPositionLeft = pos.first
             mStartPositionTop = pos.second
         }
-        mEndPosition = makePair(endRow, endCol)
-        mEditor.getRowsRender().computeAbsolutePos(endRow, endCol).let { pos ->
+        mEndPosition = makePair(actualEndRow, actualEndCol)
+        mEditor.getRowsRender().computeAbsolutePos(actualEndRow, actualEndCol).let { pos ->
             mEndPositionLeft = pos.first
             mEndPositionTop = pos.second
         }
@@ -355,6 +385,13 @@ class Cursor(private val mEditor: CodroidEditor) {
 
     private fun onCursorChanged(row: Int, col: Int) {
         resetSelection()
+
+        // Skip resetting the cursor index.
+        if (!isFromMoveTo) {
+            getTextSequence()?.charIndex(row, col)?.let {
+                this.mCursorIndex = it
+            }
+        }
     }
 
     private fun resetSelection() {

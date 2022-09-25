@@ -9,10 +9,15 @@ class CodroidInputConnection(
 ) : BaseInputConnection(mTargetView, fullEditor) {
 
     override fun commitText(text: CharSequence?, newCursorPosition: Int): Boolean {
-        mTargetView.getEditContent()?.getTextSequence()
-            ?.insert(text ?: "", getCursor().getCurrentRow(), getCursor().getCurrentCol())
+
+        if (getCursor().isSelecting()) {
+            mTargetView.getEditContent()
+                ?.replace(text ?: "", getCursor().getStart(), getCursor().getEnd())
+        } else {
+            mTargetView.getEditContent()
+                ?.insert(text ?: "", getCursor().getEnd())
+        }
         getCursor().moveCursorBy(text?.length ?: 0)
-        mTargetView.getEditContent()?.pushAnalyseTask(getCursor().getCurrentRow())
         invalidate()
         return true
     }
@@ -25,13 +30,9 @@ class CodroidInputConnection(
         event?.let { ev ->
             if (ev.keyCode == KeyEvent.KEYCODE_DEL) {
                 if (ev.action == KeyEvent.ACTION_UP) {
-                    val pos = mTargetView.getEditContent()?.getTextSequence()
-                        ?.charIndex(getCursor().getCurrentRow(), getCursor().getCurrentCol())
-                    if (pos != null) {
-                        mTargetView.getEditContent()?.getTextSequence()?.delete(pos, pos + 1)
-                        getCursor().moveCursorBy(-1)
-                        mTargetView.getEditContent()?.pushAnalyseTask(getCursor().getCurrentRow())
-                    }
+                    mTargetView.getEditContent()
+                        ?.delete(getCursor().getStart(), getCursor().getEnd())
+                    getCursor().moveCursorBy(getCursor().getStart() - getCursor().getEnd())
                 }
             }
         }

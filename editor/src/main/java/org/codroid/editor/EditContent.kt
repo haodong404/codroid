@@ -47,7 +47,7 @@ import kotlin.math.min
 @OptIn(ExperimentalUnsignedTypes::class)
 class EditContent(
     private val mTextSequence: TextSequence,
-    private val mPath: Path,
+    mPath: Path,
     private val mEditor: CodroidEditor,
     visibleLines: Int = 10,
 ) : Iterable<Row> {
@@ -57,6 +57,7 @@ class EditContent(
 
     private val mSyntaxAnalyser = SyntaxAnalyser(mEditor.theme!!, mTextSequence, mPath)
     private val mStartRowChannel = Channel<Int>(CONFLATED)
+    private val isSyntaxAnalyserEnabled = true
 
     init {
         startAnalysing()
@@ -70,40 +71,42 @@ class EditContent(
     }
 
     private fun startAnalysing() {
-        mEditor.lifecycleScope.launch(Dispatchers.IO) {
-            while (isActive) {
-                var current = mStartRowChannel.receive()
-                mSyntaxAnalyser.analyze(current)
-                    .buffer()
-                    .collect { pair ->
-                        val tokenLength = pair.second.tokens.size / 2
-                        val spans = mutableMapOf<IntRange, SpanDecoration>()
-                        for (j in 0 until tokenLength) {
-                            val startIndex = pair.second.tokens[2 * j]
-                            val nextStartIndex = if (j + 1 < tokenLength) {
-                                pair.second.tokens[2 * j + 2].toInt()
-                            } else {
-                                pair.first.second()
+        if (isSyntaxAnalyserEnabled) {
+            mEditor.lifecycleScope.launch(Dispatchers.IO) {
+                while (isActive) {
+                    var current = mStartRowChannel.receive()
+                    mSyntaxAnalyser.analyze(current)
+                        .buffer()
+                        .collect { pair ->
+                            val tokenLength = pair.second.tokens.size / 2
+                            val spans = mutableMapOf<IntRange, SpanDecoration>()
+                            for (j in 0 until tokenLength) {
+                                val startIndex = pair.second.tokens[2 * j]
+                                val nextStartIndex = if (j + 1 < tokenLength) {
+                                    pair.second.tokens[2 * j + 2].toInt()
+                                } else {
+                                    pair.first.second()
+                                }
+                                val metadata = pair.second.tokens[2 * j + 1]
+                                val startPos = mTextSequence.charIndex(current, 1)
+                                makeSyntaxSpan(
+                                    IntRange(
+                                        startPos + startIndex.toInt(),
+                                        startPos + nextStartIndex - 1
+                                    ),
+                                    metadata, spans
+                                )
                             }
-                            val metadata = pair.second.tokens[2 * j + 1]
-                            val startPos = mTextSequence.charIndex(current, 1)
-                            makeSyntaxSpan(
-                                IntRange(
-                                    startPos + startIndex.toInt(),
-                                    startPos + nextStartIndex - 1
-                                ),
-                                metadata, spans
-                            )
+                            mDecorator.addSpans(spans)
+                            if (current == getVisibleRowsRange().getEnd()) {
+                                mEditor.postInvalidate()
+                            }
+                            current++
                         }
-                        mDecorator.addSpans(spans)
-//                        if (current == getVisibleRowsRange().getEnd()) {
-//                            mEditor.postInvalidate()
-//                        }
-                        current++
+                    withContext(Dispatchers.Main) {
+                        mEditor.requestLayout()
+                        mEditor.invalidate()
                     }
-                withContext(Dispatchers.Main) {
-                    mEditor.requestLayout()
-                    mEditor.invalidate()
                 }
             }
         }
@@ -125,6 +128,30 @@ class EditContent(
             }
         }
         out[range] = span
+    }
+
+    // Start: inclusive; End: exclusive
+    fun delete(start: Int, end: Int) {
+        mDecorator.removeSpan(start until end)
+        mTextSequence.delete(start, end)
+        refreshSyntax()
+    }
+
+    // Start: inclusive; End: exclusive
+    fun replace(content: CharSequence, start: Int, end: Int) {
+        mDecorator.removeSpan(start until end)
+        mTextSequence.replace(content, start, end)
+        refreshSyntax()
+    }
+
+    fun insert(content: CharSequence, index: Int) {
+        mTextSequence.insert(content, index)
+        mDecorator.addSpan(index..index)
+        refreshSyntax()
+    }
+
+    private fun refreshSyntax() {
+//        pushAnalyseTask(mEditor.getCursor().getCurrentRow())
     }
 
     fun length(): Int {
@@ -149,12 +176,6 @@ class EditContent(
 
     fun getTextSequence() = mTextSequence
 
-    private fun String.substringRestricted(range: IntRange, offset: Int): String {
-        if (range.first > length || range.last < 0) {
-            return ""
-        }
-        return substring(max(offset, range.first), min(length, range.last + 1))
-    }
 
     fun longestLineLength(): Int {
         return mTextSequence.longestLineLength()
