@@ -77,32 +77,16 @@ class LineArray : TextSequence {
         return rowAt(index)
     }
 
-    override fun insert(content: CharSequence, position: Int) {
-        getRowAndCol(position).run {
-            insert(content, first(), second())
-        }
+    override fun insert(content: CharSequence, index: Int) {
+        replace(content, index, index)
     }
 
     override fun insert(content: CharSequence, row: Int, col: Int) {
         if (content.isEmpty()) {
             return
         }
-        val old = mBuffer[row]
-        var offset = row
-        for ((index, now) in content.lineSequence().withIndex()) {
-            if (index == 0) {
-                mBuffer[row] = old.substring(0, col) + now
-                length += now.length
-            } else {
-                mBuffer.add(row + index, now)
-                length += now.length + 1
-                offset++
-            }
-        }
-        mBuffer[offset] =
-            StringBuilder(mBuffer[offset])
-                .append(old.substring(col, max(0, old.length)))
-                .toString()
+        val index = charIndex(row, col) + 1
+        replace(content, index, index)
     }
 
     override fun delete(start: Int, end: Int) {
@@ -141,7 +125,7 @@ class LineArray : TextSequence {
             .toString()
         length = length - (end - start) + content.length
         expandRow(pos)
-
+        updateRow2Index(from)
     }
 
     /**
@@ -155,6 +139,11 @@ class LineArray : TextSequence {
         if (from == to) {
             return to
         }
+        // The last Row
+        if (from == rows() - 1) {
+            return from
+        }
+
         var isStart = true
         val builder = StringBuilder()
         var next = 0
@@ -191,6 +180,20 @@ class LineArray : TextSequence {
                 mBuffer[index] = now
             } else {
                 mBuffer.add(index + idx, now)
+            }
+        }
+    }
+
+    private fun updateRow2Index(start: Int) {
+        for (i in start until mRow2Index.size) {
+            if (i >= rows()) {
+                mRow2Index.remove(i)
+            } else {
+                var result = rowAt(i).length + mRow2Index.getOrDefault(i - 1, 0)
+                if (i != 0) {
+                    result++
+                }
+                mRow2Index[i] = result
             }
         }
     }

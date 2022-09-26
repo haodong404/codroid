@@ -60,9 +60,9 @@ abstract class TextSequence : Iterable<String> {
      * Inserts a string to this sequence at the specific position.
      *
      * @param content Content to insert.
-     * @param position Where to insert.
+     * @param index Where to insert.
      */
-    abstract fun insert(content: CharSequence, position: Int)
+    abstract fun insert(content: CharSequence, index: Int)
 
     /**
      * Inserts a string to this sequence at the specific position,

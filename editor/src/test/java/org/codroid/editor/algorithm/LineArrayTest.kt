@@ -224,4 +224,29 @@ class LineArrayTest {
         assertEquals(makePair(3, 3), seq.getRowAndCol(47))
         assertEquals(makePair(7, 3), seq.getRowAndCol(179))
     }
+
+    @Test
+    fun `can map after editing`() {
+        val seq = LineArray(
+            "package org.codroid.interfaces.exceptions;\n" +
+                    "\n" +
+                    "\n" +
+                    "import org.codroid.interfaces.log.Logger;\n" +
+                    "\n" +
+                    "/**\n" +
+                    " * This is a superclass that should only be inherited by the exceptions about addon.\n" +
+                    " */"
+        )
+        assertEquals(42, seq.charIndex(1, 0))
+        assertEquals(makePair(1, 0), seq.getRowAndCol(42))
+        seq.insert("Hello", 0)
+        assertEquals(47, seq.charIndex(1, 0))
+        assertEquals(makePair(1, 0), seq.getRowAndCol(47))
+        seq.insert("World", 48)
+        assertEquals(52, seq.charIndex(1, 5))
+        assertEquals(makePair(1, 5), seq.getRowAndCol(52))
+        seq.delete(0, 50)
+        assertEquals(seq.length() - 1, seq.charIndex(6, 3))
+        assertEquals(makePair(6, 3), seq.getRowAndCol(seq.length() - 1))
+    }
 }
