@@ -21,8 +21,6 @@
 package org.codroid.editor.decoration
 
 import android.graphics.Color
-import android.graphics.Paint
-import org.codroid.editor.Interval
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -34,8 +32,8 @@ class DecoratorTest {
     fun addSpanDecoration() {
         val charSpan = CharacterSpan()
             .setTextColor(Color.RED)
-        decorator.addSpan(IntRange(0, 9), charSpan)
-        decorator.addSpan(IntRange(20, 22), charSpan)
+        decorator.setSpan(IntRange(0, 9), charSpan)
+        decorator.setSpan(IntRange(20, 22), charSpan)
         assertEquals(2, decorator.spanSize())
         decorator.spanDecorationSequence()
             .forEach {

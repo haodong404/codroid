@@ -23,6 +23,9 @@ package org.codroid.editor.utils
 import org.codroid.editor.decoration.*
 import org.codroid.editor.graphics.TextPaint
 import java.util.*
+import kotlin.math.abs
+
+fun IntRange.length() = abs(last - first) + 1
 
 class Block(substring: String = "") {
 

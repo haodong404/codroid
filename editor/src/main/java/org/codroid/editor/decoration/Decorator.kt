@@ -20,45 +20,108 @@
 
 package org.codroid.editor.decoration
 
-import org.codroid.editor.graphics.TextPaint
-import org.codroid.editor.utils.Block
-import org.codroid.editor.utils.IntPair
-import org.codroid.editor.utils.disassembleSpan
-import org.codroid.editor.utils.hasIntersection
+import org.codroid.editor.algorithm.ScrollableLinkedList
+import org.codroid.editor.algorithm.TextSequence
+import org.codroid.editor.utils.*
 import java.util.*
 import kotlin.collections.ArrayList
 
+typealias RowNode = ScrollableLinkedList.Node<ArrayList<Decorator.Spans>>
+
 class Decorator {
 
-    private val mSpanDecorations = TreeMap<Int, Spans>()
+    private val mSpanDecorations = ScrollableLinkedList<ArrayList<Spans>>()
 
     private val mDynamicDecorationSet: HashSet<DynamicDecoration> = HashSet()
 
     private val mStaticDecorationSet: HashSet<StaticDecoration> = HashSet()
 
-    fun addSpan(range: IntRange, decoration: SpanDecoration? = null) {
+    fun setSpan(row: Int, col: Int, length: Int, decoration: SpanDecoration? = null) {
         val disassembledSpans = Spans()
         if (decoration != null) {
             disassembleSpan(decoration, disassembledSpans)
         }
-        for (i in range) {
-            if (mSpanDecorations.containsKey(i)) {
-                mSpanDecorations[i]?.overrideSpans(disassembledSpans)?.let {
-                    mSpanDecorations[i] = it
+        var count = 0
+        mSpanDecorations.nodeAt(row)?.let { start ->
+            mSpanDecorations.iterator(start).run {
+                var current = getCurrentOrNull()
+                var newSpan: Spans? = null
+                var isFirst = 0
+                while (hasNext() && count < length) {
+                    if (current != null) {
+                        for ((index, item) in current.withIndex()) {
+                            count++
+                            if (isFirst != -1) {
+                                isFirst++
+                                if (isFirst == col) {
+                                    isFirst = -1
+                                }
+                                continue
+                            }
+                            if (newSpan == null) {
+                                newSpan = item.overrideSpans(disassembledSpans);
+                            }
+                            current[index] = newSpan
+                        }
+                    }
+                    current = next();
                 }
-            } else {
-                mSpanDecorations[i] = disassembledSpans
             }
         }
     }
 
-    fun insertSpan(range: IntRange, decoration: SpanDecoration? = null) {
+    fun insertSpan(
+        rowNode: RowNode?,
+        range: IntRange,
+        rowsCount: Int,
+        decoration: SpanDecoration? = null
+    ) {
+        val disassembledSpans = Spans()
+        if (decoration != null) {
+            disassembleSpan(decoration, disassembledSpans)
+        }
+        if (rowsCount > 1) {
+            // Clear spans that after insertion position.
+            rowNode?.value?.run {
+                for (i in range.first until size) {
+                    get(i).clearAll()
+                }
+            }
 
+            // Insert empty spans.
+            repeat(rowsCount) {
+                mSpanDecorations.insert(rowNode, arrayListOf())
+            }
+        } else {
+            rowNode?.value?.run {
+                for (i in range) {
+                    add(i, disassembledSpans);
+                }
+            }
+        }
     }
 
-    fun addSpans(span: Map<IntRange, SpanDecoration>) {
-        span.forEach {
-            addSpan(it.key, it.value)
+
+    fun addSpan(row: Int, spans: Map<IntRange, SpanDecoration>, sizeOfLine: Int) {
+        mSpanDecorations.nodeAt(row)?.let {
+            addSpan(it, spans, sizeOfLine)
+        }
+    }
+
+    fun addSpan(rowNode: RowNode?, spans: Map<IntRange, SpanDecoration>, sizeOfLine: Int = 0) {
+        val result = spans.flatMap {
+            val result = ArrayList<Spans>(sizeOfLine)
+            val temp = Spans()
+            disassembleSpan(it.value, temp)
+            for (i in it.key) {
+                result.add(temp)
+            }
+            result
+        } as ArrayList
+        if (rowNode == null) {
+            mSpanDecorations.appendLast(result)
+        } else {
+            rowNode.value = result
         }
     }
 
@@ -73,30 +136,56 @@ class Decorator {
         return newSpans
     }
 
-    fun addSpan(decoration: DynamicDecoration) {
+    fun setSpan(decoration: DynamicDecoration) {
         mDynamicDecorationSet.add(decoration)
     }
 
-    fun addSpan(decoration: StaticDecoration) {
+    fun setSpan(decoration: StaticDecoration) {
         mStaticDecorationSet.add(decoration)
     }
 
-    fun removeSpan(range: IntRange, span: SpanDecoration? = null) {
-        for (i in range) {
-            mSpanDecorations[i]?.run {
-                if (repaint == span || span == null) {
-                    repaint = null
+    fun removeSpan(rowNode: RowNode?, col: Int, length: Int, spans: SpanDecoration? = null) {
+        if (rowNode == null) return
+        var count = 0
+        mSpanDecorations.iterator(rowNode).run {
+            var current = getCurrentOrNull()
+            var isFirst = 0
+            while (hasNext() && count < length) {
+                if (current != null) {
+                    for ((index, item) in current.withIndex()) {
+                        count++
+                        if (isFirst != -1) {
+                            isFirst++
+                            if (isFirst == col) {
+                                isFirst = -1
+                            }
+                            continue
+                        }
+                        if (spans == null) {
+                            current.removeAt(index)
+                        }
+                        if (item.repaint == spans) {
+                            item.repaint = null
+                        }
+                        if (item.background.contains(spans)) {
+                            item.background.remove(spans)
+                        }
+                        if (item.foreground.contains(spans)) {
+                            item.foreground.remove(spans)
+                        }
+                        if (item.replacement.contains(spans)) {
+                            item.replacement.remove(spans)
+                        }
+                    }
                 }
-                if (background.contains(span) || span == null) {
-                    background.remove(span)
-                }
-                if (foreground.contains(span) || span == null) {
-                    foreground.remove(span)
-                }
-                if (replacement.contains(span) || span == null) {
-                    replacement.remove(span)
-                }
+                current = next();
             }
+        }
+    }
+
+    fun removeSpan(row: Int, col: Int, length: Int, spans: SpanDecoration? = null) {
+        mSpanDecorations.nodeAt(row)?.let { start ->
+            removeSpan(start, col, length, spans)
         }
     }
 
@@ -111,7 +200,7 @@ class Decorator {
     }
 
     fun spanSize(): Int {
-        return mSpanDecorations.size
+        return 0
     }
 
     fun dynamicSize(): Int {
@@ -126,7 +215,7 @@ class Decorator {
         var repaint: RepaintSpan? = null,
         var background: LinkedList<BackgroundSpan> = LinkedList(),
         var foreground: LinkedList<ForegroundSpan> = LinkedList(),
-        var replacement: LinkedList<ReplacementSpan> = LinkedList()
+        var replacement: LinkedList<ReplacementSpan> = LinkedList(),
     ) : Cloneable {
 
         override fun equals(other: Any?): Boolean {
@@ -145,12 +234,19 @@ class Decorator {
             return result
         }
 
+        fun clearAll() {
+            this.repaint = null
+            this.background = LinkedList()
+            this.foreground = LinkedList()
+            this.replacement = LinkedList()
+        }
+
         public override fun clone(): Spans {
             return Spans(
                 repaint,
                 LinkedList(background),
                 LinkedList(foreground),
-                LinkedList(replacement)
+                LinkedList(replacement),
             )
         }
     }

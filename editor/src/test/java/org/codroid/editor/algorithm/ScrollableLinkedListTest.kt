@@ -101,4 +101,25 @@ class ScrollableLinkedListTest {
         assertEquals(10, it.moveBy(8)?.value)
         assertEquals(5, it.moveBy(-5)?.value)
     }
+
+    @Test
+    fun `Test insert`() {
+        val list = ScrollableLinkedList(10) {
+            it + 1
+        }
+        list.insert(0, 99)
+        assertEquals(99, list.getFirst())
+
+        list.insert(11, 88)
+        assertEquals(88, list.getLast())
+
+        list.insert(4, 77)
+        assertEquals("[99, 1, 2, 3, 77, 4, 5, 6, 7, 8, 9, 10, 88]", list.toString())
+        list.iterator().run {
+            while (hasNext()) {
+                val current = next()
+                println(current)
+            }
+        }
+    }
 }

@@ -1,6 +1,6 @@
 package org.codroid.editor.algorithm
 
-import java.lang.IllegalArgumentException
+import kotlin.IllegalArgumentException
 
 class ScrollableLinkedList<T>() : Iterable<T> {
     private var mHeaderNode: Node<T>? = null
@@ -28,6 +28,38 @@ class ScrollableLinkedList<T>() : Iterable<T> {
 
     fun size() = mCount
 
+    fun insert(index: Int, value: T) {
+        if (index > size()) {
+            throw IllegalArgumentException("Index out of range: index: $index, but size: ${size()}")
+        }
+        var targetNode = this.mHeaderNode
+        repeat(index) {
+            targetNode = targetNode?.next
+        }
+        insert(targetNode, value)
+    }
+
+    fun insert(target: Node<T>?, value: T) {
+        val newNode = Node(target?.previous, target, value)
+        if (target == null) {
+            newNode.previous = mTailNode
+            mTailNode?.next = newNode
+            mTailNode = newNode
+            return
+        }
+        if (target.previous != null) {
+            target.previous?.next = newNode
+        } else {
+            mHeaderNode = newNode
+        }
+        target.previous = newNode
+        mCount++
+    }
+
+    fun getFirst() = mHeaderNode?.value
+
+    fun getLast() = mTailNode?.value
+
     fun appendLast(value: T) {
         if (mTailNode == null) {
             init(value)
@@ -37,6 +69,15 @@ class ScrollableLinkedList<T>() : Iterable<T> {
             mTailNode = newNode
         }
         mCount++
+    }
+
+    fun nodeAt(index: Int): Node<T>? {
+        if (index > size()) return null
+        var result = mHeaderNode
+        repeat(index) {
+            result = result?.next
+        }
+        return result
     }
 
     fun appendFirst(value: T) {
@@ -119,8 +160,21 @@ class ScrollableLinkedList<T>() : Iterable<T> {
         }
 
         fun getCurrent(): T {
-            return mCurrentNode?.value
+            return getCurrentNode().value
                 ?: throw IndexOutOfBoundsException("No next value found in ScrollableLinkedList.")
+        }
+
+        fun getCurrentNode(): Node<T> {
+            return mCurrentNode
+                ?: throw IndexOutOfBoundsException("No next value found in ScrollableLinkedList.")
+        }
+
+        fun getCurrentNodeOrNull(): Node<T>? {
+            return try {
+                getCurrentNode()
+            } catch (_: IndexOutOfBoundsException) {
+                null
+            }
         }
 
         fun getCurrentOrNull(): T? {
