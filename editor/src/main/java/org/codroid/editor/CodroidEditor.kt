@@ -180,7 +180,7 @@ class CodroidEditor : View, LifecycleOwner {
                 setOnScrollWithRowListener { start, old ->
                     mEditContent?.getVisibleRowsRange()?.let {
                         it.bindScroll(start, old)
-                        if (getCursor().getCurrentRow() in it.getBegin()..it.getEnd()) {
+                        if (getCursor().getCurrentInfo().row in it.getBegin()..it.getEnd()) {
                             getCursor().show()
                         } else {
                             getCursor().hide()
@@ -369,8 +369,8 @@ class CodroidEditor : View, LifecycleOwner {
 
     override fun onCreateInputConnection(outAttrs: EditorInfo?): InputConnection {
         outAttrs?.run {
-            initialSelStart = mCursor.getCurrentCol()
-            initialSelEnd = mCursor.getCurrentCol() + 1
+            initialSelStart = mCursor.getCurrentInfo().row
+            initialSelEnd = mCursor.getCurrentInfo().column + 1
             imeOptions = EditorInfo.IME_FLAG_NO_EXTRACT_UI
             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE
         }

@@ -12,10 +12,10 @@ class CodroidInputConnection(
 
         if (getCursor().isSelecting()) {
             mTargetView.getEditContent()
-                ?.replace(text ?: "", getCursor().getStart(), getCursor().getEnd())
+                ?.replace(text ?: "", getCursor())
         } else {
             mTargetView.getEditContent()
-                ?.insert(text ?: "", getCursor().getEnd())
+                ?.insert(text ?: "", getCursor())
         }
         getCursor().moveCursorBy(text?.length ?: 0)
         invalidate()
@@ -31,7 +31,7 @@ class CodroidInputConnection(
             if (ev.keyCode == KeyEvent.KEYCODE_DEL) {
                 if (ev.action == KeyEvent.ACTION_UP) {
                     mTargetView.getEditContent()
-                        ?.delete(getCursor().getStart(), getCursor().getEnd())
+                        ?.delete(getCursor())
                     getCursor().moveCursorBy(getCursor().getStart() - getCursor().getEnd())
                 }
             }

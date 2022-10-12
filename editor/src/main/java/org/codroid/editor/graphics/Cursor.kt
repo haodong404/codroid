@@ -357,7 +357,7 @@ class Cursor(private val mEditor: CodroidEditor) {
                 ?: 0)..(getTextSequence()?.charIndex(actualEndRow, actualEndCol) ?: 0)
         }
         isSelecting = true
-        getEditContent()?.addDecoration(mSelectedRange, mSelectionSpan)
+        getEditContent()?.addDecoration(this, mSelectionSpan)
         mStartPosition = makePair(actualStartRow, actualStartCol)
         mEditor.getRowsRender().computeAbsolutePos(actualStartRow, actualStartCol).let { pos ->
             mStartPositionLeft = pos.first

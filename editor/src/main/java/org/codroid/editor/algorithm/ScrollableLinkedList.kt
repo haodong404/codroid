@@ -112,9 +112,9 @@ class ScrollableLinkedList<T>() : Iterable<T> {
         return builder.toString()
     }
 
-    override fun iterator() = iterator(Node(next = mHeaderNode))
+    override fun iterator() = iterator(mHeaderNode)
 
-    fun iterator(header: Node<T>) = Iterator(header)
+    fun iterator(header: Node<T>?) = Iterator(Node(next = header, previous = header))
 
     inner class Iterator(head: Node<T>) : kotlin.collections.Iterator<T> {
 

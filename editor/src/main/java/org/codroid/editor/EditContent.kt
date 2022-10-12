@@ -26,17 +26,15 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.Channel.Factory.CONFLATED
 import kotlinx.coroutines.flow.buffer
-import org.codroid.editor.algorithm.ScrollableLinkedList
 import org.codroid.editor.analysis.SyntaxAnalyser
 import org.codroid.editor.algorithm.TextSequence
-import org.codroid.editor.decoration.CharacterSpan
-import org.codroid.editor.decoration.Decorator
-import org.codroid.editor.decoration.RowNode
-import org.codroid.editor.decoration.SpanDecoration
+import org.codroid.editor.decoration.*
+import org.codroid.editor.graphics.Cursor
 import org.codroid.editor.utils.*
 import org.codroid.textmate.EncodedTokenAttributes
 import java.nio.file.Path
 import java.util.*
+import kotlin.collections.ArrayList
 import kotlin.math.max
 import kotlin.math.min
 
@@ -49,7 +47,9 @@ class EditContent(
 ) : Iterable<Row> {
 
     private val mDecorator: Decorator = Decorator()
-    private val mRange = RowsRange(visibleLines)
+    private val mRange: RowsRange by lazy {
+        RowsRange(visibleLines)
+    }
 
     private val mSyntaxAnalyser = SyntaxAnalyser(mEditor.theme!!, mTextSequence, mPath)
     private val mStartRowChannel = Channel<Pair<Int, RowNode?>>(CONFLATED)
@@ -78,6 +78,7 @@ class EditContent(
                     } else {
                         null
                     }
+                    var lastLineTokens = UIntArray(0)
                     mSyntaxAnalyser.analyze(current.first)
                         .buffer()
                         .collect { pair ->
@@ -98,11 +99,9 @@ class EditContent(
                             if (currentRowIndex == getVisibleRowsRange().getEnd()) {
                                 mEditor.postInvalidate()
                             }
-                            if (currentRowNode?.getCurrent() == spans) {
-                                this.cancel("Everything is out of date.")
-                                return@collect
-                            }
-                            mDecorator.addSpan(
+
+                            lastLineTokens = pair.second.tokens
+                            mDecorator.setSpan(
                                 currentRowNode?.getCurrentNodeOrNull(),
                                 spans,
                                 tokenLength
@@ -138,32 +137,41 @@ class EditContent(
     }
 
     // Start: inclusive; End: exclusive
-    fun delete(start: Int, end: Int) {
-        mTextSequence.getRowAndCol(start).run {
-            mDecorator.removeSpan(first(), second(), end - start)
-            mTextSequence.delete(start, end)
-            refreshSyntax()
-        }
+    fun delete(cursor: Cursor) {
+        mDecorator.removeSpan(
+            cursor.getCurrentInfo().rowNode,
+            cursor.getCurrentInfo().column - 1,
+            cursor.getEnd() - cursor.getStart()
+        )
+        mTextSequence.delete(cursor.getStart(), cursor.getEnd())
+        refreshSyntax()
     }
 
     // Start: inclusive; End: exclusive
-    fun replace(content: CharSequence, start: Int, end: Int) {
-        mTextSequence.getRowAndCol(start).run {
-            mDecorator.removeSpan(first(), second(), end - start, CharacterSpan())
-            mTextSequence.replace(content, start, end)
+    fun replace(content: CharSequence, cursor: Cursor) {
+        mTextSequence.getRowAndCol(cursor.getStart()).run {
+            mDecorator.removeSpan(
+                first(),
+                second(),
+                cursor.getStart() - cursor.getEnd(),
+                CharacterSpan()
+            )
+            mTextSequence.replace(content, cursor.getStart(), cursor.getEnd())
             refreshSyntax()
         }
     }
 
-    fun insert(content: CharSequence, index: Int) {
-        mTextSequence.insert(content, index)
+    fun insert(content: CharSequence, cursor: Cursor) {
+        mTextSequence.insert(content, cursor.getCurrentInfo().index + 1)
         val multiRow = content.lines()
         mDecorator.insertSpan(
             mEditor.getCursor().getCurrentInfo().rowNode,
-            index until content.length,
+            cursor.getCurrentInfo().column until cursor.getCurrentInfo().column + (multiRow.getOrNull(
+                0
+            )?.length ?: 0),
             multiRow.size
         )
-        refreshSyntax()
+//        refreshSyntax()
     }
 
     private fun refreshSyntax() {
@@ -183,8 +191,13 @@ class EditContent(
 
     fun rowNodeAt(index: Int) = mDecorator.spanDecorations().nodeAt(index)
 
-    fun addDecoration(range: IntRange, span: SpanDecoration) {
-//        mDecorator.setSpan(range, span)
+    fun addDecoration(cursor: Cursor, span: SpanDecoration) {
+        mDecorator.addSpan(
+            cursor.getCurrentInfo().rowNode,
+            cursor.getCurrentInfo().column,
+            cursor.getEnd() - cursor.getStart(),
+            span
+        )
     }
 
     fun removeSpan(range: IntRange, span: SpanDecoration) {
@@ -214,23 +227,39 @@ class EditContent(
     inner class RowIterator() : Iterator<Row> {
 
         private var mCurrentRow = getVisibleRowsRange().getBegin()
-        private var mStartIndex = getTextSequence().charIndex(mCurrentRow, 1)
+        private var mRowNodeIt: RowNodeIterator? = null
 
         override fun hasNext() =
             mCurrentRow <= getVisibleRowsRange().getEnd()
 
         override fun next(): Row {
+            if (mRowNodeIt == null) {
+                mDecorator.spanDecorations().nodeAt(mCurrentRow)?.let {
+                    mRowNodeIt = mDecorator.spanDecorations().iterator(it)
+                }
+            }
             val temp = makeRow()
             mCurrentRow++
             return temp
         }
 
-        private fun makeRow() = makeRow(mCurrentRow)
+        private fun makeRow() =
+            makeRow(mCurrentRow, mRowNodeIt?.next())
 
-        private fun makeRow(row: Int) = Row().apply {
+        private fun makeRow(row: Int, spans: ArrayList<Decorator.Spans>?) = Row().apply {
+            println("SPANS: ${spans == null}")
             mTextSequence.rowAtOrNull(row)?.let { line ->
-                var offset = 0
                 var newBlock = Block()
+                for ((index, item) in line.withIndex()) {
+                    if (newBlock.getSpans() != spans?.getOrNull(index)) {
+                        appendBlock(newBlock)
+                        newBlock = Block().apply {
+                            spans?.getOrNull(index)?.let { setSpans(it) }
+                        }
+                    }
+                    newBlock.appendChar(item)
+                }
+                appendBlock(newBlock)
             }
         }
     }
@@ -248,7 +277,9 @@ class EditContent(
     inner class RowsRange(private val mVisibleRows: Int) {
         // inclusive
         private var mVisibleBegin = 0
-        private var mVisibleRowNodeHeader = mDecorator.spanDecorations().iterator()
+        private val mVisibleRowNodeHeader by lazy {
+            mDecorator.spanDecorations().iterator()
+        }
 
         // inclusive
         private var mVisibleEnd = min(mVisibleRows - 1, endEdge())
@@ -256,7 +287,7 @@ class EditContent(
         fun bindScroll(start: Int, old: Int) {
             mVisibleBegin = max(0, start - 2)
             mVisibleEnd = min(endEdge(), mVisibleRows + start + 1)
-            mVisibleRowNodeHeader.moveBy(old - start)
+            mVisibleRowNodeHeader.moveBy(start - old)
             mEditor.invalidate()
         }
 

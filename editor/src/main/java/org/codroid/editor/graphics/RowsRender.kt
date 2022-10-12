@@ -106,9 +106,9 @@ class RowsRender(private val mEditor: CodroidEditor, private var mContent: EditC
     private fun drawLineHighlight(canvas: Canvas) {
         canvas.drawRect(
             mOffsetX,
-            mEditor.getCursor().getCurrentRow() * getLineHeight(),
+            mEditor.getCursor().getCurrentInfo().row * getLineHeight(),
             mLongestLineLength,
-            (mEditor.getCursor().getCurrentRow() + 1) * mLineAnchor.height(),
+            (mEditor.getCursor().getCurrentInfo().row + 1) * mLineAnchor.height(),
             mTextPaint.withColor(getHighlightColor())
         )
     }
