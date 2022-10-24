@@ -89,14 +89,14 @@ class LineArray : TextSequence {
         replace(content, index, index)
     }
 
-    override fun delete(start: Int, end: Int) {
-        if (start >= end) {
+    override fun delete(range: IntRange) {
+        if (range.isEmpty()) {
             return
         }
-        replace("", start, end)
+        replace("", range)
     }
 
-    override fun replace(content: CharSequence, start: Int, end: Int) {
+    private fun replace(content: CharSequence, start: Int, end: Int) {
         var rightEdge: Int
         var leftEdge = 0
         var from = -1
@@ -126,6 +126,10 @@ class LineArray : TextSequence {
         length = length - (end - start) + content.length
         expandRow(pos)
         updateRow2Index(from)
+    }
+
+    override fun replace(content: CharSequence, range: IntRange) {
+        replace(content, range.first, range.endExclusive())
     }
 
     /**

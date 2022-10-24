@@ -2,6 +2,7 @@ package org.codroid.editor
 
 import android.view.KeyEvent
 import android.view.inputmethod.BaseInputConnection
+import org.codroid.editor.utils.length
 
 class CodroidInputConnection(
     private val mTargetView: CodroidEditor,
@@ -32,7 +33,7 @@ class CodroidInputConnection(
                 if (ev.action == KeyEvent.ACTION_UP) {
                     mTargetView.getEditContent()
                         ?.delete(getCursor())
-                    getCursor().moveCursorBy(getCursor().getStart() - getCursor().getEnd())
+                    getCursor().moveCursorBy(getCursor().getSelectRange().length())
                 }
             }
         }

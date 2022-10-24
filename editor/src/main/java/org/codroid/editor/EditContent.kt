@@ -26,17 +26,20 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.Channel.Factory.CONFLATED
 import kotlinx.coroutines.flow.buffer
+import kotlinx.coroutines.flow.onCompletion
 import org.codroid.editor.analysis.SyntaxAnalyser
 import org.codroid.editor.algorithm.TextSequence
 import org.codroid.editor.decoration.*
 import org.codroid.editor.graphics.Cursor
 import org.codroid.editor.utils.*
+import org.codroid.editor.utils.Timer
 import org.codroid.textmate.EncodedTokenAttributes
 import java.nio.file.Path
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.time.Duration
 
 @OptIn(ExperimentalUnsignedTypes::class)
 class EditContent(
@@ -55,85 +58,68 @@ class EditContent(
     private val mStartRowChannel = Channel<Pair<Int, RowNode?>>(CONFLATED)
     private val isSyntaxAnalyserEnabled = true
     private var mCursorRowNode: RowNode? = null
+    private val mAnalyserTask = Timer.create(Duration.ZERO, {
+        startAnalysing()
+    }, mEditor.lifecycleScope)
+
+    private val mSelectionColor = Color.LTGRAY
 
     init {
-        startAnalysing()
-        pushAnalyseTask(0)
+        pushAnalyseTask()
     }
 
-    fun pushAnalyseTask(startRow: Int = 0, node: RowNode? = mCursorRowNode) {
+    private fun pushAnalyseTask(startRow: Int = 0, node: RowNode? = mCursorRowNode) {
         mEditor.lifecycleScope.launch {
+            if (mAnalyserTask.isRunning()) {
+                mAnalyserTask.cancel()
+            }
+            mAnalyserTask.start()
             mStartRowChannel.send(startRow to node)
         }
     }
 
-    private fun startAnalysing() {
+    private suspend fun startAnalysing() {
         if (isSyntaxAnalyserEnabled) {
-            mEditor.lifecycleScope.launch(Dispatchers.IO) {
-                while (isActive) {
-                    val current = mStartRowChannel.receive()
-                    var currentRowIndex = current.first
-                    val currentRowNode = if (current.second != null) {
-                        mDecorator.spanDecorations().iterator(current.second!!)
-                    } else {
-                        null
-                    }
-                    var lastLineTokens = UIntArray(0)
-                    mSyntaxAnalyser.analyze(current.first)
-                        .buffer()
-                        .collect { pair ->
-                            val tokenLength = pair.second.tokens.size / 2
-                            val spans = mutableMapOf<IntRange, SpanDecoration>()
-                            for (j in 0 until tokenLength) {
-                                val startIndex = pair.second.tokens[2 * j]
-                                val nextStartIndex = if (j + 1 < tokenLength) {
-                                    pair.second.tokens[2 * j + 2].toInt()
-                                } else {
-                                    pair.first.second()
-                                }
-                                val metadata = pair.second.tokens[2 * j + 1]
-                                makeSyntaxSpan(
-                                    startIndex.toInt() until nextStartIndex, metadata, spans
-                                )
-                            }
-                            if (currentRowIndex == getVisibleRowsRange().getEnd()) {
-                                mEditor.postInvalidate()
-                            }
-
-                            lastLineTokens = pair.second.tokens
-                            mDecorator.setSpan(
-                                currentRowNode?.getCurrentNodeOrNull(),
-                                spans,
-                                tokenLength
-                            )
-                            currentRowIndex++
-                            currentRowNode?.moveForward(1)
-                        }
+            val current = mStartRowChannel.receive()
+            var currentRowIndex = current.first
+            val currentRowNode = if (current.second != null) {
+                mDecorator.spanDecorations().iterator(current.second!!)
+            } else {
+                null
+            }
+            mSyntaxAnalyser.analyze(currentRowIndex)
+                .buffer()
+                .onCompletion {
                     withContext(Dispatchers.Main) {
                         mEditor.requestLayout()
                         mEditor.invalidate()
                     }
                 }
-            }
+                .collect { pair ->
+                    currentRowNode?.moveForward(1)
+                    val tokenLength = pair.second.tokens.size / 2
+                    val spans = mutableMapOf<IntRange, UInt>()
+                    for (j in 0 until tokenLength) {
+                        val startIndex = pair.second.tokens[2 * j]
+                        val nextStartIndex = if (j + 1 < tokenLength) {
+                            pair.second.tokens[2 * j + 2].toInt()
+                        } else {
+                            pair.first.second()
+                        }
+                        val metadata = pair.second.tokens[2 * j + 1]
+                        spans[startIndex.toInt() until nextStartIndex] = metadata
+                    }
+                    if (currentRowIndex == getVisibleRowsRange().getEnd()) {
+                        mEditor.postInvalidate()
+                    }
+                    mDecorator.setSyntaxSpans(
+                        currentRowNode?.getCurrentNodeOrNull(),
+                        spans,
+                        tokenLength
+                    )
+                    currentRowIndex++
+                }
         }
-    }
-
-    private fun makeSyntaxSpan(
-        range: IntRange,
-        metadata: UInt,
-        out: MutableMap<IntRange, SpanDecoration>
-    ) {
-        val span = CharacterSpan().apply {
-            val foreground = EncodedTokenAttributes.getForeground(metadata)
-            val background = EncodedTokenAttributes.getBackground(metadata)
-            val fontStyle = EncodedTokenAttributes.getFontStyle(metadata)
-            setFontStyle(fontStyle)
-            SyntaxAnalyser.registry?.getColorMap()?.run {
-                setTextColor(Color.parseColor(getOrDefault(foreground, "#FF0000")))
-//                setBackground(Color.parseColor(getOrDefault(background, "#FF00FF")))
-            }
-        }
-        out[range] = span
     }
 
     // Start: inclusive; End: exclusive
@@ -141,22 +127,24 @@ class EditContent(
         mDecorator.removeSpan(
             cursor.getCurrentInfo().rowNode,
             cursor.getCurrentInfo().column - 1,
-            cursor.getEnd() - cursor.getStart()
+            cursor.getSelectRange().length()
         )
-        mTextSequence.delete(cursor.getStart(), cursor.getEnd())
+        mTextSequence.delete(cursor.getSelectRange())
         refreshSyntax()
     }
 
     // Start: inclusive; End: exclusive
     fun replace(content: CharSequence, cursor: Cursor) {
-        mTextSequence.getRowAndCol(cursor.getStart()).run {
+        mTextSequence.getRowAndCol(cursor.getSelectRange().first).run {
             mDecorator.removeSpan(
                 first(),
                 second(),
-                cursor.getStart() - cursor.getEnd(),
-                CharacterSpan()
+                cursor.getSelectRange().length()
             )
-            mTextSequence.replace(content, cursor.getStart(), cursor.getEnd())
+            mTextSequence.replace(
+                content,
+                cursor.getSelectRange()
+            )
             refreshSyntax()
         }
     }
@@ -171,7 +159,7 @@ class EditContent(
             )?.length ?: 0),
             multiRow.size
         )
-//        refreshSyntax()
+        refreshSyntax()
     }
 
     private fun refreshSyntax() {
@@ -192,23 +180,23 @@ class EditContent(
     fun rowNodeAt(index: Int) = mDecorator.spanDecorations().nodeAt(index)
 
     fun addDecoration(cursor: Cursor, span: SpanDecoration) {
-        mDecorator.addSpan(
-            cursor.getCurrentInfo().rowNode,
-            cursor.getCurrentInfo().column,
-            cursor.getEnd() - cursor.getStart(),
-            span
-        )
+//        mDecorator.addSpan(
+//            cursor.getCurrentInfo().rowNode,
+//            cursor.getCurrentInfo().column,
+//            cursor.getEnd() - cursor.getStart(),
+//            span
+//        )
     }
 
     fun removeSpan(range: IntRange, span: SpanDecoration) {
-        mTextSequence.getRowAndCol(range.first).run {
-            mDecorator.removeSpan(
-                mEditor.getCursor().getCurrentInfo().rowNode,
-                second(),
-                range.length(),
-                span
-            )
-        }
+//        mTextSequence.getRowAndCol(range.first).run {
+//            mDecorator.removeSpan(
+//                mEditor.getCursor().getCurrentInfo().rowNode,
+//                second(),
+//                range.length(),
+//                span
+//            )
+//        }
     }
 
     fun getVisibleRowsRange(): RowsRange {
@@ -222,15 +210,17 @@ class EditContent(
         return mTextSequence.longestLineLength()
     }
 
+    private fun getCursor() = mEditor.getCursor()
+
     override fun iterator(): Iterator<Row> = RowIterator()
 
     inner class RowIterator() : Iterator<Row> {
 
         private var mCurrentRow = getVisibleRowsRange().getBegin()
         private var mRowNodeIt: RowNodeIterator? = null
+        private var mLastStartIndex = mTextSequence.charIndex(getVisibleRowsRange().getBegin(), 1)
 
-        override fun hasNext() =
-            mCurrentRow <= getVisibleRowsRange().getEnd()
+        override fun hasNext() = mCurrentRow <= getVisibleRowsRange().getEnd()
 
         override fun next(): Row {
             if (mRowNodeIt == null) {
@@ -238,24 +228,40 @@ class EditContent(
                     mRowNodeIt = mDecorator.spanDecorations().iterator(it)
                 }
             }
+            mRowNodeIt?.moveForward(1)
             val temp = makeRow()
             mCurrentRow++
             return temp
         }
 
-        private fun makeRow() =
-            makeRow(mCurrentRow, mRowNodeIt?.next())
+        private fun makeRow() = makeRow(mCurrentRow, mRowNodeIt?.getCurrentOrNull())
 
-        private fun makeRow(row: Int, spans: ArrayList<Decorator.Spans>?) = Row().apply {
-            println("SPANS: ${spans == null}")
+        private fun makeRow(row: Int, spans: ArrayList<UInt>?) = Row().apply {
             mTextSequence.rowAtOrNull(row)?.let { line ->
                 var newBlock = Block()
+                val range = mLastStartIndex..(mLastStartIndex + line.length)
+                if (getCursor().isSelecting() &&
+                    getCursor().getSelectRange().hasIntersection(range)
+                ) {
+                    val selectionStart = if (getCursor().getSelectRange().first in range) {
+                        getCursor().getSelectRange().first - mLastStartIndex
+                    } else {
+                        0
+                    }
+                    val selectionEnd = if (getCursor().getSelectRange().endExclusive() in range) {
+                        getCursor().getSelectRange().endExclusive() - mLastStartIndex
+                    } else {
+                        -1
+                    }
+                    selection = makePair(selectionStart, selectionEnd)
+                }
+
+                mLastStartIndex = range.endExclusive()
                 for ((index, item) in line.withIndex()) {
-                    if (newBlock.getSpans() != spans?.getOrNull(index)) {
+                    val temp = mDecorator.findCharacterSpan(spans?.getOrNull(index) ?: 0u)
+                    if (newBlock.getCharacterSpan() != temp) {
                         appendBlock(newBlock)
-                        newBlock = Block().apply {
-                            spans?.getOrNull(index)?.let { setSpans(it) }
-                        }
+                        newBlock = Block().apply { temp?.let(::setCharacterSpan) }
                     }
                     newBlock.appendChar(item)
                 }
@@ -277,9 +283,6 @@ class EditContent(
     inner class RowsRange(private val mVisibleRows: Int) {
         // inclusive
         private var mVisibleBegin = 0
-        private val mVisibleRowNodeHeader by lazy {
-            mDecorator.spanDecorations().iterator()
-        }
 
         // inclusive
         private var mVisibleEnd = min(mVisibleRows - 1, endEdge())
@@ -287,7 +290,6 @@ class EditContent(
         fun bindScroll(start: Int, old: Int) {
             mVisibleBegin = max(0, start - 2)
             mVisibleEnd = min(endEdge(), mVisibleRows + start + 1)
-            mVisibleRowNodeHeader.moveBy(start - old)
             mEditor.invalidate()
         }
 
@@ -299,7 +301,6 @@ class EditContent(
             return min(mTextSequence.rows(), mVisibleEnd)
         }
 
-        fun getHeadNode() = mVisibleRowNodeHeader.getCurrentNodeOrNull()
 
         private fun endEdge(): Int {
             return mTextSequence.rows() - 1

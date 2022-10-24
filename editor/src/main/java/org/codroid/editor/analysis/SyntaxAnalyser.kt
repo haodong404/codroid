@@ -49,9 +49,9 @@ class SyntaxAnalyser(rawTheme: RawTheme, private val mSequence: TextSequence, pa
                 for (rowIndex in startRow until mSequence.rows()) {
                     val current = mSequence.rowAt(rowIndex)
                     val result = tokenizeLine2(current, ruleStack, 0)
-                    emit(makePair(mLastEnd, current.length) to result)
                     ruleStack = result.ruleStack
-                    mStateStacks[startRow + rowIndex] = result.ruleStack
+                    mStateStacks[rowIndex] = result.ruleStack
+                    emit(makePair(mLastEnd, current.length) to result)
                     mLastEnd += current.length
                 }
             }

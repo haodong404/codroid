@@ -25,15 +25,42 @@ import org.codroid.editor.graphics.TextPaint
 import java.util.*
 import kotlin.math.abs
 
-fun IntRange.length() = abs(last - first) + 1
-
 class Block(substring: String = "") {
 
     private var mSpans: Decorator.Spans? = null
+    private var mCharacterSpan: CharacterSpan? = null
 
     private val mSubstring = StringBuilder(substring)
 
     fun getSpans() = mSpans
+
+    fun getCharacterSpan() = mCharacterSpan
+
+    fun getAssembledSpans() = overrideSpans(mCharacterSpan)
+
+    private fun overrideSpans(span: SpanDecoration?): Decorator.Spans? {
+
+        if (span == null) return mSpans
+
+        mSpans = Decorator.Spans()
+
+        if (span is RepaintSpan) {
+            mSpans!!.repaint = span
+        }
+
+        if (span is BackgroundSpan) {
+            mSpans!!.background.add(span)
+        }
+
+        if (span is ForegroundSpan) {
+            mSpans!!.foreground.add(span)
+        }
+
+        if (span is ReplacementSpan) {
+            mSpans!!.replacement.add(span)
+        }
+        return mSpans
+    }
 
     fun getSubstring() = mSubstring.toString()
 
@@ -45,6 +72,10 @@ class Block(substring: String = "") {
 
     fun setSpans(spans: Decorator.Spans) {
         this.mSpans = spans
+    }
+
+    fun setCharacterSpan(span: CharacterSpan) {
+        this.mCharacterSpan = span
     }
 
     override fun toString(): String {
@@ -76,8 +107,7 @@ fun disassembleSpan(span: SpanDecoration, out: Decorator.Spans) {
     }
 }
 
-@JvmInline
-value class Row(val blocks: LinkedList<Block> = LinkedList()) {
+data class Row(val blocks: LinkedList<Block> = LinkedList(), var selection: IntPair = 0u) {
 
     fun appendBlock(block: Block) {
         if (!block.isEmpty()) {

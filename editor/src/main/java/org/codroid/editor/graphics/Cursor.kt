@@ -207,18 +207,11 @@ class Cursor(private val mEditor: CodroidEditor) {
 
     fun getCurrentInfo() = mCurrentInfo
 
-    // Get the start position, inclusive.
-    fun getStart(): Int = if (mSelectedRange.isEmpty()) {
-        mCurrentInfo.index;
-    } else {
-        mSelectedRange.first
-    }
-
-    // Get the end position, exclusive
-    fun getEnd() = if (mSelectedRange.isEmpty()) {
-        mCurrentInfo.index + 1
-    } else {
-        mSelectedRange.last + 1
+    fun getSelectRange(): IntRange {
+        if (mSelectedRange.isEmpty()) {
+            return mCurrentInfo.index..mCurrentInfo.index
+        }
+        return mSelectedRange
     }
 
     fun isSelecting() = isSelecting

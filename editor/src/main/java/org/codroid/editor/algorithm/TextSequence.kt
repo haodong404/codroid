@@ -78,20 +78,17 @@ abstract class TextSequence : Iterable<String> {
      * Removes the characters in a substring of this sequence.
      * The substring begins at the specified start and extends to the character at index end - 1.
      *
-     * @param start The beginning index, inclusive.
-     * @param end The ending index, exclusive.
+     * @param range
      */
-    abstract fun delete(start: Int, end: Int)
+    abstract fun delete(range: IntRange)
 
     /**
      * Replaces the characters in a substring of this sequence with characters in the specified.
-     * The substring begins at the specified start and extends to the character at index end - 1
      *
      * @param content String that will replace previous contents.
-     * @param start The beginning index, inclusive.
-     * @param end The ending index, exclusive.
+     * @param range The range of replacing.
      */
-    abstract fun replace(content: CharSequence, start: Int, end: Int)
+    abstract fun replace(content: CharSequence, range: IntRange)
 
     /**
      * Returns an index of a char using the position of row and column.

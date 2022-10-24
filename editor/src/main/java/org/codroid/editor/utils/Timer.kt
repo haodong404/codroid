@@ -52,7 +52,7 @@ class TimerTask(
      * Start the task, it will run on a none-main thread.
      */
     fun start() {
-        if (mJob == null) {
+        if (!isRunning()) {
             mJob = mContext.launch(mThreadContext) {
                 delay(mDuration)
                 mDoing()
@@ -67,4 +67,6 @@ class TimerTask(
         mJob?.cancel()
         mJob = null
     }
+
+    fun isRunning() = mJob?.isActive ?: false
 }

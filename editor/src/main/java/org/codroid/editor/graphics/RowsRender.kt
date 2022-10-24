@@ -5,9 +5,7 @@ import android.graphics.Color
 import android.graphics.Paint
 import org.codroid.editor.*
 import org.codroid.editor.decoration.SpanRect
-import org.codroid.editor.utils.IntPair
-import org.codroid.editor.utils.LineAnchor
-import org.codroid.editor.utils.makePair
+import org.codroid.editor.utils.*
 import kotlin.math.ceil
 
 class RowsRender(private val mEditor: CodroidEditor, private var mContent: EditContent? = null) {
@@ -63,12 +61,13 @@ class RowsRender(private val mEditor: CodroidEditor, private var mContent: EditC
                 drawLineHighlight(canvas)
             }
             drawLineNumber(canvas, mLineAnchor.lineNumber)
+            drawSelection(canvas, row)
             var offsetXinLine = mOffsetX
             row.blocks.forEach { block ->
                 var blockWidth = mTextPaint.measureText(block.getSubstring())
                 var offset = blockWidth
                 var paint = mTextPaint
-                block.getSpans()?.run {
+                block.getAssembledSpans()?.run {
                     val spanRect by lazy {
                         SpanRect(
                             offsetXinLine, mLineAnchor.top, offsetXinLine + blockWidth,
@@ -82,7 +81,12 @@ class RowsRender(private val mEditor: CodroidEditor, private var mContent: EditC
                         blockWidth = paint.measureText(block.getSubstring())
                     }
                     if (replacement.isNotEmpty()) {
-                        replacement.last.onReplacing(canvas, paint, spanRect, block.getSubstring())
+                        offset = replacement.last.onReplacing(
+                            canvas,
+                            paint,
+                            spanRect,
+                            block.getSubstring()
+                        )
                     } else {
                         canvas.drawText(
                             block.getSubstring(),
@@ -100,6 +104,24 @@ class RowsRender(private val mEditor: CodroidEditor, private var mContent: EditC
                 offsetXinLine += offset
             }
             mLineAnchor.increase()
+        }
+    }
+
+    private fun drawSelection(canvas: Canvas, row: Row) {
+        if (row.selection != 0UL && mEditor.getCursor().isSelecting()) {
+            val left = mTextPaint.singleWidth() * row.selection.first()
+            val right = if (row.selection.second() != -1) {
+                mTextPaint.singleWidth() * row.selection.second()
+            } else {
+                mEditor.width.toFloat()
+            }
+            canvas.drawRect(
+                left + mOffsetX,
+                mLineAnchor.top,
+                right + mOffsetX,
+                mLineAnchor.bottom,
+                mTextPaint.withColor(Color.LTGRAY)
+            )
         }
     }
 
