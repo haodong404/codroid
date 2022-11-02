@@ -23,6 +23,8 @@ import android.Manifest
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.os.Environment
+import android.view.KeyEvent
 import android.view.Menu
 import android.view.MenuItem
 import androidx.activity.viewModels
@@ -41,6 +43,7 @@ import org.codroid.body.ui.dirtree.DirTreeAdapter
 import org.codroid.body.ui.preferences.PreferencesActivity
 import org.codroid.body.ui.utils.EditorWindowHelper
 import org.codroid.body.widgets.DirTreeItemView
+import java.io.File
 import java.nio.file.Paths
 
 
@@ -63,13 +66,12 @@ class MainActivity : AppCompatActivity() {
 
         setSupportActionBar(binding.activityMainToolbar)
 
-        permissionApply()
-
         editorWindow()
 
         dirTreeWindow()
 
-        mWindowHelper.newWindow(Paths.get("/mnt/sdcard/TokenizeString.kt"))
+        permissionApply()
+
     }
 
     private fun editorWindow() {
@@ -122,7 +124,6 @@ class MainActivity : AppCompatActivity() {
             permissions = listOf(Manifest.permission.MANAGE_EXTERNAL_STORAGE)
         }
 
-
         PermissionX.init(this)
             .permissions(permissions)
             .onExplainRequestReason { scope, deniedList ->
@@ -141,6 +142,12 @@ class MainActivity : AppCompatActivity() {
                                 mDirTreeAdapter.setList(response)
                             }
                         }
+                    mWindowHelper.newWindow(
+                        File(
+                            Environment.getExternalStorageDirectory(),
+                            "TokenizeString.kt"
+                        ).toPath()
+                    )
                 } else {
                     permissionApply()
                     onPermissionDenied()

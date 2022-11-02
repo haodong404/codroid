@@ -24,6 +24,7 @@ class Cursor(private val mEditor: CodroidEditor) {
         var index: Int = 0,
         var row: Int = 1,
         var column: Int = 0,
+        var lineLength: Int = 0,
         var rowNode: RowNode? = null
     )
 
@@ -32,7 +33,6 @@ class Cursor(private val mEditor: CodroidEditor) {
         color = Color.RED
         isAntiAlias = true
     }
-
 
     private val mCurrentInfo: CurrentInfo = CurrentInfo()
     private val mCursorWidth = 4F
@@ -86,7 +86,7 @@ class Cursor(private val mEditor: CodroidEditor) {
             mEditor.postInvalidateOnAnimation()
         }
     }
-    private var mCursorListeners = mutableListOf<(row: Int, col: Int) -> Unit>()
+    private var mCursorListeners = mutableListOf<(info: CurrentInfo) -> Unit>()
     private var mVisible = true
 
     private val mCursorHandleRadius = 25F
@@ -168,16 +168,17 @@ class Cursor(private val mEditor: CodroidEditor) {
         mEditor.invalidate()
     }
 
-    fun addCursorChangedListener(callback: (row: Int, col: Int) -> Unit) {
+    fun addCursorChangedListener(callback: (info: CurrentInfo) -> Unit) {
         this.mCursorListeners.add(callback)
     }
 
     fun moveCursor(row: Int = mCurrentInfo.row, col: Int = mCurrentInfo.column) {
         mEditor.getRowsRender().focusRow(row)
         mCurrentInfo.row = row
-        mCurrentInfo.column = min(getTextSequence()?.rowAt(row)?.length ?: 0, col)
+        mCurrentInfo.lineLength = getTextSequence()?.rowAt(row)?.length ?: 0
+        mCurrentInfo.column = min(mCurrentInfo.lineLength, col)
         mCursorListeners.forEach {
-            it.invoke(mCurrentInfo.row, mCurrentInfo.column)
+            it.invoke(mCurrentInfo)
         }
         isFromMoveTo = false
         val temp = mEditor.getRowsRender().computeAbsolutePos(mCurrentInfo.row, mCurrentInfo.column)
@@ -201,6 +202,54 @@ class Cursor(private val mEditor: CodroidEditor) {
             mCurrentInfo.index = index
             moveCursor(first(), second())
         }
+    }
+
+    fun moveLeft() {
+        moveCursorBy(-1)
+    }
+
+    fun moveUp() {
+        if (mCurrentInfo.row != 0) {
+            moveCursor(
+                mCurrentInfo.row - 1,
+                min(
+                    getTextSequence()?.rowAt(mCurrentInfo.row - 1)?.length ?: 0,
+                    mCurrentInfo.column
+                )
+            )
+        }
+    }
+
+    fun moveRight() {
+        moveCursorBy(1)
+    }
+
+    fun moveDown() {
+        if (mCurrentInfo.row != ((getTextSequence()?.rows() ?: 0) - 1)) {
+            moveCursor(
+                mCurrentInfo.row + 1,
+                min(
+                    getTextSequence()?.rowAt(mCurrentInfo.row + 1)?.length ?: 0,
+                    mCurrentInfo.column
+                )
+            )
+        }
+    }
+
+    fun moveToLineEnd() {
+
+    }
+
+    fun moveToLineStart() {
+
+    }
+
+    fun moveToStart() {
+
+    }
+
+    fun moveToEnd() {
+
     }
 
     fun getCurrentLine() = mCurrentInfo.row + 1
@@ -381,12 +430,12 @@ class Cursor(private val mEditor: CodroidEditor) {
         select(startRow, startCol, endRow, endCol)
     }
 
-    private fun onCursorChanged(row: Int, col: Int) {
+    private fun onCursorChanged(info: CurrentInfo) {
         resetSelection()
-        mCurrentInfo.rowNode = getEditContent()?.rowNodeAt(row)
+        mCurrentInfo.rowNode = getEditContent()?.rowNodeAt(info.row)
         // Skip resetting the cursor index.
         if (!isFromMoveTo) {
-            getTextSequence()?.charIndex(row, col)?.let {
+            getTextSequence()?.charIndex(info.row, info.column)?.let {
                 this.mCurrentInfo.index = it
             }
         }

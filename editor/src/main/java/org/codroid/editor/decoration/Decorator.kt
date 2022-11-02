@@ -27,6 +27,7 @@ import org.codroid.textmate.EncodedTokenAttributes
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.math.max
+import kotlin.math.min
 
 typealias RowNode = ScrollableLinkedList.Node<ArrayList<UInt>>
 typealias RowNodeIterator = ScrollableLinkedList<ArrayList<UInt>>.Iterator
@@ -61,7 +62,7 @@ class Decorator {
         } else {
             rowNode?.value?.run {
                 val temp = if (metadata == 0u) {
-                    get(max(0, range.first - 1))
+                    getOrNull(max(0, range.first - 1)) ?: 0U
                 } else {
                     metadata
                 }
@@ -117,7 +118,15 @@ class Decorator {
             while (hasNext() && count < length) {
                 moveForward(1)
                 while (count < length) {
-                    getCurrentNodeOrNull()?.value?.removeAt(col)
+                    if ((getCurrentNodeOrNull()?.value?.size ?: 0) == 0 || col < 0) {
+                        break
+                    }
+                    getCurrentNodeOrNull()?.value?.removeAt(
+                        min(
+                            col,
+                            (getCurrentNodeOrNull()?.value?.size ?: 1) - 1
+                        )
+                    )
                     count++
                 }
             }

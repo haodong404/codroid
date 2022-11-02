@@ -10,66 +10,60 @@ class CodroidInputConnection(
 ) : BaseInputConnection(mTargetView, fullEditor) {
 
     override fun commitText(text: CharSequence?, newCursorPosition: Int): Boolean {
-
         if (getCursor().isSelecting()) {
-            mTargetView.getEditContent()
-                ?.replace(text ?: "", getCursor())
+            mTargetView.getEditContent()?.replace(text ?: "", getCursor())
         } else {
-            mTargetView.getEditContent()
-                ?.insert(text ?: "", getCursor())
+            mTargetView.getEditContent()?.insert(text ?: "", getCursor())
         }
         getCursor().moveCursorBy(text?.length ?: 0)
         invalidate()
         return true
     }
 
+
     override fun requestCursorUpdates(cursorUpdateMode: Int): Boolean {
+        println("requestCursorUpdates: $cursorUpdateMode")
         return true
     }
 
     override fun sendKeyEvent(event: KeyEvent?): Boolean {
-        event?.let { ev ->
-            if (ev.keyCode == KeyEvent.KEYCODE_DEL) {
-                if (ev.action == KeyEvent.ACTION_UP) {
-                    mTargetView.getEditContent()
-                        ?.delete(getCursor())
-                    getCursor().moveCursorBy(getCursor().getSelectRange().length())
+        event?.run {
+            if (action == KeyEvent.ACTION_DOWN) {
+                when (event.keyCode) {
+                    KeyEvent.KEYCODE_SPACE -> commitText(" ", getCursorInfo().index)
+                    KeyEvent.KEYCODE_DEL -> onKeyDelDown()
+                    KeyEvent.KEYCODE_ENTER -> onKeyEnterDown()
+                    KeyEvent.KEYCODE_DPAD_LEFT -> getCursor().moveLeft()
+                    KeyEvent.KEYCODE_DPAD_UP -> getCursor().moveUp()
+                    KeyEvent.KEYCODE_DPAD_RIGHT -> getCursor().moveRight()
+                    KeyEvent.KEYCODE_DPAD_DOWN -> getCursor().moveDown()
                 }
             }
         }
-        return true
+        return true;
     }
 
-    override fun getTextBeforeCursor(length: Int, flags: Int): CharSequence? {
-//        mTargetView.getEditContent()?.run {
-//            getTextSequence().rowAtOrNull(mTargetView.getCursor().getCurrentRow())?.let {
-//                return it.substring(
-//                    max(
-//                        0,
-//                        mTargetView.getCursor().getCurrentCol() - length
-//                    ) until min(it.length, mTargetView.getCursor().getCurrentCol())
-//                )
-//            }
-//        }
-        return null
+    private fun onKeyDelDown() {
+        getEditContent()?.run {
+            this.delete(getCursor())
+            if (getCursor().isSelecting()) {
+                getCursor().moveCursorBy(getCursor().getSelectRange().length())
+            } else {
+                getCursor().moveCursorBy(-1)
+            }
+            invalidate()
+        }
     }
 
-    override fun getTextAfterCursor(length: Int, flags: Int): CharSequence? {
-//        mTargetView.getEditContent()?.run {
-//            getTextSequence().rowAtOrNull(mTargetView.getCursor().getCurrentRow())?.let {
-//                return it.substring(
-//                    mTargetView.getCursor().getCurrentCol() until
-//                            min(
-//                                it.length,
-//                                mTargetView.getCursor().getCurrentCol() + length
-//                            )
-//                )
-//            }
-//        }
-        return null
+    private fun onKeyEnterDown() {
+        commitText("\n", getCursorInfo().index)
     }
 
     private fun getCursor() = mTargetView.getCursor()
+
+    private fun getCursorInfo() = mTargetView.getCursor().getCurrentInfo()
+
+    private fun getEditContent() = mTargetView.getEditContent()
 
     private fun invalidate() = mTargetView.invalidate()
 }

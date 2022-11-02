@@ -26,6 +26,7 @@ import android.graphics.Typeface
 import android.text.InputType
 import android.util.AttributeSet
 import android.util.Log
+import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
 import android.view.inputmethod.EditorInfo
@@ -34,13 +35,14 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import androidx.lifecycle.*
 import kotlinx.coroutines.*
+import org.codroid.editor.algorithm.linearr.LineArray
 import org.codroid.editor.analysis.GrammarRegistration
 import org.codroid.editor.analysis.LanguageRegistration
 import org.codroid.editor.analysis.registerGrammar
 import org.codroid.editor.analysis.registerLanguage
-import org.codroid.editor.algorithm.linearr.LineArray
 import org.codroid.editor.graphics.Cursor
 import org.codroid.editor.graphics.RowsRender
+import org.codroid.editor.utils.endExclusive
 import org.codroid.editor.utils.first
 import org.codroid.editor.utils.second
 import org.codroid.textmate.parseJson
@@ -187,9 +189,6 @@ class CodroidEditor : View, LifecycleOwner {
                         }
                     }
                 }
-            }
-            getCursor().addCursorChangedListener { row, col ->
-
             }
         }
     }
@@ -363,14 +362,23 @@ class CodroidEditor : View, LifecycleOwner {
         return isCursorIntercepted
     }
 
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        return if (event?.isPrintingKey == true) {
+            mInputConnection.commitText(event.unicodeChar.toChar().toString(), 0)
+            true;
+        } else {
+            mInputConnection.sendKeyEvent(event)
+        }
+    }
+
     override fun onCheckIsTextEditor(): Boolean {
         return true
     }
 
     override fun onCreateInputConnection(outAttrs: EditorInfo?): InputConnection {
         outAttrs?.run {
-            initialSelStart = mCursor.getCurrentInfo().row
-            initialSelEnd = mCursor.getCurrentInfo().column + 1
+            initialSelStart = mCursor.getSelectRange().first
+            initialSelEnd = mCursor.getSelectRange().endExclusive()
             imeOptions = EditorInfo.IME_FLAG_NO_EXTRACT_UI
             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE
         }
