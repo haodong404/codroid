@@ -148,7 +148,7 @@ class RowsRender(private val mEditor: CodroidEditor, private var mContent: EditC
     fun computeRowCol(x: Float, y: Float): IntPair {
         val row = ceil(y / mLineAnchor.height()).toInt() - 1
         val col =
-            ceil((x - lineNumberOffset()) / mTextPaint.singleWidth()).toInt() - 1
+            ceil((x - lineNumberOffset()) / mTextPaint.singleWidth()).toInt()
         return makePair(row, col)
     }
 

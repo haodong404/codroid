@@ -28,6 +28,7 @@ class CodroidInputConnection(
 
     override fun sendKeyEvent(event: KeyEvent?): Boolean {
         event?.run {
+            println(event)
             if (action == KeyEvent.ACTION_DOWN) {
                 when (event.keyCode) {
                     KeyEvent.KEYCODE_SPACE -> commitText(" ", getCursorInfo().index)

@@ -71,7 +71,7 @@ class LineArray : TextSequence {
     }
 
     override fun rowAtOrNull(index: Int): String? {
-        if (mBuffer.size < index) {
+        if (mBuffer.size <= index) {
             return null
         }
         return rowAt(index)
@@ -219,7 +219,12 @@ class LineArray : TextSequence {
     }
 
     override fun getRowAndCol(position: Int): IntPair {
-        if (position > length) return 0U
+        if (position < -1) {
+            return makePair(0, 0)
+        } else if (position >= length) {
+            return makePair(rows() - 1, rowAt(rows() - 1).length - 1)
+        }
+
         var row = (position / length) * rows()
         var flag = -1
         while (true) {

@@ -44,6 +44,7 @@ import org.codroid.editor.graphics.Cursor
 import org.codroid.editor.graphics.RowsRender
 import org.codroid.editor.utils.endExclusive
 import org.codroid.editor.utils.first
+import org.codroid.editor.utils.intPair2Str
 import org.codroid.editor.utils.second
 import org.codroid.textmate.parseJson
 import org.codroid.textmate.parsePLIST
@@ -265,8 +266,9 @@ class CodroidEditor : View, LifecycleOwner {
     }
 
     private fun onClick(x: Float, y: Float) {
-        if (x >= mRowsRender.lineNumberOffset()) {
+        if (x > (mRowsRender.lineNumberOffset() - 5)) {
             mRowsRender.computeRowCol(x, y).run {
+                println(intPair2Str(this))
                 mCursor.moveCursor(this.first(), this.second())
                 mCursor.show()
             }
