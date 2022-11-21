@@ -7,6 +7,7 @@ import org.codroid.editor.*
 import org.codroid.editor.decoration.SpanRect
 import org.codroid.editor.utils.*
 import kotlin.math.ceil
+import kotlin.math.max
 
 class RowsRender(private val mEditor: CodroidEditor, private var mContent: EditContent? = null) {
     private val mTextPaint = TextPaint().apply {
@@ -149,7 +150,7 @@ class RowsRender(private val mEditor: CodroidEditor, private var mContent: EditC
         val row = ceil(y / mLineAnchor.height()).toInt() - 1
         val col =
             ceil((x - lineNumberOffset()) / mTextPaint.singleWidth()).toInt()
-        return makePair(row, col)
+        return makePair(row, max(0, col))
     }
 
     /**

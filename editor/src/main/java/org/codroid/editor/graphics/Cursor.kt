@@ -63,8 +63,6 @@ class Cursor(private val mEditor: CodroidEditor) {
     private var mCurrentAlpha = 1F
     private val mDuration = 500L
 
-    private var isFromMoveTo = false
-
     private var isBlinking = false
     private val mBlinkingTimer = Timer.create(1000, {
         while (isActive) {
@@ -189,10 +187,10 @@ class Cursor(private val mEditor: CodroidEditor) {
 
             mEditor.getRowsRender().focusRow(row)
             mCurrentInfo.row = validatedRow
-            mCurrentInfo.lineLength = lengthOfCurrentLine
             mCurrentInfo.column = validateCol
             if (index == null) {
-                mCurrentInfo.index = min(length(), charIndex(row, col))
+                mCurrentInfo.index = min(length(), charIndex(validatedRow, validateCol))
+                println("length: ${length()}, charIndex: ${charIndex(validatedRow, validateCol)}")
             } else {
                 mCurrentInfo.index = index
             }
@@ -209,13 +207,15 @@ class Cursor(private val mEditor: CodroidEditor) {
         }
     }
 
-    fun moveCursorBy(distance: Int) {
+    fun moveCursorBy(distance: Int, newLine: Boolean = false) {
         if (isSelecting) {
             resetSelection()
             return
         }
         val offsetInCol = mCurrentInfo.column + distance
-        if (offsetInCol in 0..mCurrentInfo.lineLength) {
+        if (offsetInCol in 0..mCurrentInfo.lineLength && !
+            newLine
+        ) {
             moveCursor(col = offsetInCol, index = mCurrentInfo.index + distance)
         } else {
             moveCursorTo(mCurrentInfo.index + distance)
@@ -229,6 +229,7 @@ class Cursor(private val mEditor: CodroidEditor) {
             moveCursor(0, 0, -1)
         } else {
             getTextSequence()?.getRowAndCol(index)?.run {
+                print("first: ${this.first()}, second: ${this.second()}")
                 moveCursor(first(), second(), index)
             }
         }
@@ -336,7 +337,6 @@ class Cursor(private val mEditor: CodroidEditor) {
                         val actualRow = first()
                         val actualCol = second()
                         if (actualRow != mCurrentInfo.row || actualCol != mCurrentInfo.column) {
-
                             var isFlipped = false
                             if (isMovingStartHandle == 1) {
                                 if (actualRow > mEndPosition.first() || (actualRow == mEndPosition.first() && actualCol > mEndPosition.second())) {
@@ -357,10 +357,8 @@ class Cursor(private val mEditor: CodroidEditor) {
                                     mEndPosition
                                 }
                                 select(
-                                    actualRow,
-                                    actualCol,
-                                    endPosition.first(),
-                                    endPosition.second()
+                                    actualRow, actualCol,
+                                    endPosition.first(), endPosition.second()
                                 )
                             } else {
                                 val startPosition = if (isFlipped) {
@@ -369,10 +367,8 @@ class Cursor(private val mEditor: CodroidEditor) {
                                     mStartPosition
                                 }
                                 select(
-                                    startPosition.first(),
-                                    startPosition.second(),
-                                    actualRow,
-                                    actualCol
+                                    startPosition.first(), startPosition.second(),
+                                    actualRow, actualCol
                                 )
                             }
                         }
@@ -464,6 +460,7 @@ class Cursor(private val mEditor: CodroidEditor) {
 
     private fun onCursorChanged(info: CurrentInfo) {
         resetSelection()
+        println(info)
     }
 
     private fun resetSelection() {

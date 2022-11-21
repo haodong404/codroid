@@ -38,6 +38,8 @@ class LineArrayTest {
         mLineArray.insert("END", mLineArray.length())
         assertEquals("END", mLineArray.rowAt(mLineArray.rows() - 1))
         assertEquals(690, mLineArray.length())
+        mLineArray.insert("\n", mLineArray.length())
+        assertEquals(691, mLineArray.length())
     }
 
     @Test
@@ -198,6 +200,7 @@ class LineArrayTest {
                     " * This is a superclass that should only be inherited by the exceptions about addon.\n" +
                     " */"
         )
+        assertEquals(-1, seq.charIndex(0, 0))
         assertEquals(0, seq.charIndex(0, 1))
         assertEquals(5, seq.charIndex(0, 6))
         assertEquals(41, seq.charIndex(0, 42))
@@ -218,6 +221,7 @@ class LineArrayTest {
                     " * This is a superclass that should only be inherited by the exceptions about addon.\n" +
                     " */"
         )
+        assertEquals(makePair(0, 0), seq.getRowAndCol(-1))
         assertEquals(makePair(0, 1), seq.getRowAndCol(0))
         assertEquals(makePair(0, 6), seq.getRowAndCol(5))
         assertEquals(makePair(1, 0), seq.getRowAndCol(42))

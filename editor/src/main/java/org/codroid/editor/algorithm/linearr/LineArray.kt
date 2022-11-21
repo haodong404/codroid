@@ -90,7 +90,7 @@ class LineArray : TextSequence {
     }
 
     override fun delete(range: IntRange) {
-        if (range.isEmpty()) {
+        if (range.isEmpty() || range.first == -1) {
             return
         }
         replace("", range)
@@ -189,7 +189,7 @@ class LineArray : TextSequence {
     }
 
     private fun updateRow2Index(start: Int) {
-        for (i in start until mRow2Index.size) {
+        for (i in start until length) {
             if (i >= rows()) {
                 mRow2Index.remove(i)
             } else {
@@ -219,7 +219,7 @@ class LineArray : TextSequence {
     }
 
     override fun getRowAndCol(position: Int): IntPair {
-        if (position < -1) {
+        if (position <= -1) {
             return makePair(0, 0)
         } else if (position >= length) {
             return makePair(rows() - 1, rowAt(rows() - 1).length - 1)
@@ -227,7 +227,7 @@ class LineArray : TextSequence {
 
         var row = (position / length) * rows()
         var flag = -1
-        while (true) {
+        while (row <= rows()) {
             val temp = mRow2Index.getOrDefault(row, 0)
             flag = if (position >= temp) {
                 if (flag == 0) {

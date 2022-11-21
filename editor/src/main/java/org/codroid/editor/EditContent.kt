@@ -123,42 +123,50 @@ class EditContent(
     }
 
     // Start: inclusive; End: exclusive
-    fun delete(cursor: Cursor) {
+    fun delete() {
         mDecorator.removeSpan(
-            cursor.getCurrentInfo().rowNode,
-            cursor.getCurrentInfo().column - 1,
-            cursor.getSelectRange().length()
+            getCursor().getCurrentInfo().rowNode,
+            getCursor().getCurrentInfo().column - 1,
+            getCursor().getSelectRange().length()
         )
-        mTextSequence.delete(cursor.getSelectRange())
+        mTextSequence.delete(getCursor().getSelectRange())
+        if (getCursor().isSelecting()) {
+            getCursor().moveCursorBy(getCursor().getSelectRange().length())
+        } else {
+            getCursor().moveCursorBy(-1)
+        }
         refreshSyntax()
     }
 
     // Start: inclusive; End: exclusive
-    fun replace(content: CharSequence, cursor: Cursor) {
-        mTextSequence.getRowAndCol(cursor.getSelectRange().first).run {
+    fun replace(content: CharSequence) {
+        mTextSequence.getRowAndCol(getCursor().getSelectRange().first).run {
             mDecorator.removeSpan(
                 first(),
                 second(),
-                cursor.getSelectRange().length()
+                getCursor().getSelectRange().length()
             )
             mTextSequence.replace(
                 content,
-                cursor.getSelectRange()
+                getCursor().getSelectRange()
             )
             refreshSyntax()
         }
+        getCursor().moveCursorBy(content.length, content.contains("\n"))
     }
 
-    fun insert(content: CharSequence, cursor: Cursor) {
-        mTextSequence.insert(content, cursor.getCurrentInfo().index + 1)
+    fun insert(content: CharSequence) {
+        if (content.isEmpty()) return
+        mTextSequence.insert(content, getCursor().getCurrentInfo().index + 1)
         val multiRow = content.lines()
         mDecorator.insertSpan(
             mEditor.getCursor().getCurrentInfo().rowNode,
-            cursor.getCurrentInfo().column until cursor.getCurrentInfo().column + (multiRow.getOrNull(
+            getCursor().getCurrentInfo().column until getCursor().getCurrentInfo().column + (multiRow.getOrNull(
                 0
             )?.length ?: 0),
             multiRow.size
         )
+        getCursor().moveCursorBy(content.length, content == "\n")
         refreshSyntax()
     }
 

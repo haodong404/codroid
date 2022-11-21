@@ -367,7 +367,7 @@ class CodroidEditor : View, LifecycleOwner {
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         return if (event?.isPrintingKey == true) {
             mInputConnection.commitText(event.unicodeChar.toChar().toString(), 0)
-            true;
+            true
         } else {
             mInputConnection.sendKeyEvent(event)
         }
