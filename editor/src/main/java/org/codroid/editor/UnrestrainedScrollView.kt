@@ -34,6 +34,9 @@ import android.view.View
 import android.widget.FrameLayout
 import android.widget.OverScroller
 import kotlinx.coroutines.*
+import org.codroid.editor.graphics.Overlay
+import org.codroid.editor.graphics.ScrollOverlayCanvas
+import org.codroid.editor.graphics.TextPaint
 import org.codroid.editor.utils.*
 import kotlin.math.abs
 import kotlin.math.max
@@ -68,6 +71,8 @@ class UnrestrainedScrollView : FrameLayout {
         color = Color.argb(0xEA, 0xDC, 0xDC, 0xDC)
         style = Paint.Style.FILL
     }
+
+    private val mOverlays = mutableListOf<Overlay>()
 
     // How thick is the scroll bar.
     private val mBarSize = 30
@@ -132,6 +137,8 @@ class UnrestrainedScrollView : FrameLayout {
     private var mLastRow = 0
 
     private var mInterceptedByChildEditor = false
+
+    private val mOverlayCanvas = ScrollOverlayCanvas(this)
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec)
@@ -307,12 +314,10 @@ class UnrestrainedScrollView : FrameLayout {
         return true
     }
 
-    override fun onDraw(canvas: Canvas?) {
-        super.onDraw(canvas)
-    }
-
     override fun onDrawForeground(canvas: Canvas?) {
         canvas?.run {
+            mOverlayCanvas.bindBaseCanvas(canvas)
+
             // Draw the scroll bars.
             mBarPaint.color = if (isHitVerticalBar) {
                 mCurrentScrollBarColor
@@ -333,6 +338,11 @@ class UnrestrainedScrollView : FrameLayout {
                 getHorizontalScrollBarRect(),
                 mBarPaint
             )
+
+            // Draw overlays
+            mOverlays.forEach {
+                it.onDraw(mOverlayCanvas)
+            }
         }
     }
 
@@ -453,6 +463,12 @@ class UnrestrainedScrollView : FrameLayout {
                 }
             }
         }
+    }
+
+    fun getScrollCurrent() = mScrollCurrent
+
+    fun addOverlay(overlay: Overlay) {
+        mOverlays.add(overlay)
     }
 
     private fun getChildAsEditor(): CodroidEditor? {

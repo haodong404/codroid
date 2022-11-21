@@ -22,6 +22,7 @@ package org.codroid.editor
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
+import android.graphics.Color
 import android.graphics.Typeface
 import android.text.InputType
 import android.util.AttributeSet
@@ -42,10 +43,13 @@ import org.codroid.editor.analysis.registerGrammar
 import org.codroid.editor.analysis.registerLanguage
 import org.codroid.editor.graphics.Cursor
 import org.codroid.editor.graphics.RowsRender
+import org.codroid.editor.graphics.TextPaint
 import org.codroid.editor.utils.endExclusive
 import org.codroid.editor.utils.first
 import org.codroid.editor.utils.intPair2Str
 import org.codroid.editor.utils.second
+import org.codroid.interfaces.addon.AddonManager
+import org.codroid.interfaces.preference.CodroidPreferenceGroup
 import org.codroid.textmate.parseJson
 import org.codroid.textmate.parsePLIST
 import org.codroid.textmate.parseRawGrammar
@@ -85,10 +89,15 @@ class CodroidEditor : View, LifecycleOwner {
         Cursor(this)
     }
 
+    private val mDeveloperPreference by lazy {
+        AddonManager.get().getCodroidPreference(CodroidPreferenceGroup.DEVELOPER)
+    }
+
     private var mVisibleRows = 0
     private val mInputConnection by lazy {
         CodroidInputConnection(this, true)
     }
+    private var mEditorInfoOverlay: EditorInfoOverlay? = null
 
     companion object {
         var DefaultRawTheme: RawTheme? = null
@@ -179,6 +188,12 @@ class CodroidEditor : View, LifecycleOwner {
         }
         typeface = DefaultTypeface
         lifecycleScope.launchWhenCreated {
+            mEditorInfoOverlay =
+                if (mDeveloperPreference.getBoolean("editor_info")) {
+                    EditorInfoOverlay("READY")
+                } else {
+                    null
+                }
             getParentAsUnrestrainedScroll()?.run {
                 setOnScrollWithRowListener { start, old ->
                     mEditContent?.getVisibleRowsRange()?.let {
@@ -188,6 +203,21 @@ class CodroidEditor : View, LifecycleOwner {
                         } else {
                             getCursor().hide()
                         }
+                    }
+                }
+                mEditorInfoOverlay?.let(::addOverlay)
+            }
+            getCursor().addCursorChangedListener {
+                if (!getCursor().isSelecting()) {
+                    mEditorInfoOverlay?.run {
+                        refreshContent(
+                            "Index: ${it.index}\n" +
+                                    "Length of line: ${it.lineLength}\n" +
+                                    "Row: ${it.row}, Column: ${it.column}\n" +
+                                    "Total lines: ${getEditContent()?.rows()}\n" +
+                                    "Length: ${getEditContent()?.length()}"
+                        )
+                        getParentAsUnrestrainedScroll()?.invalidate()
                     }
                 }
             }
@@ -290,8 +320,6 @@ class CodroidEditor : View, LifecycleOwner {
      * @param x the position of y
      */
     private fun onDoubleClick(x: Float, y: Float) {
-        Log.i("Zac", "onDoubleClick")
-        Toast.makeText(this.context, "onDoubleClick", Toast.LENGTH_SHORT).show()
         select(x, y)
     }
 
@@ -331,8 +359,15 @@ class CodroidEditor : View, LifecycleOwner {
                         start = end
                         end = temp
                     }
-                    Log.i("CodroidEditor", "start: $start, end: $end")
                     getCursor().select(row, start, row, end)
+                    mEditorInfoOverlay?.run {
+                        refreshContent(
+                            "[SELECTING]\n" +
+                                    "Start: ($row, $start)\n" +
+                                    "End: ($row, $end)"
+                        )
+                        getParentAsUnrestrainedScroll()?.invalidate()
+                    }
                 }
             }
         }

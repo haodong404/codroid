@@ -188,9 +188,9 @@ class Cursor(private val mEditor: CodroidEditor) {
             mEditor.getRowsRender().focusRow(row)
             mCurrentInfo.row = validatedRow
             mCurrentInfo.column = validateCol
+            mCurrentInfo.lineLength = lengthOfCurrentLine
             if (index == null) {
                 mCurrentInfo.index = min(length(), charIndex(validatedRow, validateCol))
-                println("length: ${length()}, charIndex: ${charIndex(validatedRow, validateCol)}")
             } else {
                 mCurrentInfo.index = index
             }
@@ -229,7 +229,6 @@ class Cursor(private val mEditor: CodroidEditor) {
             moveCursor(0, 0, -1)
         } else {
             getTextSequence()?.getRowAndCol(index)?.run {
-                print("first: ${this.first()}, second: ${this.second()}")
                 moveCursor(first(), second(), index)
             }
         }
@@ -460,7 +459,6 @@ class Cursor(private val mEditor: CodroidEditor) {
 
     private fun onCursorChanged(info: CurrentInfo) {
         resetSelection()
-        println(info)
     }
 
     private fun resetSelection() {
