@@ -20,10 +20,6 @@
 
 package org.codroid.editor
 
-import org.codroid.editor.buffer.linearr.LineArray
-import org.junit.Assert.assertEquals
-import org.junit.Test
-
 class EditContentTest {
 //
 //    private val content = EditContent(

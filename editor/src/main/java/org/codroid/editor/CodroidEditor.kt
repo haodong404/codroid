@@ -26,6 +26,7 @@ import android.graphics.Typeface
 import android.text.InputType
 import android.util.AttributeSet
 import android.util.Log
+import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
 import android.view.inputmethod.EditorInfo
@@ -33,17 +34,18 @@ import android.view.inputmethod.InputConnection
 import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import androidx.lifecycle.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
+import org.codroid.editor.algorithm.linearr.LineArray
 import org.codroid.editor.analysis.GrammarRegistration
 import org.codroid.editor.analysis.LanguageRegistration
 import org.codroid.editor.analysis.registerGrammar
 import org.codroid.editor.analysis.registerLanguage
-import org.codroid.editor.buffer.linearr.LineArray
 import org.codroid.editor.graphics.Cursor
 import org.codroid.editor.graphics.RowsRender
+import org.codroid.editor.utils.endExclusive
+import org.codroid.editor.utils.first
+import org.codroid.editor.utils.intPair2Str
+import org.codroid.editor.utils.second
 import org.codroid.textmate.parseJson
 import org.codroid.textmate.parsePLIST
 import org.codroid.textmate.parseRawGrammar
@@ -51,6 +53,7 @@ import org.codroid.textmate.theme.RawTheme
 import java.io.InputStream
 import java.nio.file.Path
 import kotlin.math.ceil
+import kotlin.math.min
 
 class CodroidEditor : View, LifecycleOwner {
 
@@ -180,16 +183,13 @@ class CodroidEditor : View, LifecycleOwner {
                 setOnScrollWithRowListener { start, old ->
                     mEditContent?.getVisibleRowsRange()?.let {
                         it.bindScroll(start, old)
-                        if (getCursor().getCurrentRow() in it.getBegin()..it.getEnd()) {
+                        if (getCursor().getCurrentInfo().row in it.getBegin()..it.getEnd()) {
                             getCursor().show()
                         } else {
                             getCursor().hide()
                         }
                     }
                 }
-            }
-            getCursor().addCursorChangedListener { row, col ->
-                println("ROW: $row, COL: $col")
             }
         }
     }
@@ -200,7 +200,6 @@ class CodroidEditor : View, LifecycleOwner {
         }
         mVisibleRows =
             ceil(MeasureSpec.getSize(heightMeasureSpec) / mRowsRender.getLineHeight()).toInt()
-        println(mVisibleRows)
     }
 
     override fun onDraw(canvas: Canvas?) {
@@ -211,51 +210,65 @@ class CodroidEditor : View, LifecycleOwner {
     }
 
     private var mActionDownStartTime = 0L
-    private var longPressJob: Job? = null
+    private var mLongPressJob: Job? = null
+    private var mClickCounter = 0
+    private var mFirstClickTime = 0L
+
+    // true if cursor has intercepted the scroll event.
+    private var isCursorIntercepted = false
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(event: MotionEvent?): Boolean {
         event?.run {
-            return when (event.action) {
+            if (isCursorIntercepted) {
+                getCursor().handleCursorHandleTouchEvent(event)
+            }
+            when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
                     mActionDownStartTime = System.currentTimeMillis()
-                    if (longPressJob == null) {
-                        longPressJob = lifecycleScope.launch {
+                    if (mLongPressJob == null) {
+                        mLongPressJob = lifecycleScope.launch {
                             delay(500)
-                            onLongPressed(makePair(event.y.toInt(), event.x.toInt()))
+                            onLongPress(event.x, event.y)
                         }
                     }
-                    true
                 }
                 MotionEvent.ACTION_MOVE -> {
-                    true
+                    if (isCursorIntercepted) {
+                        mLongPressJob?.cancel()
+                        mLongPressJob = null
+                        parent.requestDisallowInterceptTouchEvent(true)
+                    }
                 }
 
                 MotionEvent.ACTION_CANCEL -> {
-                    longPressJob?.cancel()
-                    longPressJob = null
-                    true
+                    mLongPressJob?.cancel()
+                    mLongPressJob = null
                 }
                 MotionEvent.ACTION_UP -> {
-                    longPressJob?.cancel()
-                    longPressJob = null
-                    if (System.currentTimeMillis() - mActionDownStartTime < 300) {
-                        onClicked(makePair(event.y.toInt(), event.x.toInt()))
+                    mLongPressJob?.cancel()
+                    mLongPressJob = null
+                    mClickCounter++
+                    val currentTime = System.currentTimeMillis()
+                    if (currentTime - mActionDownStartTime < 300) {
+                        if (mClickCounter >= 2 && currentTime - mFirstClickTime < 200) {
+                            onDoubleClick(x, y)
+                            mClickCounter = 0
+                        } else {
+                            mFirstClickTime = currentTime
+                            onClick(event.x, event.y)
+                        }
                     }
-                    true
-                }
-                else -> {
-                    false
                 }
             }
         }
-        return false
+        return true
     }
 
-    private fun onClicked(position: IntPair) {
-        if (position.second() >= mRowsRender.lineNumberOffset()) {
-            mRowsRender.computeRowCol(position).run {
-                mRowsRender.focusRow(this.first(), position)
+    private fun onClick(x: Float, y: Float) {
+        if (x > (mRowsRender.lineNumberOffset() - 5)) {
+            mRowsRender.computeRowCol(x, y).run {
+                println(intPair2Str(this))
                 mCursor.moveCursor(this.first(), this.second())
                 mCursor.show()
             }
@@ -263,9 +276,66 @@ class CodroidEditor : View, LifecycleOwner {
         }
     }
 
-    private fun onLongPressed(position: IntPair) {
+    private fun onLongPress(x: Float, y: Float) {
         Log.i("Zac", "OnLongClicked")
         Toast.makeText(this.context, "onLongClick", Toast.LENGTH_SHORT).show()
+        select(x, y)
+    }
+
+    /**
+     * Called when double clicked. Because I don't want to have a delay in clicking on events,
+     * So it doesn't discard the first click event. That means it will trigger a click event when you double clicked.
+     *
+     * @param x the position of x
+     * @param x the position of y
+     */
+    private fun onDoubleClick(x: Float, y: Float) {
+        Log.i("Zac", "onDoubleClick")
+        Toast.makeText(this.context, "onDoubleClick", Toast.LENGTH_SHORT).show()
+        select(x, y)
+    }
+
+    private val mNoWordsRegex = Regex("\\W")
+    private fun select(x: Float, y: Float) {
+        getRowsRender().computeRowCol(x, y).run {
+            val row = min(mEditContent?.getTextSequence()?.rows() ?: 0, first())
+            getEditContent()?.let {
+                val line = it.getTextSequence().rowAt(row)
+                if (line.isEmpty()) return
+                val col = min(line.length - 1, second())
+                val startDeffer = lifecycleScope.async {
+                    for (i in col downTo 0) {
+                        if (mNoWordsRegex.containsMatchIn(line[i].toString())) {
+                            return@async i + 1
+                        }
+                    }
+                    return@async 0
+                }
+
+                val endDeffer = lifecycleScope.async {
+                    for (i in col until line.length) {
+                        if (mNoWordsRegex.containsMatchIn(line[i].toString())) {
+                            return@async i
+                        }
+                    }
+                    return@async line.length
+                }
+
+                lifecycleScope.launch {
+                    var start = startDeffer.await()
+                    var end = endDeffer.await()
+                    if (start == end) {
+                        end = min(line.length, end + 1)
+                    } else if (start > end) {
+                        val temp = start
+                        start = end
+                        end = temp
+                    }
+                    Log.i("CodroidEditor", "start: $start, end: $end")
+                    getCursor().select(row, start, row, end)
+                }
+            }
+        }
     }
 
     fun load(input: InputStream, path: Path) {
@@ -282,14 +352,35 @@ class CodroidEditor : View, LifecycleOwner {
 
     fun getCursor() = mCursor
 
+    fun interceptParentScroll(absoluteX: Float, absoluteY: Float): Boolean {
+        isCursorIntercepted = if (getCursor().isSelecting()) {
+            getCursor().isHitSelectingHandleStart(
+                absoluteX,
+                absoluteY
+            ) || getCursor().isHitSelectingHandleEnd(absoluteX, absoluteY)
+        } else {
+            getCursor().isHitCursorHandle(absoluteX, absoluteY)
+        }
+        return isCursorIntercepted
+    }
+
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        return if (event?.isPrintingKey == true) {
+            mInputConnection.commitText(event.unicodeChar.toChar().toString(), 0)
+            true
+        } else {
+            mInputConnection.sendKeyEvent(event)
+        }
+    }
+
     override fun onCheckIsTextEditor(): Boolean {
         return true
     }
 
     override fun onCreateInputConnection(outAttrs: EditorInfo?): InputConnection {
         outAttrs?.run {
-            initialSelStart = mCursor.getCurrentCol()
-            initialSelEnd = mCursor.getCurrentCol() + 1
+            initialSelStart = mCursor.getSelectRange().first
+            initialSelEnd = mCursor.getSelectRange().endExclusive()
             imeOptions = EditorInfo.IME_FLAG_NO_EXTRACT_UI
             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE
         }

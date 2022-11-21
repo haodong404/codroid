@@ -20,110 +20,139 @@
 
 package org.codroid.editor.decoration
 
-import android.graphics.Paint
-import org.codroid.editor.Interval
-import org.codroid.editor.Vector
-import org.codroid.editor.graphics.TextPaint
-import org.codroid.editor.isIn
-import org.codroid.editor.makePair
+import android.graphics.Color
+import org.codroid.editor.algorithm.ScrollableLinkedList
+import org.codroid.editor.analysis.SyntaxAnalyser
+import org.codroid.textmate.EncodedTokenAttributes
 import java.util.*
+import kotlin.collections.ArrayList
+import kotlin.math.max
+import kotlin.math.min
+
+typealias RowNode = ScrollableLinkedList.Node<ArrayList<UInt>>
+typealias RowNodeIterator = ScrollableLinkedList<ArrayList<UInt>>.Iterator
+
+typealias SpanId = UShort
 
 class Decorator {
-    private val mSpanDecorationTree: TreeMap<IntRange, Spans> =
-        TreeMap { t1, t2 ->
-            if (t1.first > t2.first) {
-                return@TreeMap 1
-            } else if (t1.first < t2.first) {
-                return@TreeMap -1
-            }
-            return@TreeMap 0
-        }
 
-    private val mSyntaxSpans = TreeMap<Int, Map<IntRange, Spans>>()
+    private val mSpanDecorations = ScrollableLinkedList<ArrayList<UInt>>()
 
     private val mDynamicDecorationSet: HashSet<DynamicDecoration> = HashSet()
 
     private val mStaticDecorationSet: HashSet<StaticDecoration> = HashSet()
 
-    fun addSpan(range: IntRange, decoration: SpanDecoration) {
-        if (!mSpanDecorationTree.containsKey(range)) {
-            mSpanDecorationTree[range] = Spans()
+    private val mCharacterSpanCache = mutableMapOf<UInt, CharacterSpan>()
+
+    fun insertSpan(
+        rowNode: RowNode?,
+        range: IntRange,
+        rowsCount: Int,
+        metadata: UInt = 0u,
+    ) {
+        if (!mCharacterSpanCache.containsKey(metadata) && metadata != 0u) {
+            mCharacterSpanCache[metadata] = makeCharacterSpans(metadata)
         }
-        convertSpan(decoration, mSpanDecorationTree[range]!!)
-    }
+        if (rowsCount > 1) {
+            // Clear spans that after insertion position.
+            rowNode?.value?.run {
+                clear()
+            }
 
-    fun addSpan(decoration: DynamicDecoration) {
-        mDynamicDecorationSet.add(decoration)
-    }
-
-    fun addSpan(decoration: StaticDecoration) {
-        mStaticDecorationSet.add(decoration)
-    }
-
-    fun appendSpan(rowIndex: Int, map: Map<IntRange, SpanDecoration>) {
-        val temp = mutableMapOf<IntRange, Spans>()
-        map.forEach {
-            val spans = Spans()
-            convertSpan(it.value, spans)
-            temp[it.key] = spans
-        }
-        mSyntaxSpans[rowIndex] = temp
-    }
-
-    private fun convertSpan(span: SpanDecoration, out: Spans) {
-        if (span is RepaintSpan) {
-            val temp = out.repaint
-            if (temp != null) {
-                out.repaint = object : RepaintSpan {
-                    override fun onRepaint(origin: TextPaint): TextPaint {
-                        return temp.onRepaint(origin)
-                    }
+        } else {
+            rowNode?.value?.run {
+                val temp = if (metadata == 0u) {
+                    getOrNull(max(0, range.first - 1)) ?: 0U
+                } else {
+                    metadata
                 }
-            } else {
-                out.repaint = span
+                for (i in range) {
+                    add(i, temp);
+                }
             }
         }
-        if (span is ForegroundSpan) {
-            out.foreground = span
+    }
+
+
+    fun setSyntaxSpans(row: Int, spans: Map<IntRange, UInt>, sizeOfLine: Int = 0) {
+        setSyntaxSpans(mSpanDecorations.nodeAt(row), spans, sizeOfLine)
+    }
+
+    fun setSyntaxSpans(
+        rowNode: RowNode?,
+        spans: Map<IntRange, UInt>,
+        sizeOfLine: Int = 0
+    ) {
+        val result = spans.flatMap {
+            val result = ArrayList<UInt>(sizeOfLine)
+            if (!mCharacterSpanCache.containsKey(it.value) && it.value != 0u) {
+                mCharacterSpanCache[it.value] = makeCharacterSpans(it.value)
+            }
+            for (i in it.key) {
+                result.add(it.value)
+            }
+            result
+        } as ArrayList
+        if (rowNode == null) {
+            mSpanDecorations.appendLast(result)
+        } else {
+            rowNode.value = result
         }
-        if (span is BackgroundSpan) {
-            out.background = span
+    }
+
+    private fun makeCharacterSpans(metadata: UInt): CharacterSpan = CharacterSpan().apply {
+        val foreground = EncodedTokenAttributes.getForeground(metadata)
+        val background = EncodedTokenAttributes.getBackground(metadata)
+        val fontStyle = EncodedTokenAttributes.getFontStyle(metadata)
+        setFontStyle(fontStyle)
+        SyntaxAnalyser.registry?.getColorMap()?.run {
+            setTextColor(Color.parseColor(getOrDefault(foreground, "#FF0000")))
+//                setBackground(Color.parseColor(getOrDefault(background, "#FF00FF")))
         }
-        if (span is ReplacementSpan) {
-            out.replacement = span
-        }
     }
 
-    fun spanDecorations(): TreeMap<IntRange, Spans> {
-        return mSpanDecorationTree
-    }
-
-    fun dynamicDecorationSequence(): Sequence<DynamicDecoration> {
-        return mDynamicDecorationSet.asSequence()
-    }
-
-    fun staticDecorationSequence(): Sequence<StaticDecoration> {
-        return mStaticDecorationSet.asSequence()
-    }
-
-    fun syntaxSpans(): TreeMap<Int, Map<IntRange, Spans>> {
-        return mSyntaxSpans
-    }
-
-    fun searchSpan(range: IntRange): Map<IntRange, Spans> {
-        val result = mutableMapOf<IntRange, Spans>()
-        mSpanDecorationTree.forEach {
-            if (it.key.isIn(range)) {
-                result[it.key] = it.value
-            } else if (it.key.first > range.last) {
-                return result
+    fun removeSpan(rowNode: RowNode?, col: Int, length: Int) {
+        if (rowNode == null) return
+        var count = 0
+        mSpanDecorations.iterator(rowNode).run {
+            while (hasNext() && count < length) {
+                moveForward(1)
+                while (count < length) {
+                    if ((getCurrentNodeOrNull()?.value?.size ?: 0) == 0 || col < 0) {
+                        break
+                    }
+                    getCurrentNodeOrNull()?.value?.removeAt(
+                        min(
+                            col,
+                            (getCurrentNodeOrNull()?.value?.size ?: 1) - 1
+                        )
+                    )
+                    count++
+                }
             }
         }
-        return result
+    }
+
+    fun removeSpan(row: Int, col: Int, length: Int) {
+        mSpanDecorations.nodeAt(row)?.let { start ->
+            removeSpan(start, col, length)
+        }
+    }
+
+    fun spanDecorations() = mSpanDecorations
+
+    fun findCharacterSpan(metadata: UInt): CharacterSpan? = mCharacterSpanCache[metadata]
+
+    fun dynamicDecorations(): Set<DynamicDecoration> {
+        return mDynamicDecorationSet
+    }
+
+    fun staticDecorations(): Set<StaticDecoration> {
+        return mStaticDecorationSet
     }
 
     fun spanSize(): Int {
-        return mSpanDecorationTree.size
+        return 0
     }
 
     fun dynamicSize(): Int {
@@ -136,8 +165,45 @@ class Decorator {
 
     data class Spans(
         var repaint: RepaintSpan? = null,
-        var background: BackgroundSpan? = null,
-        var foreground: ForegroundSpan? = null,
-        var replacement: ReplacementSpan? = null
-    )
+        var background: LinkedList<BackgroundSpan> = LinkedList(),
+        var foreground: LinkedList<ForegroundSpan> = LinkedList(),
+        var replacement: LinkedList<ReplacementSpan> = LinkedList(),
+    ) : Cloneable {
+
+        override fun equals(other: Any?): Boolean {
+            if (other is Spans) {
+                return this.repaint == other.repaint && this.background == other.background
+                        && this.foreground == other.foreground && this.replacement == other.replacement
+            }
+            return false
+        }
+
+        override fun hashCode(): Int {
+            var result = repaint?.hashCode() ?: 0
+            result = 31 * result + background.hashCode()
+            result = 31 * result + foreground.hashCode()
+            result = 31 * result + replacement.hashCode()
+            return result
+        }
+
+        override fun toString(): String {
+            return "Repaint: ${repaint == null}; Background: ${background.size}; Foreground: ${background.size}; Replacement: ${replacement.size}"
+        }
+
+        fun clearAll() {
+            this.repaint = null
+            this.background = LinkedList()
+            this.foreground = LinkedList()
+            this.replacement = LinkedList()
+        }
+
+        public override fun clone(): Spans {
+            return Spans(
+                repaint,
+                LinkedList(background),
+                LinkedList(foreground),
+                LinkedList(replacement),
+            )
+        }
+    }
 }

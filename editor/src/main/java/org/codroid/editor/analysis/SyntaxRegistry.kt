@@ -1,9 +1,6 @@
 package org.codroid.editor.analysis
 
-import org.codroid.textmate.Registry
 import org.codroid.textmate.grammar.RawGrammar
-import org.codroid.textmate.parseRawGrammar
-import org.codroid.textmate.theme.RawTheme
 import org.codroid.textmate.theme.ScopeName
 
 internal val registeredGrammar = mutableMapOf<ScopeName, GrammarRegistration>()

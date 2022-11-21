@@ -1,76 +1,110 @@
 package org.codroid.editor
 
+import android.util.Log
 import android.view.KeyEvent
 import android.view.inputmethod.BaseInputConnection
-import kotlin.math.max
-import kotlin.math.min
+import org.codroid.editor.utils.length
 
 class CodroidInputConnection(
     private val mTargetView: CodroidEditor,
     fullEditor: Boolean,
 ) : BaseInputConnection(mTargetView, fullEditor) {
 
+    companion object {
+        const val TAG = "CodroidInputConnection"
+    }
+
     override fun commitText(text: CharSequence?, newCursorPosition: Int): Boolean {
-        mTargetView.getEditContent()?.getTextSequence()
-            ?.insert(text ?: "", getCursor().getCurrentRow(), getCursor().getCurrentCol())
-        getCursor().move(text?.length ?: 0)
-        mTargetView.getEditContent()?.pushAnalyseTask(getCursor().getCurrentRow())
-        invalidate()
+        Log.d(TAG, "commitText: $newCursorPosition")
+        if (getCursor().isSelecting()) {
+            mTargetView.getEditContent()?.replace(text ?: "")
+        } else {
+            mTargetView.getEditContent()?.insert(text ?: "")
+        }
         return true
     }
 
+
     override fun requestCursorUpdates(cursorUpdateMode: Int): Boolean {
+        Log.d(TAG, "requestCursorUpdates: $cursorUpdateMode")
         return true
+    }
+
+
+    override fun setImeConsumesInput(imeConsumesInput: Boolean): Boolean {
+        Log.d(TAG, "imeConsumesInput")
+        return super.setImeConsumesInput(imeConsumesInput)
+    }
+
+    override fun getSelectedText(flags: Int): CharSequence {
+        Log.d(TAG, "getSelectedText: $flags")
+        return ""
     }
 
     override fun sendKeyEvent(event: KeyEvent?): Boolean {
-        println(event)
-        event?.let { ev ->
-            if (ev.keyCode == KeyEvent.KEYCODE_DEL) {
-                if (ev.action == KeyEvent.ACTION_UP) {
-                    val pos = mTargetView.getEditContent()?.getTextSequence()
-                        ?.charIndex(getCursor().getCurrentRow(), getCursor().getCurrentCol())
-                    if (pos != null) {
-                        println(pos)
-                        mTargetView.getEditContent()?.getTextSequence()?.delete(pos - 1, pos)
-                        getCursor().move(-1)
-                    }
+        event?.run {
+            if (action == KeyEvent.ACTION_DOWN) {
+                when (event.keyCode) {
+                    KeyEvent.KEYCODE_SPACE -> commitText(" ", getCursorInfo().index)
+                    KeyEvent.KEYCODE_DEL -> onKeyDelDown()
+                    KeyEvent.KEYCODE_ENTER -> onKeyEnterDown()
+                    KeyEvent.KEYCODE_DPAD_LEFT -> getCursor().moveLeft()
+                    KeyEvent.KEYCODE_DPAD_UP -> getCursor().moveUp()
+                    KeyEvent.KEYCODE_DPAD_RIGHT -> getCursor().moveRight()
+                    KeyEvent.KEYCODE_DPAD_DOWN -> getCursor().moveDown()
                 }
             }
         }
-        return true
+        return true;
     }
 
-    override fun getTextBeforeCursor(length: Int, flags: Int): CharSequence? {
-        mTargetView.getEditContent()?.run {
-            getTextSequence().rowAtOrNull(mTargetView.getCursor().getCurrentRow())?.let {
-                return it.substring(
-                    max(
-                        0,
-                        mTargetView.getCursor().getCurrentCol() - length
-                    ) until min(it.length, mTargetView.getCursor().getCurrentCol())
-                )
-            }
-        }
-        return null
+    private fun onKeyDelDown() {
+        getEditContent()?.delete()
     }
 
-    override fun getTextAfterCursor(length: Int, flags: Int): CharSequence? {
-        mTargetView.getEditContent()?.run {
-            getTextSequence().rowAtOrNull(mTargetView.getCursor().getCurrentRow())?.let {
-                return it.substring(
-                    mTargetView.getCursor().getCurrentCol() until
-                            min(
-                                it.length,
-                                mTargetView.getCursor().getCurrentCol() + length
-                            )
-                )
-            }
-        }
-        return null
+    private fun onKeyEnterDown() {
+        commitText("\n", getCursorInfo().index)
     }
 
+    override fun performContextMenuAction(id: Int): Boolean {
+        println(id)
+        return super.performContextMenuAction(id)
+    }
+
+    override fun performEditorAction(actionCode: Int): Boolean {
+        return super.performEditorAction(actionCode)
+    }
+
+
+    override fun beginBatchEdit(): Boolean {
+        Log.d(TAG, "beginBatchEdit")
+        return super.beginBatchEdit()
+    }
+
+    override fun endBatchEdit(): Boolean {
+        Log.d(TAG, "endBatchEdit")
+        return super.endBatchEdit()
+    }
+
+    override fun setComposingText(text: CharSequence?, newCursorPosition: Int): Boolean {
+        Log.d(TAG, "setComposingText: $text, $newCursorPosition")
+        return super.setComposingText(text, newCursorPosition)
+    }
+
+    override fun finishComposingText(): Boolean {
+        Log.d(TAG, "finishComposingText")
+        return super.finishComposingText()
+    }
+
+    override fun setSelection(start: Int, end: Int): Boolean {
+        Log.d(TAG, "setSelection: $start, $end")
+        return super.setSelection(start, end)
+    }
     private fun getCursor() = mTargetView.getCursor()
+
+    private fun getCursorInfo() = mTargetView.getCursor().getCurrentInfo()
+
+    private fun getEditContent() = mTargetView.getEditContent()
 
     private fun invalidate() = mTargetView.invalidate()
 }

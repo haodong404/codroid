@@ -21,7 +21,6 @@
 package org.codroid.editor.decoration
 
 import android.graphics.Canvas
-import android.graphics.RectF
 
 interface ForegroundSpan : SpanDecoration, Drawable {
     override fun onDraw(canvas: Canvas, rect: SpanRect)

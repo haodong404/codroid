@@ -1,12 +1,13 @@
 package org.codroid.editor.graphics
 
-import android.animation.ValueAnimator
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import org.codroid.editor.*
 import org.codroid.editor.decoration.SpanRect
+import org.codroid.editor.utils.*
 import kotlin.math.ceil
+import kotlin.math.max
 
 class RowsRender(private val mEditor: CodroidEditor, private var mContent: EditContent? = null) {
     private val mTextPaint = TextPaint().apply {
@@ -17,14 +18,11 @@ class RowsRender(private val mEditor: CodroidEditor, private var mContent: EditC
     private val mLineAnchor = LineAnchor(mTextPaint)
     private var isWrapped = false
     private val mLineHeight = mTextPaint.getLineHeight()
-    private var mHighlightLine = 0
 
     /**
      * It might be changed by [org.codroid.editor.decoration.ReplacementSpan]
      */
     private var mLongestLineLength = 0F
-
-    private var mCurrentHeightLineTop = 0
 
     fun measure(): IntPair {
         mOffsetX = mTextPaint.measureText(mContent?.rows()?.toString() ?: "0") + 40
@@ -44,11 +42,15 @@ class RowsRender(private val mEditor: CodroidEditor, private var mContent: EditC
 
     private fun drawLineNumber(canvas: Canvas, index: Int) {
         mTextPaint.textAlign = Paint.Align.RIGHT
+        var tempPaint = mTextPaint.withBlackColor()
+        if (index == mEditor.getCursor().getCurrentLine()) {
+            tempPaint = mTextPaint.withColor(Color.RED)
+        }
         canvas.drawText(
             index.toString(),
             mOffsetX - 20,
             mLineAnchor.baseline,
-            mTextPaint.withBlackColor()
+            tempPaint
         )
         mTextPaint.textAlign = Paint.Align.LEFT
     }
@@ -56,101 +58,116 @@ class RowsRender(private val mEditor: CodroidEditor, private var mContent: EditC
     private fun drawing(canvas: Canvas) {
         mLineAnchor.resetByRow(mContent?.getVisibleRowsRange()?.getBegin() ?: 0)
         mContent?.forEach { row ->
-            if (mLineAnchor.lineNumber == mHighlightLine) {
+            if (mLineAnchor.lineNumber == mEditor.getCursor().getCurrentLine()) {
                 drawLineHighlight(canvas)
             }
             drawLineNumber(canvas, mLineAnchor.lineNumber)
+            drawSelection(canvas, row)
             var offsetXinLine = mOffsetX
             row.blocks.forEach { block ->
-                var blockWidth = mTextPaint.measureText(block.substring)
+                var blockWidth = mTextPaint.measureText(block.getSubstring())
                 var offset = blockWidth
                 var paint = mTextPaint
-                if (block.spans != null) {
+                block.getAssembledSpans()?.run {
                     val spanRect by lazy {
                         SpanRect(
                             offsetXinLine, mLineAnchor.top, offsetXinLine + blockWidth,
                             mLineAnchor.bottom, mLineAnchor.baseline
                         )
                     }
-                    if (block.spans.background != null) {
-                        block.spans.background!!.onDraw(canvas, spanRect)
+                    background.forEach { it.onDraw(canvas, spanRect) }
+                    foreground.forEach { it.onDraw(canvas, spanRect) }
+                    repaint?.run {
+                        paint = onRepaint(paint)
+                        blockWidth = paint.measureText(block.getSubstring())
                     }
-                    if (block.spans.foreground != null) {
-                        block.spans.foreground!!.onDraw(canvas, spanRect)
-                    }
-                    if (block.spans.repaint != null) {
-                        paint = block.spans.repaint!!.onRepaint(paint)
-                        blockWidth = paint.measureText(block.substring)
-                    }
-                    if (block.spans.replacement != null) {
-                        offset = block.spans.replacement!!.onReplacing(
-                            canvas, paint, spanRect, block.substring
+                    if (replacement.isNotEmpty()) {
+                        offset = replacement.last.onReplacing(
+                            canvas,
+                            paint,
+                            spanRect,
+                            block.getSubstring()
                         )
                     } else {
-                        canvas.drawText(block.substring, offsetXinLine, mLineAnchor.baseline, paint)
+                        canvas.drawText(
+                            block.getSubstring(),
+                            offsetXinLine,
+                            mLineAnchor.baseline,
+                            paint
+                        )
                     }
-                    offsetXinLine += offset
-                } else {
-                    canvas.drawText(
-                        block.substring,
-                        mOffsetX,
-                        mLineAnchor.baseline,
-                        mTextPaint.withBlackColor()
-                    )
-                }
+                } ?: canvas.drawText(
+                    block.getSubstring(),
+                    offsetXinLine,
+                    mLineAnchor.baseline,
+                    mTextPaint.withBlackColor()
+                )
+                offsetXinLine += offset
             }
             mLineAnchor.increase()
+        }
+    }
+
+    private fun drawSelection(canvas: Canvas, row: Row) {
+        if (row.selection != 0UL && mEditor.getCursor().isSelecting()) {
+            val left = mTextPaint.singleWidth() * row.selection.first()
+            val right = if (row.selection.second() != -1) {
+                mTextPaint.singleWidth() * row.selection.second()
+            } else {
+                mEditor.width.toFloat()
+            }
+            canvas.drawRect(
+                left + mOffsetX,
+                mLineAnchor.top,
+                right + mOffsetX,
+                mLineAnchor.bottom,
+                mTextPaint.withColor(Color.LTGRAY)
+            )
         }
     }
 
     private fun drawLineHighlight(canvas: Canvas) {
         canvas.drawRect(
             mOffsetX,
-            mCurrentHeightLineTop.toFloat(),
+            mEditor.getCursor().getCurrentInfo().row * getLineHeight(),
             mLongestLineLength,
-            mCurrentHeightLineTop + mLineAnchor.height(),
+            (mEditor.getCursor().getCurrentInfo().row + 1) * mLineAnchor.height(),
             mTextPaint.withColor(getHighlightColor())
         )
     }
 
-    private fun getHighlightColor(): Int = Color.LTGRAY
+    private fun getHighlightColor(): Int = Color.argb(0xA0, 0xDC, 0xDC, 0xDC)
 
-    fun focusRow(line: Int, originalPosition: IntPair) {
-        if (line != this.mHighlightLine) {
-            ValueAnimator.ofInt(
-                computeAbsolutePos(mHighlightLine, 0).first.toInt(),
-                computeAbsolutePos(line, 0).first.toInt()
-            ).run {
-                duration = 300
-                addUpdateListener {
-                    mCurrentHeightLineTop = animatedValue as Int
-                    mEditor.postInvalidateOnAnimation()
-                }
-                start()
-            }
-            this.mHighlightLine = line
-        }
+    fun focusRow(row: Int) {
+        // Do something like animation here if needed.
     }
 
     fun loadContent(content: EditContent) {
         this.mContent = content
     }
 
-    fun computeRowCol(position: IntPair): IntPair {
-        val row = ceil(position.first() / mLineAnchor.height()).toInt() - 1
+    fun computeRowCol(x: Float, y: Float): IntPair {
+        val row = ceil(y / mLineAnchor.height()).toInt() - 1
         val col =
-            ceil((position.second() - lineNumberOffset()) / mTextPaint.singleWidth()).toInt() - 1
-        return makePair(row, col)
+            ceil((x - lineNumberOffset()) / mTextPaint.singleWidth()).toInt()
+        return makePair(row, max(0, col))
     }
 
+    /**
+     * Returns the absolute position of specific row and col.
+     *
+     * @param row row
+     * @param col col
+     * @return a pair of x and y
+     */
     fun computeAbsolutePos(row: Int, col: Int): Pair<Float, Float> {
-        return row * mEditor.getLineHeight() to
-                col * mEditor.getSingleCharWidth() + mEditor.getRowsRender().lineNumberOffset()
+        return col * mEditor.getSingleCharWidth() + mEditor.getRowsRender().lineNumberOffset() to
+                row * mEditor.getLineHeight()
     }
 
     fun lineNumberOffset() = mOffsetX
 
-    fun getLineHeight() = mTextPaint.getLineHeight()
+    fun getLineHeight() = mLineAnchor.height()
 
     fun getSingleCharWidth() = mTextPaint.singleWidth()
 }

@@ -5,9 +5,9 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.newSingleThreadContext
-import org.codroid.editor.IntPair
-import org.codroid.editor.buffer.TextSequence
-import org.codroid.editor.makePair
+import org.codroid.editor.algorithm.TextSequence
+import org.codroid.editor.utils.IntPair
+import org.codroid.editor.utils.makePair
 import org.codroid.textmate.EmbeddedLanguagesMap
 import org.codroid.textmate.Registry
 import org.codroid.textmate.TokenizeLineResult2
@@ -42,16 +42,16 @@ class SyntaxAnalyser(rawTheme: RawTheme, private val mSequence: TextSequence, pa
 
     suspend fun analyze(startRow: Int = 0): Flow<Pair<IntPair, TokenizeLineResult2>> {
         // IntPair: first -> index of current row, second -> length of current row.
-        mLastEnd = startRow
+        mLastEnd = 0
         return flow {
             mTokenizer?.run {
                 var ruleStack = findStateStack(startRow)
                 for (rowIndex in startRow until mSequence.rows()) {
                     val current = mSequence.rowAt(rowIndex)
                     val result = tokenizeLine2(current, ruleStack, 0)
-                    emit(makePair(mLastEnd, current.length) to result)
                     ruleStack = result.ruleStack
-                    mStateStacks[mLastEnd] = result.ruleStack
+                    mStateStacks[rowIndex] = result.ruleStack
+                    emit(makePair(mLastEnd, current.length) to result)
                     mLastEnd += current.length
                 }
             }

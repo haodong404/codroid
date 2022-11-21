@@ -34,6 +34,7 @@ import android.view.View
 import android.widget.FrameLayout
 import android.widget.OverScroller
 import kotlinx.coroutines.*
+import org.codroid.editor.utils.*
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.roundToInt
@@ -52,7 +53,7 @@ class UnrestrainedScrollView : FrameLayout {
     }
 
     private val mMaximumVelocity: Float = 8000F
-    private var mIsScrolling = false
+    private var isScrolling = false
     private var mScrollThreshold = 5
     private var mLastMotion = Vector()
     private val mScroller = OverScroller(context)
@@ -109,6 +110,15 @@ class UnrestrainedScrollView : FrameLayout {
     // and will be cancelled when you scrolled again within a specific duration.
     private var mHiddenJob: Job? = null
     private val mHiddenDuration = 3000L
+    private var mHiddenTimer = Timer.create(mHiddenDuration, {
+        withContext(Dispatchers.Main) {
+            isHitHorizontalBar = false
+            isHitVerticalBar = false
+            mScrollBarVisibleAnimator.reverse()
+            isScrollBarHidden = true
+        }
+    })
+
     private val mScrollBarVisibleAnimator =
         ValueAnimator.ofArgb(Color.argb(0, 0xDC, 0xDC, 0xDC), mColorNormal).apply {
             duration = 300
@@ -120,6 +130,8 @@ class UnrestrainedScrollView : FrameLayout {
 
     private var mOnScrollWithRow: ((start: Int, old: Int) -> Unit)? = null
     private var mLastRow = 0
+
+    private var mInterceptedByChildEditor = false
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec)
@@ -163,40 +175,50 @@ class UnrestrainedScrollView : FrameLayout {
 
     override fun onInterceptTouchEvent(ev: MotionEvent?): Boolean {
         ev?.let {
-            if (ev.action == MotionEvent.ACTION_MOVE && mIsScrolling) {
+            if (ev.action == MotionEvent.ACTION_MOVE && isScrolling) {
                 return true
             }
             when (it.action) {
                 MotionEvent.ACTION_DOWN -> {
                     mLastMotion.reset(it.x.roundToInt(), it.y.roundToInt())
                     mScroller.computeScrollOffset()
-                    mIsScrolling = !mScroller.isFinished
-                    if (checkIsHitScrollBar(it)) {
-                        // A scroll bar is hit.
-                        mScrollBarColorAnimator.start()
-                        isScrollBarHidden = false
-                        mHiddenJob?.cancel()
-                        mHiddenJob = null
+                    isScrolling = !mScroller.isFinished
+                    if (getChildAsEditor()?.interceptParentScroll(
+                            mScrollCurrent.first() + ev.x,
+                            mScrollCurrent.second() + ev.y
+                        ) == true
+                    ) {
+                        mInterceptedByChildEditor = true
+                    } else {
+                        mInterceptedByChildEditor = false
+                        if (checkIsHitScrollBar(it)) {
+                            // A scroll bar is hit.
+                            mScrollBarColorAnimator.start()
+                            isScrollBarHidden = false
+                            mHiddenTimer.cancel()
+                        }
                     }
                 }
                 MotionEvent.ACTION_MOVE -> {
+                    if (mInterceptedByChildEditor) {
+                        return false
+                    }
                     val delta = mLastMotion.deltaFrom(it.x.roundToInt(), it.y.roundToInt())
                     if (abs(delta.x) >= mScrollThreshold || abs(delta.y) >= mScrollThreshold) {
                         parent?.run {
                             requestDisallowInterceptTouchEvent(true)
                         }
-                        mIsScrolling = true
+                        isScrolling = true
                         mLastMotion.reset(it.x.roundToInt(), it.y.roundToInt())
                     }
                 }
 
-                MotionEvent.ACTION_CANCEL,
                 MotionEvent.ACTION_UP -> {
-                    mIsScrolling = false;
+                    isScrolling = false;
                 }
             }
         }
-        return mIsScrolling || isHitVerticalBar || isHitHorizontalBar
+        return isScrolling || isHitVerticalBar || isHitHorizontalBar
     }
 
     private fun checkIsHitScrollBar(event: MotionEvent): Boolean {
@@ -213,7 +235,7 @@ class UnrestrainedScrollView : FrameLayout {
             mVelocityTracker!!.addMovement(event)
             when (it.action) {
                 MotionEvent.ACTION_DOWN -> {
-                    mIsScrolling = !mScroller.isFinished
+                    isScrolling = !mScroller.isFinished
                     if (!mScroller.isFinished) {
                         parent?.run {
                             requestDisallowInterceptTouchEvent(true)
@@ -234,8 +256,7 @@ class UnrestrainedScrollView : FrameLayout {
                         mScrollBarVisibleAnimator.start()
                         isScrollBarHidden = false
                     }
-                    mHiddenJob?.cancel()
-                    mHiddenJob = null
+                    mHiddenTimer.cancel()
                     if (isHitVerticalBar) {
                         overScrollBy(
                             0, -(delta.y * height / mBarHeight),
@@ -252,7 +273,7 @@ class UnrestrainedScrollView : FrameLayout {
                             0, 0,
                             false
                         )
-                    } else if (mIsScrolling) {
+                    } else if (isScrolling) {
                         overScrollBy(
                             delta.x, delta.y,
                             scrollX, scrollY,
@@ -268,8 +289,8 @@ class UnrestrainedScrollView : FrameLayout {
                 MotionEvent.ACTION_UP -> {
                     if (isHitHorizontalBar || isHitVerticalBar) {
                         mScrollBarColorAnimator.reverse()
-                    } else if (mIsScrolling) {
-                        mIsScrolling = false
+                    } else if (isScrolling) {
+                        isScrolling = false
                         mVelocityTracker!!.computeCurrentVelocity(1000, mMaximumVelocity)
                         fling(
                             Vector(
@@ -279,17 +300,7 @@ class UnrestrainedScrollView : FrameLayout {
                         )
                         recycleVelocityTracker()
                     }
-                    if (mHiddenJob == null) {
-                        mHiddenJob = CoroutineScope(Dispatchers.IO).launch {
-                            delay(mHiddenDuration)
-                            withContext(Dispatchers.Main) {
-                                isHitHorizontalBar = false
-                                isHitVerticalBar = false
-                                mScrollBarVisibleAnimator.reverse()
-                                isScrollBarHidden = true
-                            }
-                        }
-                    }
+                    mHiddenTimer.start()
                 }
             }
         }
@@ -399,7 +410,7 @@ class UnrestrainedScrollView : FrameLayout {
             0,
             range.y
         )
-        postInvalidateOnAnimation()
+        postInvalidate()
     }
 
     override fun onOverScrolled(scrollX: Int, scrollY: Int, clampedX: Boolean, clampedY: Boolean) {

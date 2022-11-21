@@ -1,5 +1,8 @@
 package org.codroid.editor
 
+import org.codroid.editor.utils.first
+import org.codroid.editor.utils.makePair
+import org.codroid.editor.utils.second
 import org.junit.Test
 import org.junit.Assert.*
 
@@ -25,5 +28,20 @@ class UtilsTest {
         val pairMix2 = makePair(0, Int.MAX_VALUE)
         assertEquals(0, pairMix2.first())
         assertEquals(Int.MAX_VALUE, pairMix2.second())
+    }
+
+    @Test
+    fun `negative value`() {
+        val pair = makePair(-1, -2)
+        assertEquals(-1, pair.first())
+        assertEquals(-2, pair.second())
+
+        val pair2 = makePair(3, -1)
+        assertEquals(3, pair2.first())
+        assertEquals(-1, pair2.second())
+
+        val pair3 = makePair(-1, 3)
+        assertEquals(-1, pair3.first())
+        assertEquals(3, pair3.second())
     }
 }

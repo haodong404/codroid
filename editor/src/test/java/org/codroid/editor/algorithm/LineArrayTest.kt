@@ -1,5 +1,7 @@
-package org.codroid.editor.buffer.linearr
+package org.codroid.editor.algorithm
 
+import org.codroid.editor.algorithm.linearr.LineArray
+import org.codroid.editor.utils.makePair
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -36,6 +38,8 @@ class LineArrayTest {
         mLineArray.insert("END", mLineArray.length())
         assertEquals("END", mLineArray.rowAt(mLineArray.rows() - 1))
         assertEquals(690, mLineArray.length())
+        mLineArray.insert("\n", mLineArray.length())
+        assertEquals(691, mLineArray.length())
     }
 
     @Test
@@ -57,21 +61,21 @@ class LineArrayTest {
 
     @Test
     fun delete() {
-        mLineArray.delete(0, 42)
+        mLineArray.delete(0 until 42)
         assertEquals(26, mLineArray.rows())
         assertEquals(628, mLineArray.length())
         assertEquals("", mLineArray.rowAt(0))
 
-        mLineArray.delete(0, 1)
+        mLineArray.delete(0 until 1)
         assertEquals(25, mLineArray.rows())
         assertEquals(627, mLineArray.length())
 
-        mLineArray.delete(0, 2)
+        mLineArray.delete(0 until 2)
         assertEquals(23, mLineArray.rows())
         assertEquals(625, mLineArray.length())
         assertEquals("import org.codroid.interfaces.log.Logger;", mLineArray.rowAt(0))
 
-        mLineArray.delete(33, 58)
+        mLineArray.delete(33 until 58)
         assertEquals(20, mLineArray.rows())
         assertEquals(600, mLineArray.length())
         assertEquals(
@@ -83,24 +87,24 @@ class LineArrayTest {
 
     @Test
     fun replace() {
-        mLineArray.replace("Hello ", 0, 0)
+        mLineArray.replace("Hello ", 0 until 0)
         assertEquals("Hello package org.codroid.interfaces.exceptions;", mLineArray.rowAt(0))
         assertEquals(26, mLineArray.rows())
         assertEquals(676, mLineArray.length())
 
-        mLineArray.replace("LINE", 49, 49)
+        mLineArray.replace("LINE", 49 until 49)
         assertEquals("LINE", mLineArray.rowAt(1))
         assertEquals(26, mLineArray.rows())
         assertEquals(680, mLineArray.length())
 
-        mLineArray.replace("Line2\nLine3\nLine4", 55, 61)
+        mLineArray.replace("Line2\nLine3\nLine4", 55 until 61)
         assertEquals(28, mLineArray.rows())
         assertEquals(691, mLineArray.length())
         assertEquals("Line2", mLineArray.rowAt(3))
         assertEquals("Line3", mLineArray.rowAt(4))
         assertEquals("Line4 org.codroid.interfaces.log.Logger;", mLineArray.rowAt(5))
 
-        mLineArray.replace("RUIN", 0, mLineArray.length())
+        mLineArray.replace("RUIN", 0 until mLineArray.length())
         assertEquals(1, mLineArray.rows())
         assertEquals(4, mLineArray.length())
     }
@@ -160,7 +164,7 @@ class LineArrayTest {
                     " */"
         )
 
-        seq.delete(1, 0)
+        seq.delete(1 until 0)
         assertEquals(8, seq.rows())
         assertEquals(43 + 2 + 43 + 4 + 85 + 3, seq.length())
         assertEquals("package org.codroid.interfaces.exceptions;", seq.rowAt(0))
@@ -182,5 +186,71 @@ class LineArrayTest {
         for ((index, line) in seq.withIndex()) {
             assertEquals(seq.rowAt(index), line)
         }
+    }
+
+    @Test
+    fun `test charIndex`() {
+        val seq = LineArray(
+            "package org.codroid.interfaces.exceptions;\n" +
+                    "\n" +
+                    "\n" +
+                    "import org.codroid.interfaces.log.Logger;\n" +
+                    "\n" +
+                    "/**\n" +
+                    " * This is a superclass that should only be inherited by the exceptions about addon.\n" +
+                    " */"
+        )
+        assertEquals(-1, seq.charIndex(0, 0))
+        assertEquals(0, seq.charIndex(0, 1))
+        assertEquals(5, seq.charIndex(0, 6))
+        assertEquals(41, seq.charIndex(0, 42))
+        assertEquals(42, seq.charIndex(1, 0)) // New line
+        assertEquals(47, seq.charIndex(3, 3))
+        assertEquals(179, seq.charIndex(7, 3))
+    }
+
+    @Test
+    fun `test get row and col`() {
+        val seq = LineArray(
+            "package org.codroid.interfaces.exceptions;\n" +
+                    "\n" +
+                    "\n" +
+                    "import org.codroid.interfaces.log.Logger;\n" +
+                    "\n" +
+                    "/**\n" +
+                    " * This is a superclass that should only be inherited by the exceptions about addon.\n" +
+                    " */"
+        )
+        assertEquals(makePair(0, 0), seq.getRowAndCol(-1))
+        assertEquals(makePair(0, 1), seq.getRowAndCol(0))
+        assertEquals(makePair(0, 6), seq.getRowAndCol(5))
+        assertEquals(makePair(1, 0), seq.getRowAndCol(42))
+        assertEquals(makePair(3, 3), seq.getRowAndCol(47))
+        assertEquals(makePair(7, 3), seq.getRowAndCol(179))
+    }
+
+    @Test
+    fun `can map after editing`() {
+        val seq = LineArray(
+            "package org.codroid.interfaces.exceptions;\n" +
+                    "\n" +
+                    "\n" +
+                    "import org.codroid.interfaces.log.Logger;\n" +
+                    "\n" +
+                    "/**\n" +
+                    " * This is a superclass that should only be inherited by the exceptions about addon.\n" +
+                    " */"
+        )
+        assertEquals(42, seq.charIndex(1, 0))
+        assertEquals(makePair(1, 0), seq.getRowAndCol(42))
+        seq.insert("Hello", 0)
+        assertEquals(47, seq.charIndex(1, 0))
+        assertEquals(makePair(1, 0), seq.getRowAndCol(47))
+        seq.insert("World", 48)
+        assertEquals(52, seq.charIndex(1, 5))
+        assertEquals(makePair(1, 5), seq.getRowAndCol(52))
+        seq.delete(0 until 50)
+        assertEquals(seq.length() - 1, seq.charIndex(6, 3))
+        assertEquals(makePair(6, 3), seq.getRowAndCol(seq.length() - 1))
     }
 }

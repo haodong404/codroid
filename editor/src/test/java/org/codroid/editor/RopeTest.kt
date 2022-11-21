@@ -19,7 +19,6 @@
 
 package org.codroid.editor
 
-import org.codroid.editor.algorithm.rope.Rope
 import org.junit.Test
 
 /**
