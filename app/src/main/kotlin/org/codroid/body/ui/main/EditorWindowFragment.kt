@@ -29,6 +29,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.codroid.body.databinding.FragmentEditorWindowBinding
+import org.codroid.interfaces.addon.AddonManager
+import org.codroid.interfaces.preference.CodroidPreferenceGroup
 import java.io.File
 import java.nio.file.Path
 

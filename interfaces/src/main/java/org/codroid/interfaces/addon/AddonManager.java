@@ -91,11 +91,8 @@ public final class AddonManager extends CodroidEnv {
         try {
             var preferences = this.context.getAssets().list("preferences");
             for (String preference : preferences) {
-                if (TextUtils.equals(preference, "text-editor.toml")) {
-                    var inputStream = this.context.getAssets().open("preferences/" + preference);
-                    codroidPreferences.put(CodroidPreferenceGroup.TEXT_EDITOR,
-                            new PreferenceProperty("preference-text-editor-kv", getPreferencesDir().getPath(), inputStream));
-                }
+                var inputStream = this.context.getAssets().open("preferences/" + preference);
+                registerCodroidPreference(preference, inputStream);
             }
         } catch (IOException e) {
             e.printStackTrace();

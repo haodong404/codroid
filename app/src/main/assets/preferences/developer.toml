@@ -1,0 +1,6 @@
+title = "Developer"
+
+[settings."editor_info"]
+category = "switch"
+title = "Display the editor's information"
+defaultValue = false

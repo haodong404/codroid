@@ -30,6 +30,7 @@ import org.codroid.interfaces.preference.PreferenceProperty;
 import org.codroid.interfaces.utils.PathUtils;
 
 import java.io.File;
+import java.io.InputStream;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
@@ -166,6 +167,13 @@ public abstract class CodroidEnv implements Loggable {
 
     public Map<CodroidPreferenceGroup, PreferenceProperty> getCodroidPreferences() {
         return this.codroidPreferences;
+    }
+
+    public void registerCodroidPreference(String name, InputStream stream) {
+        CodroidPreferenceGroup group = CodroidPreferenceGroup.fromFilename(name);
+        if (group != null) {
+            this.codroidPreferences.put(group, new PreferenceProperty("preference" + name.split("\\.")[0] + "-kv", getPreferencesDir().getPath(), stream));
+        }
     }
 
     public Map<String, PreferenceProperty> getCustomPreferences() {
