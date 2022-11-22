@@ -33,7 +33,6 @@ import org.codroid.editor.decoration.*
 import org.codroid.editor.graphics.Cursor
 import org.codroid.editor.utils.*
 import org.codroid.editor.utils.Timer
-import org.codroid.textmate.EncodedTokenAttributes
 import java.nio.file.Path
 import java.util.*
 import kotlin.collections.ArrayList
@@ -127,32 +126,32 @@ class EditContent(
         mDecorator.removeSpan(
             getCursor().getCurrentInfo().rowNode,
             getCursor().getCurrentInfo().column - 1,
-            getCursor().getSelectRange().length()
+            getCursor().getSelectedRange().length()
         )
-        mTextSequence.delete(getCursor().getSelectRange())
-        if (getCursor().isSelecting()) {
-            getCursor().moveCursorBy(getCursor().getSelectRange().length())
-        } else {
-            getCursor().moveCursorBy(-1)
-        }
+        mTextSequence.delete(getCursor().getSelectedRange())
+        updateCursor(-1)
         refreshSyntax()
     }
 
     // Start: inclusive; End: exclusive
     fun replace(content: CharSequence) {
-        mTextSequence.getRowAndCol(getCursor().getSelectRange().first).run {
+        if (content.isEmpty()) {
+            delete()
+            return
+        }
+        mTextSequence.getRowAndCol(getCursor().getSelectedRange().first).run {
             mDecorator.removeSpan(
                 first(),
                 second(),
-                getCursor().getSelectRange().length()
+                getCursor().getSelectedRange().length()
             )
             mTextSequence.replace(
                 content,
-                getCursor().getSelectRange()
+                getCursor().getSelectedRange()
             )
-            refreshSyntax()
         }
-        getCursor().moveCursorBy(content.length, content.contains("\n"))
+        updateCursor(content.length - 1, content == "\n")
+        refreshSyntax()
     }
 
     fun insert(content: CharSequence) {
@@ -166,8 +165,20 @@ class EditContent(
             )?.length ?: 0),
             multiRow.size
         )
-        getCursor().moveCursorBy(content.length, content == "\n")
+        updateCursor(content.length, content == "\n")
         refreshSyntax()
+    }
+
+    private fun updateCursor(offset: Int, newLine: Boolean = false) {
+        if (getCursor().isSelecting()) {
+            getCursor().moveCursor(
+                getCursor().getCurrentInfo().selectedStart.first(),
+                getCursor().getCurrentInfo().selectedStart.second() + offset,
+                getCursor().getCurrentInfo().selectedRange.first + offset
+            )
+        } else {
+            getCursor().moveCursorBy(offset, newLine)
+        }
     }
 
     private fun refreshSyntax() {
@@ -227,6 +238,8 @@ class EditContent(
         private var mCurrentRow = getVisibleRowsRange().getBegin()
         private var mRowNodeIt: RowNodeIterator? = null
         private var mLastStartIndex = mTextSequence.charIndex(getVisibleRowsRange().getBegin(), 1)
+        private val mSelectedRowsRange =
+            getCursor().getCurrentInfo().selectedStart.first()..getCursor().getCurrentInfo().selectedEnd.first()
 
         override fun hasNext() = mCurrentRow <= getVisibleRowsRange().getEnd()
 
@@ -248,22 +261,22 @@ class EditContent(
             mTextSequence.rowAtOrNull(row)?.let { line ->
                 var newBlock = Block()
                 val range = mLastStartIndex..(mLastStartIndex + line.length)
-                if (getCursor().isSelecting() &&
-                    getCursor().getSelectRange().hasIntersection(range)
-                ) {
-                    val selectionStart = if (getCursor().getSelectRange().first in range) {
-                        getCursor().getSelectRange().first - mLastStartIndex
-                    } else {
-                        0
-                    }
-                    val selectionEnd = if (getCursor().getSelectRange().endExclusive() in range) {
-                        getCursor().getSelectRange().endExclusive() - mLastStartIndex
+                var left = 0
+                var right = 0
+                if (row in mSelectedRowsRange) {
+                    left = if (row == getCursor().getCurrentInfo().selectedStart.first()) {
+                        getCursor().getCurrentInfo().selectedStart.second()
                     } else {
                         -1
                     }
-                    selection = makePair(selectionStart, selectionEnd)
-                }
 
+                    right = if (row == getCursor().getCurrentInfo().selectedEnd.first()) {
+                        getCursor().getCurrentInfo().selectedEnd.second()
+                    } else {
+                        -1
+                    }
+                }
+                selection = makePair(left, right)
                 mLastStartIndex = range.endExclusive()
                 for ((index, item) in line.withIndex()) {
                     val temp = mDecorator.findCharacterSpan(spans?.getOrNull(index) ?: 0u)

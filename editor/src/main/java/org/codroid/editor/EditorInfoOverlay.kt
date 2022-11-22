@@ -29,7 +29,7 @@ class EditorInfoOverlay(private var mInfo: String) : Overlay {
     }
 
     override fun onDraw(canvas: ScrollOverlayCanvas) {
-        val width = mTextPaint.singleWidth() * 25
+        val width = mTextPaint.singleWidth() * 30
         val height = mTextPaint.getLineHeight() * mInfo.lines().size
         val padding = 10F
         canvas.drawRect(

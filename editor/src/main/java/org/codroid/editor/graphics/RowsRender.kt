@@ -110,7 +110,7 @@ class RowsRender(private val mEditor: CodroidEditor, private var mContent: EditC
 
     private fun drawSelection(canvas: Canvas, row: Row) {
         if (row.selection != 0UL && mEditor.getCursor().isSelecting()) {
-            val left = mTextPaint.singleWidth() * row.selection.first()
+            val left = mTextPaint.singleWidth() * max(0, (row.selection.first() - 1))
             val right = if (row.selection.second() != -1) {
                 mTextPaint.singleWidth() * row.selection.second()
             } else {

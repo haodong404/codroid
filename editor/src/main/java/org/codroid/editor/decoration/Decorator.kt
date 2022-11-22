@@ -67,6 +67,9 @@ class Decorator {
                     metadata
                 }
                 for (i in range) {
+                    if (i !in 0 until size) {
+                        break
+                    }
                     add(i, temp);
                 }
             }

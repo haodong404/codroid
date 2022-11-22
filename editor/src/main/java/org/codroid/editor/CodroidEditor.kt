@@ -22,7 +22,6 @@ package org.codroid.editor
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
-import android.graphics.Color
 import android.graphics.Typeface
 import android.text.InputType
 import android.util.AttributeSet
@@ -43,11 +42,7 @@ import org.codroid.editor.analysis.registerGrammar
 import org.codroid.editor.analysis.registerLanguage
 import org.codroid.editor.graphics.Cursor
 import org.codroid.editor.graphics.RowsRender
-import org.codroid.editor.graphics.TextPaint
-import org.codroid.editor.utils.endExclusive
-import org.codroid.editor.utils.first
-import org.codroid.editor.utils.intPair2Str
-import org.codroid.editor.utils.second
+import org.codroid.editor.utils.*
 import org.codroid.interfaces.addon.AddonManager
 import org.codroid.interfaces.preference.CodroidPreferenceGroup
 import org.codroid.textmate.parseJson
@@ -207,18 +202,15 @@ class CodroidEditor : View, LifecycleOwner {
                 }
                 mEditorInfoOverlay?.let(::addOverlay)
             }
+            getCursor().moveCursor(0, 0, -1)
             getCursor().addCursorChangedListener {
-                if (!getCursor().isSelecting()) {
-                    mEditorInfoOverlay?.run {
-                        refreshContent(
-                            "Index: ${it.index}\n" +
-                                    "Length of line: ${it.lineLength}\n" +
-                                    "Row: ${it.row}, Column: ${it.column}\n" +
-                                    "Total lines: ${getEditContent()?.rows()}\n" +
-                                    "Length: ${getEditContent()?.length()}"
-                        )
-                        getParentAsUnrestrainedScroll()?.invalidate()
-                    }
+                mEditorInfoOverlay?.run {
+                    refreshContent(
+                        "${getCursor().getCurrentInfo().toPrettyString()}\n\n" +
+                                "Total lines: ${getEditContent()?.rows()}\n" +
+                                "Length: ${getEditContent()?.length()}"
+                    )
+                    getParentAsUnrestrainedScroll()?.invalidate()
                 }
             }
         }
@@ -323,7 +315,7 @@ class CodroidEditor : View, LifecycleOwner {
         select(x, y)
     }
 
-    private val mNoWordsRegex = Regex("\\W")
+    private val mNotWordRegex = Regex("\\W")
     private fun select(x: Float, y: Float) {
         getRowsRender().computeRowCol(x, y).run {
             val row = min(mEditContent?.getTextSequence()?.rows() ?: 0, first())
@@ -333,16 +325,16 @@ class CodroidEditor : View, LifecycleOwner {
                 val col = min(line.length - 1, second())
                 val startDeffer = lifecycleScope.async {
                     for (i in col downTo 0) {
-                        if (mNoWordsRegex.containsMatchIn(line[i].toString())) {
-                            return@async i + 1
+                        if (mNotWordRegex.containsMatchIn(line[i].toString())) {
+                            return@async i + 2
                         }
                     }
-                    return@async 0
+                    return@async 1
                 }
 
                 val endDeffer = lifecycleScope.async {
                     for (i in col until line.length) {
-                        if (mNoWordsRegex.containsMatchIn(line[i].toString())) {
+                        if (mNotWordRegex.containsMatchIn(line[i].toString())) {
                             return@async i
                         }
                     }
@@ -360,14 +352,6 @@ class CodroidEditor : View, LifecycleOwner {
                         end = temp
                     }
                     getCursor().select(row, start, row, end)
-                    mEditorInfoOverlay?.run {
-                        refreshContent(
-                            "[SELECTING]\n" +
-                                    "Start: ($row, $start)\n" +
-                                    "End: ($row, $end)"
-                        )
-                        getParentAsUnrestrainedScroll()?.invalidate()
-                    }
                 }
             }
         }
@@ -414,8 +398,8 @@ class CodroidEditor : View, LifecycleOwner {
 
     override fun onCreateInputConnection(outAttrs: EditorInfo?): InputConnection {
         outAttrs?.run {
-            initialSelStart = mCursor.getSelectRange().first
-            initialSelEnd = mCursor.getSelectRange().endExclusive()
+            initialSelStart = mCursor.getSelectedRange().first
+            initialSelEnd = mCursor.getSelectedRange().endExclusive()
             imeOptions = EditorInfo.IME_FLAG_NO_EXTRACT_UI
             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE
         }
