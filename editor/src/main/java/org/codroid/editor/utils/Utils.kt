@@ -124,3 +124,10 @@ data class Row(val blocks: LinkedList<Block> = LinkedList(), var selection: IntP
     }
 
 }
+
+/**
+ * A description for a content.
+ * @param name the full name, e.g. name.cpp, or Makefile
+ * @param extension e.g. cpp (without the .(dot)), or an empty string if it's not exists.
+ */
+data class ContentDescription(val name: String, val extension: String)

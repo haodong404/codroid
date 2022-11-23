@@ -49,8 +49,11 @@ import org.codroid.textmate.parseJson
 import org.codroid.textmate.parsePLIST
 import org.codroid.textmate.parseRawGrammar
 import org.codroid.textmate.theme.RawTheme
+import java.io.IOException
 import java.io.InputStream
+import java.io.OutputStream
 import java.nio.file.Path
+import kotlin.io.path.extension
 import kotlin.math.ceil
 import kotlin.math.min
 
@@ -206,7 +209,8 @@ class CodroidEditor : View, LifecycleOwner {
                     refreshContent(
                         "${getCursor().getCurrentInfo().toPrettyString()}\n" +
                                 "Total lines: ${getEditContent()?.rows()}\n" +
-                                "Length: ${getEditContent()?.length()}"
+                                "Length: ${getEditContent()?.length()}\n" +
+                                "Charset: UTF-8"
                     )
                     getParentAsUnrestrainedScroll()?.invalidate()
                 }
@@ -360,13 +364,56 @@ class CodroidEditor : View, LifecycleOwner {
         }
     }
 
-    fun load(input: InputStream, path: Path) {
-        mEditContent =
-            EditContent(LineArray(input), path, this, mVisibleRows)
+    fun load(input: InputStream, description: ContentDescription) {
+        mEditContent = EditContent(LineArray(input), description, this, mVisibleRows)
         mRowsRender.loadContent(mEditContent!!)
         lifecycleScope.launch(Dispatchers.Main) {
             requestLayout()
             invalidate()
+        }
+    }
+
+    fun load(path: Path) {
+        path.toFile().inputStream()
+            .buffered()
+            .use {
+                load(it, ContentDescription(path.fileName.toString(), path.extension))
+            }
+    }
+
+    fun loadAsync(path: Path, callback: (err: Exception?) -> Unit) {
+        lifecycleScope.launch(Dispatchers.IO) {
+            var exception: Exception? = null
+            try {
+                load(path)
+            } catch (err: IOException) {
+                exception = err
+            } finally {
+                withContext(Dispatchers.Main) {
+                    callback(exception)
+                }
+            }
+        }
+    }
+
+    fun save(output: OutputStream) {
+        getEditContent()?.getTextSequence()?.run {
+            output.write(toString().toByteArray())
+        }
+    }
+
+    fun saveAsync(path: Path, callback: (err: Exception?) -> Unit) {
+        lifecycleScope.launch(Dispatchers.IO) {
+            var exception: Exception? = null
+            try {
+                save(path.toFile().outputStream())
+            } catch (err: IOException) {
+                exception = err
+            } finally {
+                withContext(Dispatchers.Main) {
+                    callback(exception)
+                }
+            }
         }
     }
 

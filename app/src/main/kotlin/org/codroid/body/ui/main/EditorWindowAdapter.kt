@@ -65,7 +65,11 @@ class EditorWindowAdapter(fragmentManager: FragmentManager, lifecycle: Lifecycle
     }
 
     fun findPathByPosition(position: Int): Path {
-        return data[position].path
+        return findFragmentByPosition(position).path
+    }
+
+    fun findFragmentByPosition(position: Int): EditorWindowFragment {
+        return data[position]
     }
 
     fun findPositionByPath(path: Path): Int {

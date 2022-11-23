@@ -182,6 +182,11 @@ class MainActivity : AppCompatActivity() {
             true
         }
 
+        R.id.action_save -> {
+            mWindowHelper.getCurrentPage().save()
+            true
+        }
+
         else -> {
             super.onOptionsItemSelected(item)
         }

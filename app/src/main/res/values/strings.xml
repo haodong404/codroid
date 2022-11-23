@@ -8,4 +8,5 @@
     <string name="dialog_accept">Accept</string>
     <string name="dialog_cancel">Cancel</string>
     <string name="addon_manager_title">Addon Manager</string>
+    <string name="app_save">Save</string>
 </resources>

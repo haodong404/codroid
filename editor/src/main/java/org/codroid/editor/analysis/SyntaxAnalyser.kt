@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.newSingleThreadContext
 import org.codroid.editor.algorithm.TextSequence
+import org.codroid.editor.utils.ContentDescription
 import org.codroid.editor.utils.IntPair
 import org.codroid.editor.utils.makePair
 import org.codroid.textmate.EmbeddedLanguagesMap
@@ -19,7 +20,11 @@ import java.util.*
 import kotlin.io.path.extension
 
 @OptIn(DelicateCoroutinesApi::class)
-class SyntaxAnalyser(rawTheme: RawTheme, private val mSequence: TextSequence, path: Path) {
+class SyntaxAnalyser(
+    rawTheme: RawTheme,
+    private val mSequence: TextSequence,
+    contentDescription: ContentDescription
+) {
 
     // It presents the end position of all the tokenized text.
     private var mLastEnd = 0
@@ -37,7 +42,7 @@ class SyntaxAnalyser(rawTheme: RawTheme, private val mSequence: TextSequence, pa
             resolver = Resolver(rawTheme)
             registry = Registry(resolver!!)
         }
-        mTokenizer = prepareTokenizer(path)
+        mTokenizer = prepareTokenizer(contentDescription)
     }
 
     suspend fun analyze(startRow: Int = 0): Flow<Pair<IntPair, TokenizeLineResult2>> {
@@ -62,11 +67,11 @@ class SyntaxAnalyser(rawTheme: RawTheme, private val mSequence: TextSequence, pa
         return mStateStacks[rowIndex - 1] ?: StateStack.Null
     }
 
-    private fun prepareTokenizer(path: Path): Tokenizer? {
+    private fun prepareTokenizer(contentDescription: ContentDescription): Tokenizer? {
         resolver?.run {
-            var language = findLanguageByExtension(".${path.extension}")
+            var language = findLanguageByExtension(".${contentDescription.extension}")
             if (language == null) {
-                language = findLanguageByFilename(path.fileName.toString())
+                language = findLanguageByFilename(contentDescription.name)
             }
             if (language == null) {
                 return null

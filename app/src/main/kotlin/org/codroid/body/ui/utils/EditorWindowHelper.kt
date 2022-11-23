@@ -36,7 +36,8 @@ class EditorWindowHelper(private val viewpager: ViewPager2, private val tab: Rec
     private var tabAdapter: WindowTabAdapter = tab.adapter as WindowTabAdapter
 
     private var closeListener: ((Path, Int) -> Unit)? = null
-    private var changedListener: ((Int, Int) -> Unit)? = null //The first int is the new position and the other is the old position.
+    private var changedListener: ((Int, Int) -> Unit)? =
+        null //The first int is the new position and the other is the old position.
 
     init {
         viewpager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
@@ -68,11 +69,13 @@ class EditorWindowHelper(private val viewpager: ViewPager2, private val tab: Rec
 
     fun change(path: Path) {
         (viewpager.adapter as EditorWindowAdapter).findPositionByPath(path).let {
-            if (it != -1){
+            if (it != -1) {
                 change(it)
             }
         }
     }
+
+    fun getCurrentPage() = getWindowAdapter().findFragmentByPosition(mCurrentPosition)
 
     private fun changePage() {
         if (viewpager.currentItem != mCurrentPosition)
@@ -88,13 +91,15 @@ class EditorWindowHelper(private val viewpager: ViewPager2, private val tab: Rec
         }
     }
 
+    private fun getWindowAdapter() = viewpager.adapter as EditorWindowAdapter
+
     /**
      * Add a new window.
      * @param path
      */
     fun newWindow(path: Path) {
         if (!isExists(path)) {
-            (viewpager.adapter as EditorWindowAdapter).addFragments(listOf(EditorWindowFragment(path)))
+            getWindowAdapter().addFragments(listOf(EditorWindowFragment(path)))
             tabAdapter.addData(path)
         }
     }

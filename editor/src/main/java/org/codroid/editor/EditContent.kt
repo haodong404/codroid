@@ -43,7 +43,7 @@ import kotlin.time.Duration
 @OptIn(ExperimentalUnsignedTypes::class)
 class EditContent(
     private val mTextSequence: TextSequence,
-    mPath: Path,
+    contentDescription: ContentDescription,
     private val mEditor: CodroidEditor,
     visibleLines: Int = 10,
 ) : Iterable<Row> {
@@ -53,7 +53,7 @@ class EditContent(
         RowsRange(visibleLines)
     }
 
-    private val mSyntaxAnalyser = SyntaxAnalyser(mEditor.theme!!, mTextSequence, mPath)
+    private val mSyntaxAnalyser = SyntaxAnalyser(mEditor.theme!!, mTextSequence, contentDescription)
     private val mStartRowChannel = Channel<Pair<Int, RowNode?>>(CONFLATED)
     private val isSyntaxAnalyserEnabled = true
     private var mCursorRowNode: RowNode? = null
