@@ -21,8 +21,8 @@ class Cursor(private val mEditor: CodroidEditor) {
     }
 
     data class CurrentInfo(
-        var index: Int = 0,
-        var row: Int = 1,
+        var index: Int = -1,
+        var row: Int = 0,
         var column: Int = 0,
         var lineLength: Int = 0,
         var rowNode: RowNode? = null,
@@ -45,13 +45,15 @@ class Cursor(private val mEditor: CodroidEditor) {
         }
 
         fun toPrettyString(): String {
-            return "Cursor info: ${if (isSelecting) "SELECTING" else ""}\n\n" +
+            return "CURSOR INFO: ${if (isSelecting) "SELECTING" else ""}\n" +
+                    "--------------------\n" +
                     "Index: $index\n" +
                     "Row: $row, Column: $column\n" +
                     "Length of line: $lineLength\n" +
                     "Selected start: ${selectedRange.first}(${selectedStart.first()}, ${selectedStart.second()})\n" +
                     "Selected end: ${selectedRange.last}(${selectedEnd.first()}, ${selectedEnd.second()})\n" +
-                    "Selected length: ${selectedRange.length()}"
+                    "Selected length: ${selectedRange.length()}\n" +
+                    "---------------------"
         }
     }
 
@@ -108,12 +110,16 @@ class Cursor(private val mEditor: CodroidEditor) {
     private val mCursorHandleRadius = 25F
 
     init {
+
+        mEditor.lifecycleScope.launchWhenCreated {
+            mBlinkingTimer.start()
+        }
+    }
+
+    fun measure() {
         mEditor.getRowsRender().computeAbsolutePos(mCurrentInfo.row, mCurrentInfo.column).let {
             mCoordinateLeft = it.first
             mCoordinateTop = it.second
-        }
-        mEditor.lifecycleScope.launchWhenCreated {
-            mBlinkingTimer.start()
         }
     }
 
@@ -192,7 +198,7 @@ class Cursor(private val mEditor: CodroidEditor) {
         col: Int = mCurrentInfo.column,
         index: Int? = null
     ) {
-        if (row == mCurrentInfo.row && col == mCurrentInfo.column) {
+        if (row == mCurrentInfo.row && col == mCurrentInfo.column && mCurrentInfo.index == index) {
             return
         }
         getTextSequence()?.run {
@@ -212,11 +218,11 @@ class Cursor(private val mEditor: CodroidEditor) {
             mCurrentInfo.rowNode = getEditContent()?.rowNodeAt(mCurrentInfo.row)
             val temp =
                 mEditor.getRowsRender().computeAbsolutePos(mCurrentInfo.row, mCurrentInfo.column)
+            mCurrentInfo.resetSelection()
             moveCursorByCoordinate(
                 temp.first,
                 temp.second
             )
-            resetSelection()
             mCursorListeners.forEach {
                 it.invoke(mCurrentInfo)
             }
@@ -247,11 +253,17 @@ class Cursor(private val mEditor: CodroidEditor) {
     }
 
     fun moveLeft() {
-        moveCursorBy(-1)
+        if (isSelecting()) {
+            stopSelecting()
+        } else {
+            moveCursorBy(-1)
+        }
     }
 
     fun moveUp() {
-        if (mCurrentInfo.row != 0) {
+        if (isSelecting()) {
+            stopSelecting()
+        } else if (mCurrentInfo.row != 0) {
             moveCursor(
                 mCurrentInfo.row - 1,
                 min(
@@ -263,17 +275,33 @@ class Cursor(private val mEditor: CodroidEditor) {
     }
 
     fun moveRight() {
-        moveCursorBy(1)
+        if (isSelecting()) {
+            stopSelecting()
+        } else {
+            moveCursorBy(1)
+        }
     }
 
     fun moveDown() {
-        if (mCurrentInfo.row != ((getTextSequence()?.rows() ?: 0) - 1)) {
+        if (isSelecting()) {
+            stopSelecting()
+        } else if (mCurrentInfo.row != ((getTextSequence()?.rows() ?: 0) - 1)) {
             moveCursor(
                 mCurrentInfo.row + 1,
                 min(
                     getTextSequence()?.rowAt(mCurrentInfo.row + 1)?.length ?: 0,
                     mCurrentInfo.column
                 )
+            )
+        }
+    }
+
+    fun stopSelecting() {
+        if (isSelecting()) {
+            moveCursor(
+                mCurrentInfo.selectedStart.first(),
+                mCurrentInfo.selectedStart.second() - 1,
+                mCurrentInfo.selectedRange.first - 1
             )
         }
     }

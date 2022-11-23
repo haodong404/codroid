@@ -183,12 +183,11 @@ class CodroidEditor : View, LifecycleOwner {
         }
         typeface = DefaultTypeface
         lifecycleScope.launchWhenCreated {
-            mEditorInfoOverlay =
-                if (mDeveloperPreference.getBoolean("editor_info")) {
-                    EditorInfoOverlay("READY")
-                } else {
-                    null
-                }
+            mEditorInfoOverlay = if (mDeveloperPreference.getBoolean("editor_info")) {
+                EditorInfoOverlay("READY")
+            } else {
+                null
+            }
             getParentAsUnrestrainedScroll()?.run {
                 setOnScrollWithRowListener { start, old ->
                     mEditContent?.getVisibleRowsRange()?.let {
@@ -202,11 +201,10 @@ class CodroidEditor : View, LifecycleOwner {
                 }
                 mEditorInfoOverlay?.let(::addOverlay)
             }
-            getCursor().moveCursor(0, 0, -1)
             getCursor().addCursorChangedListener {
                 mEditorInfoOverlay?.run {
                     refreshContent(
-                        "${getCursor().getCurrentInfo().toPrettyString()}\n\n" +
+                        "${getCursor().getCurrentInfo().toPrettyString()}\n" +
                                 "Total lines: ${getEditContent()?.rows()}\n" +
                                 "Length: ${getEditContent()?.length()}"
                     )
@@ -220,8 +218,13 @@ class CodroidEditor : View, LifecycleOwner {
         mRowsRender.measure().run {
             setMeasuredDimension(first(), second())
         }
+        mCursor.measure()
         mVisibleRows =
             ceil(MeasureSpec.getSize(heightMeasureSpec) / mRowsRender.getLineHeight()).toInt()
+    }
+
+    override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
+        super.onLayout(changed, left, top, right, bottom)
     }
 
     override fun onDraw(canvas: Canvas?) {
