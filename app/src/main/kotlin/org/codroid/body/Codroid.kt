@@ -26,6 +26,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import androidx.room.Room
+import com.google.android.material.color.DynamicColors
 import org.codroid.interfaces.addon.AddonManager
 import org.codroid.interfaces.database.AddonDatabase
 
@@ -41,6 +42,7 @@ class Codroid : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        DynamicColors.applyToActivitiesIfAvailable(this)
         THEME = stringPreferencesKey("theme")
         AddonManager.get().initialize(this);
         AddonManager.get().loadAddons()

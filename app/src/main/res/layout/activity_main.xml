@@ -25,22 +25,13 @@
     android:layout_height="match_parent"
     tools:context=".ui.main.MainActivity">
 
-    <com.google.android.material.appbar.AppBarLayout
+    <org.codroid.body.widgets.InfoBar
         android:id="@+id/activity_main_app_bar_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:stateListAnimator="@animator/appbar_elevation"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
-
-        <com.google.android.material.appbar.MaterialToolbar
-            android:id="@+id/activity_main_toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:title="@string/app_name"
-            app:titleTextColor="@color/design_default_color_on_secondary" />
-
-    </com.google.android.material.appbar.AppBarLayout>
+        android:subtitle="This is subtitle"
+        android:title="Codroid"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/activity_main_tab_rv"
@@ -68,13 +59,10 @@
                 android:id="@+id/activity_main_bottom_panel"
                 android:layout_width="match_parent"
                 android:layout_height="300dp"
-                android:background="?attr/colorAccent"
                 android:orientation="horizontal"
                 app:behavior_hideable="false"
-                android:visibility="gone"
                 app:behavior_peekHeight="30dp"
                 app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
-
 
                 <HorizontalScrollView
                     android:layout_width="match_parent"

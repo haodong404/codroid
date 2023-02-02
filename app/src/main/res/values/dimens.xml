@@ -20,6 +20,8 @@
 <resources>
     <dimen name="material_list_single_height">56dp</dimen>
     <dimen name="material_16dp">16dp</dimen>
+    <dimen name="material_8dp">8dp</dimen>
+    <dimen name="material_32dp">32dp</dimen>
     <dimen name="material_icon_standard_40">40dp</dimen>
     <dimen name="material_subtitle1_16sp">20sp</dimen>
     <dimen name="material_text_small">12sp</dimen>

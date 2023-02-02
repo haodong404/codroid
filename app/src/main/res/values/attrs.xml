@@ -25,12 +25,30 @@
         <attr name="title" format="string" />
         <attr name="titleColor" format="color" />
         <attr name="level" format="integer" />
-        <attr name="isExpanded" format="boolean"/>
+        <attr name="isExpanded" format="boolean" />
         <attr name="type" format="string" />
 
     </declare-styleable>
 
     <declare-styleable name="WindowTab">
-        <attr name="name" format="string"/>
+        <attr name="name" format="string" />
     </declare-styleable>
+
+    <declare-styleable name="InfoBar">
+        <attr name="android:title" />
+        <attr name="android:subtitle" />
+    </declare-styleable>
+
+    <declare-styleable name="StatusTag">
+        <attr name="android:text" />
+        <attr name="android:textColor" />
+        <attr name="android:fontFamily" />
+        <attr name="android:textSize" />
+        <attr name="android:textStyle" />
+        <attr name="android:src" />
+        <attr name="borderWidth" format="dimension" />
+        <attr name="borderColor" format="color" />
+        <attr name="android:background" />
+    </declare-styleable>
+
 </resources>
