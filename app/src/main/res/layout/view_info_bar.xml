@@ -18,18 +18,18 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <LinearLayout
+        <org.codroid.body.widgets.BalancingLayout
             style="@style/ThemeOverlay.Material3.Toolbar.Surface"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:orientation="horizontal"
             android:paddingHorizontal="@dimen/material_16dp"
             android:paddingVertical="@dimen/material_8dp">
 
             <LinearLayout
-                android:layout_width="match_parent"
+                android:id="@+id/info_bar_title_root"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginEnd="@dimen/material_16dp"
                 android:orientation="vertical">
 
                 <TextView
@@ -37,7 +37,9 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:drawablePadding="@dimen/material_8dp"
+                    android:ellipsize="middle"
                     android:gravity="center"
+                    android:maxLines="1"
                     android:text="@{title}"
                     android:textStyle="bold"
                     app:drawableRightCompat="@drawable/ic_android_black_24dp" />
@@ -51,25 +53,23 @@
                     android:text="@{subtitle}" />
             </LinearLayout>
 
-            <org.codroid.body.widget.Divider
-                android:layout_width="@dimen/dp_4"
-                android:layout_height="@dimen/material_icon_small"
+            <org.codroid.body.widgets.Divider
+                android:id="@+id/info_bar_divider_handle"
+                style="@style/DividerDragHandle"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
                 android:layout_gravity="center_vertical"
-                app:backgroundColor="@color/material_dynamic_primary40" />
+                android:paddingHorizontal="@dimen/material_16dp"
+                android:paddingVertical="@dimen/material_16dp" />
 
-            <LinearLayout
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/info_bar_status_rv"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_marginStart="@dimen/material_16dp"
-                android:layout_weight="1">
+                android:layout_gravity="center">
 
-                <org.codroid.body.widgets.StatusTag
-                    style="@style/StatusInfo"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="UTF-8" />
-            </LinearLayout>
-        </LinearLayout>
+            </androidx.recyclerview.widget.RecyclerView>
+        </org.codroid.body.widgets.BalancingLayout>
 
         <com.google.android.material.progressindicator.LinearProgressIndicator
             style="@style/Widget.Material3.LinearProgressIndicator"

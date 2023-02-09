@@ -4,10 +4,12 @@ import android.content.Context
 import android.graphics.*
 import android.graphics.drawable.Drawable
 import android.util.AttributeSet
+import android.util.Log
 import android.view.View
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.drawable.toBitmap
 import androidx.core.graphics.drawable.toDrawable
+import androidx.recyclerview.widget.RecyclerView
 import org.codroid.body.R
 import org.codroid.body.dip2px
 import kotlin.math.abs
@@ -70,13 +72,13 @@ class StatusTag : View {
             }
         }
         mPaint.textSize = ta.getDimension(R.styleable.StatusTag_android_textSize, 30f)
-        mText = ta.getString(R.styleable.StatusTag_android_text) ?: "Null"
+        mText = ta.getString(R.styleable.StatusTag_android_text) ?: ""
 
         mBackgroundColor =
             ta.getColor(R.styleable.StatusTag_android_background, Color.TRANSPARENT)
         mBorderColor = ta.getColor(R.styleable.StatusTag_borderColor, Color.BLACK)
         mBorderWidth = ta.getDimension(R.styleable.StatusTag_borderWidth, 4f)
-        mDrawable = ta.getDrawable(R.styleable.StatusTag_android_src)
+        mDrawable = ta.getDrawable(R.styleable.StatusTag_android_drawable)
 
         mBackgroundPaint = Paint()
         mBackgroundPaint.color = mBackgroundColor
@@ -93,10 +95,6 @@ class StatusTag : View {
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        val widthMode = MeasureSpec.getMode(widthMeasureSpec)
-        val widthSize = MeasureSpec.getSize(widthMeasureSpec)
-        val heightMode = MeasureSpec.getMode(heightMeasureSpec)
-        val heightSize = MeasureSpec.getSize(heightMeasureSpec)
         mPaint.fontMetrics.let {
             mTextLineHeight = abs(it.ascent + it.descent + it.leading).toInt()
             if (mDrawable != null) {
@@ -113,36 +111,30 @@ class StatusTag : View {
         if (mDrawable != null) {
             width += mTextLineHeight + mGap
         }
-        var height = mTextLineHeight + mPaddingVertical * 2 + mBorderWidth.toInt() * 2
-
-        if (widthMode == MeasureSpec.EXACTLY) {
-            width = widthSize
-        } else if (widthMode == MeasureSpec.AT_MOST) {
-            width = widthSize.coerceAtMost(width)
-        }
-
-        if (heightMode == MeasureSpec.EXACTLY) {
-            height = heightSize
-        } else if (heightMode == MeasureSpec.AT_MOST) {
-            height = heightSize.coerceAtMost(height)
-        }
+        val height = mTextLineHeight + mPaddingVertical * 2 + mBorderWidth.toInt() * 2
         setMeasuredDimension(width, height)
     }
 
     override fun onDraw(canvas: Canvas?) {
         canvas?.run {
+            if (mText.isBlank()) {
+                return
+            }
             val width = measuredWidth.toFloat()
             val height = measuredHeight.toFloat()
-            drawRoundRect(
-                0f,
-                0f,
-                width,
-                height,
-                mRadius + 2,
-                mRadius + 2,
-                mBackgroundPaint
-            )
+            if (mBackgroundPaint.color != Color.TRANSPARENT) {
+                drawRoundRect(
+                    0f,
+                    0f,
+                    width,
+                    height,
+                    mRadius + 2,
+                    mRadius + 2,
+                    mBackgroundPaint
+                )
+            }
             val half = mBorderWidth / 2
+
             drawRoundRect(
                 half,
                 half,
@@ -176,16 +168,95 @@ class StatusTag : View {
 
     fun setText(str: String) {
         this.mText = str
-        invalidate()
+        requestLayout()
     }
 
     fun setDrawable(drawable: Drawable) {
         this.mDrawable = drawable
-        invalidate()
+        requestLayout()
     }
 
     fun setBitmap(bitmap: Bitmap) {
         this.mDrawable = bitmap.toDrawable(context.resources)
-        invalidate()
+        requestLayout()
     }
 }
+
+class StatusTagLayoutManager(
+    val maxLine: Int,
+    val gap: Int = 0,
+    val overflow: ((List<View>) -> Unit)? = null
+) :
+    RecyclerView.LayoutManager() {
+    override fun generateDefaultLayoutParams(): RecyclerView.LayoutParams =
+        RecyclerView.LayoutParams(
+            RecyclerView.LayoutParams.WRAP_CONTENT,
+            RecyclerView.LayoutParams.WRAP_CONTENT
+        )
+
+    override fun onMeasure(
+        recycler: RecyclerView.Recycler,
+        state: RecyclerView.State,
+        widthSpec: Int,
+        heightSpec: Int
+    ) {
+        super.onMeasure(recycler, state, widthSpec, heightSpec)
+    }
+
+    override fun onLayoutChildren(recycler: RecyclerView.Recycler?, state: RecyclerView.State?) {
+        recycler?.let { detachAndScrapAttachedViews(it) }
+        var lineCount = 1
+        var currentLeft = 0
+        var currentTop = 0
+        var isFirstInALine = true
+        for (i in 0 until itemCount) {
+            recycler?.getViewForPosition(i)?.let { view ->
+                measureChildWithMargins(view, 0, 0)
+                val viewWidth = getDecoratedMeasuredWidth(view)
+                val viewHeight = getDecoratedMeasuredHeight(view)
+                var right = currentLeft + viewWidth
+                if (right <= width - 5) {
+                    if (isFirstInALine) {
+                        isFirstInALine = false
+                    } else {
+                        currentLeft += gap
+                        right += gap
+                    }
+                    addView(view)
+                    layoutDecorated(view, currentLeft, currentTop, right, currentTop + viewHeight)
+                    currentLeft += viewWidth
+                } else {
+                    lineCount++
+                    currentTop += gap
+                    if (lineCount > maxLine) {
+                        if (overflow != null) {
+                            val overflowedViews = mutableListOf<View>()
+                            for (j in i until itemCount) {
+                                recycler.getViewForPosition(j).let {
+                                    overflowedViews.add(it)
+                                }
+                            }
+                            overflow.invoke(overflowedViews)
+                        }
+                        return
+                    } else {
+                        addView(view)
+                        currentTop += viewHeight
+                        currentLeft = 0
+                        layoutDecorated(
+                            view,
+                            currentLeft,
+                            currentTop,
+                            viewWidth,
+                            currentTop + viewHeight
+                        )
+                        currentLeft += viewWidth
+                    }
+                }
+            }
+        }
+    }
+
+}
+
+data class StatusTagData(val text: String? = null, val icon: Drawable? = null)

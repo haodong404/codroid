@@ -7,11 +7,15 @@
 
     <style name="StatusInfo">
         <item name="android:fontFamily">?attr/font</item>
-        <item name="android:textSize">8sp</item>
+        <item name="android:textSize">10sp</item>
         <item name="android:textStyle">bold</item>
         <item name="android:textColor">?attr/colorOnSurface</item>
         <item name="borderWidth">1dp</item>
-        <item name="android:background">?attr/colorSurface</item>
         <item name="borderColor">?attr/colorOutline</item>
+    </style>
+
+    <style name="DividerDragHandle">
+        <item name="backgroundColor">?attr/colorPrimary</item>
+        <item name="lineSize">@dimen/dp_4</item>
     </style>
 </resources>

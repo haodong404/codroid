@@ -19,6 +19,7 @@
 <resources>
     <declare-styleable name="Divider">
         <attr name="backgroundColor" format="color" />
+        <attr name="lineSize" format="dimension" />
     </declare-styleable>
 
     <declare-styleable name="DirTreeItemView">
@@ -45,7 +46,7 @@
         <attr name="android:fontFamily" />
         <attr name="android:textSize" />
         <attr name="android:textStyle" />
-        <attr name="android:src" />
+        <attr name="android:drawable" />
         <attr name="borderWidth" format="dimension" />
         <attr name="borderColor" format="color" />
         <attr name="android:background" />

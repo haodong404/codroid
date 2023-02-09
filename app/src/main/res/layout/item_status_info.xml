@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <data>
+
+        <variable
+            name="text"
+            type="String" />
+
+        <variable
+            name="icon"
+            type="android.graphics.drawable.Drawable" />
+
+    </data>
+
+    <org.codroid.body.widgets.StatusTag
+        style="@style/StatusInfo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@{text}">
+
+    </org.codroid.body.widgets.StatusTag>
+</layout>
