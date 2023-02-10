@@ -7,7 +7,7 @@
 
     <style name="StatusInfo">
         <item name="android:fontFamily">?attr/font</item>
-        <item name="android:textSize">10sp</item>
+        <item name="android:textSize">@dimen/material_text_small</item>
         <item name="android:textStyle">normal</item>
         <item name="android:textColor">?attr/colorOnSurface</item>
         <item name="borderWidth">1dp</item>

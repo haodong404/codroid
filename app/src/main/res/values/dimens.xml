@@ -18,6 +18,8 @@
   -->
 
 <resources>
+    <dimen name="dp_4">4dp</dimen>
+    <dimen name="sp_14">14sp</dimen>
     <dimen name="material_list_single_height">56dp</dimen>
     <dimen name="material_16dp">16dp</dimen>
     <dimen name="material_8dp">8dp</dimen>

@@ -20,7 +20,10 @@
 package org.codroid.body.widgets
 
 import android.content.Context
-import android.graphics.*
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.Rect
 import android.util.AttributeSet
 import android.util.Log
 import android.view.Gravity
@@ -40,8 +43,8 @@ import org.codroid.interfaces.appearance.parts.EditorPart
 import org.codroid.interfaces.evnet.EventCenter
 import org.codroid.interfaces.evnet.editor.SelectionChangedEvent
 import org.codroid.interfaces.evnet.editor.TextChangedEvent
-import java.io.*
-import java.lang.StringBuilder
+import java.io.FileReader
+import java.io.LineNumberReader
 import java.nio.charset.Charset
 import java.nio.file.Path
 import java.util.*

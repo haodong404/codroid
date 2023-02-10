@@ -19,13 +19,16 @@
 
 package org.codroid.body.ui.dirtree
 
+import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Color
+import android.view.LayoutInflater
+import android.view.ViewGroup
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.drawable.toBitmap
 import androidx.recyclerview.widget.RecyclerView
 import com.chad.library.adapter.base.BaseQuickAdapter
-import com.chad.library.adapter.base.viewholder.BaseDataBindingHolder
+import com.chad.library.adapter.base.viewholder.DataBindingHolder
 import kotlinx.coroutines.*
 import org.codroid.body.R
 import org.codroid.body.databinding.ItemDirTreeBinding
@@ -35,10 +38,16 @@ import org.codroid.interfaces.addon.AddonManager
 import org.codroid.interfaces.evnet.EventCenter
 import org.codroid.interfaces.evnet.editor.DirTreeItemLoadEvent
 import org.codroid.interfaces.evnet.entities.DirTreeItemEntity
-import java.lang.Exception
 
 class DirTreeAdapter :
-    BaseQuickAdapter<FileTreeNode, BaseDataBindingHolder<ItemDirTreeBinding>>(R.layout.item_dir_tree) {
+    BaseQuickAdapter<FileTreeNode, DataBindingHolder<ItemDirTreeBinding>>() {
+
+
+    class ViewHolder(
+        parent: ViewGroup, val binding: ItemDirTreeBinding = ItemDirTreeBinding.inflate(
+            LayoutInflater.from(parent.context), parent, false
+        )
+    ) : RecyclerView.ViewHolder(parent)
 
     private val scope = CoroutineScope(Dispatchers.Main)
 
@@ -47,9 +56,18 @@ class DirTreeAdapter :
         var fileStandardBitmap: Bitmap? = null
     }
 
-    override fun convert(
-        holder: BaseDataBindingHolder<ItemDirTreeBinding>,
-        item: FileTreeNode
+    private fun initIcon(type: String): Bitmap {
+        // Init the icon bitmap
+        return when (type) {
+            DirTreeItemView.DIRECTORY -> dirStandardBitmap!!
+            else -> fileStandardBitmap!!
+        }
+    }
+
+    override fun onBindViewHolder(
+        holder: DataBindingHolder<ItemDirTreeBinding>,
+        position: Int,
+        item: FileTreeNode?
     ) {
         if (dirStandardBitmap == null) {
             dirStandardBitmap = ResourcesCompat.getDrawable(
@@ -69,16 +87,16 @@ class DirTreeAdapter :
 
         var addon: DirTreeItemEntity? = null
 
-        val itemView = holder.dataBinding?.dirTreeItem
+        val itemView = holder.binding.dirTreeItem
 
         var type = DirTreeItemView.FILE
 
-        if (item.element?.isDirectory == true) {
+        if (item?.element?.isDirectory == true) {
             type = DirTreeItemView.DIRECTORY
         }
 
-        holder.dataBinding?.item =
-            item.element?.name?.let {
+        holder.binding.item =
+            item?.element?.name?.let {
                 FileItem(it, null, Color.BLACK, type, item.isExpanded, item.level)
             }
 
@@ -88,7 +106,7 @@ class DirTreeAdapter :
                     .executeStream<DirTreeItemLoadEvent>(EventCenter.EventsEnum.PROJECT_STRUCT_ITEM_LOAD)
                     .forEach {
                         try {
-                            it?.beforeLoading(item.element)?.let { entity ->
+                            it?.beforeLoading(item?.element)?.let { entity ->
                                 addon = entity
                             }
                         } catch (e: Exception) {
@@ -99,36 +117,37 @@ class DirTreeAdapter :
 
                 if (addon?.icon != null) {
                     addon?.icon?.let {
-                        itemView?.setImageBitmap(it.toBitmap())
+                        itemView.setImageBitmap(it.toBitmap())
                     }
                 } else {
-                    itemView?.setImageBitmap(initIcon(type))
+                    itemView.setImageBitmap(initIcon(type))
                 }
 
                 addon?.let { it ->
 
                     if (addon?.tagIcon != null) {
-                        itemView?.setTagBitmap(addon?.tagIcon?.toBitmap())
+                        itemView.setTagBitmap(addon?.tagIcon?.toBitmap())
                     } else {
-                        itemView?.setTagBitmap(null)
+                        itemView.setTagBitmap(null)
                     }
 
                     it.title?.let { str ->
-                        itemView?.setTitle(str)
+                        itemView.setTitle(str)
                     }
                 }
             }
         }
     }
 
-    private fun initIcon(type: String): Bitmap {
-        // Init the icon bitmap
-        return when (type) {
-            DirTreeItemView.DIRECTORY -> dirStandardBitmap!!
-            else -> fileStandardBitmap!!
-        }
-    }
-
+    override fun onCreateViewHolder(
+        context: Context,
+        parent: ViewGroup,
+        viewType: Int
+    ): DataBindingHolder<ItemDirTreeBinding> = DataBindingHolder(
+        ItemDirTreeBinding.inflate(
+            LayoutInflater.from(context), parent, false
+        )
+    )
 
     override fun onDetachedFromRecyclerView(recyclerView: RecyclerView) {
         super.onDetachedFromRecyclerView(recyclerView)
@@ -136,20 +155,20 @@ class DirTreeAdapter :
     }
 
     fun close(position: Int) {
-        var now = position + 1
+        val now = position + 1
         val parentNode = getItem(position)
         while (now > 0) {
-            if (getItem(now).level > parentNode.level) {
+            if ((getItem(now)?.level ?: 0) > (parentNode?.level ?: 0)) {
                 removeAt(now)
             } else {
                 break
             }
         }
-        parentNode.isExpanded = false
+        parentNode?.isExpanded = false
     }
 
     fun expand(position: Int, leaf: List<FileTreeNode>) {
-        addData(position + 1, leaf)
-        getItem(position).isExpanded = true
+        addAll(position + 1, leaf)
+        getItem(position)?.isExpanded = true
     }
 }

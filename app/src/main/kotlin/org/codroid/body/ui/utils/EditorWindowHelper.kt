@@ -100,7 +100,7 @@ class EditorWindowHelper(private val viewpager: ViewPager2, private val tab: Rec
     fun newWindow(path: Path) {
         if (!isExists(path)) {
             getWindowAdapter().addFragments(listOf(EditorWindowFragment(path)))
-            tabAdapter.addData(path)
+            tabAdapter.add(path)
         }
     }
 
@@ -113,6 +113,6 @@ class EditorWindowHelper(private val viewpager: ViewPager2, private val tab: Rec
     }
 
     fun isExists(path: Path): Boolean {
-        return tabAdapter.data.contains(path)
+        return tabAdapter.items.contains(path)
     }
 }

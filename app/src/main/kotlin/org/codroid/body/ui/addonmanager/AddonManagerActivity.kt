@@ -60,7 +60,7 @@ class AddonManagerActivity : AppCompatActivity(), View.OnClickListener {
 
         viewModel.listAddons().observe(this) {
             if (it.isSucceed()) {
-                adapter.setList(it.result)
+                it.result?.let { r -> adapter.addAll(r) }
             } else {
                 Snackbar.make(binding.root, it.errorMessage ?: "Error", Snackbar.LENGTH_SHORT)
                     .show()

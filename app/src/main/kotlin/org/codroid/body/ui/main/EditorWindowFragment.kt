@@ -27,7 +27,6 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import org.codroid.body.databinding.FragmentEditorWindowBinding
 import org.codroid.interfaces.addon.AddonManager
-import java.io.IOException
 import java.nio.file.Path
 
 class EditorWindowFragment(var path: Path) : Fragment() {

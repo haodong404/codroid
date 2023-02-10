@@ -20,7 +20,6 @@
 package org.codroid.body.ui.dirtree
 
 import java.io.File
-import java.util.Comparator
 
 class FileTreeNode(element: File) {
     var element: File? = element

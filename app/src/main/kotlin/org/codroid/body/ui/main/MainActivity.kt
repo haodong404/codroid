@@ -24,7 +24,6 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
-import android.view.KeyEvent
 import android.view.Menu
 import android.view.MenuItem
 import androidx.activity.viewModels
@@ -39,13 +38,12 @@ import org.codroid.body.Codroid
 import org.codroid.body.R
 import org.codroid.body.databinding.ActivityMainBinding
 import org.codroid.body.ui.addonmanager.AddonManagerActivity
-import org.codroid.body.ui.dirtree.FileTreeNode
 import org.codroid.body.ui.dirtree.DirTreeAdapter
+import org.codroid.body.ui.dirtree.FileTreeNode
 import org.codroid.body.ui.preferences.PreferencesActivity
 import org.codroid.body.ui.utils.EditorWindowHelper
 import org.codroid.body.widgets.DirTreeItemView
 import java.io.File
-import java.nio.file.Paths
 
 
 class MainActivity : AppCompatActivity() {
@@ -139,7 +137,7 @@ class MainActivity : AppCompatActivity() {
                     viewModel.openDir(Codroid.SDCARD_ROOT_DIR)
                         .observe(this@MainActivity) { response ->
                             response?.let {
-                                mDirTreeAdapter.setList(response)
+                                mDirTreeAdapter.addAll(response)
                             }
                         }
                     mWindowHelper.newWindow(

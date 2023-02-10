@@ -27,7 +27,8 @@ import android.view.animation.Animation
 import android.view.animation.Transformation
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.drawable.toBitmap
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.codroid.body.*
 
 class DirTreeItemView : View {

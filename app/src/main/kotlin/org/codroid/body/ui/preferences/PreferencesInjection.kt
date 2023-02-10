@@ -2,12 +2,10 @@ package org.codroid.body.ui.preferences
 
 import android.util.Log
 import android.webkit.JavascriptInterface
-import org.codroid.interfaces.addon.Addon
 import org.codroid.interfaces.addon.AddonManager
 import org.codroid.interfaces.preference.CodroidPreferenceGroup
 import org.codroid.interfaces.preference.PreferenceOperation
 import org.codroid.interfaces.preference.PreferenceProperty
-import kotlin.text.StringBuilder
 
 class PreferencesInjection(private val back: (() -> Unit)? = null) : PreferenceOperation {
 

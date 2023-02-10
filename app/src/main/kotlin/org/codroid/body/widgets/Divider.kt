@@ -1,7 +1,10 @@
 package org.codroid.body.widgets
 
 import android.content.Context
-import android.graphics.*
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.RectF
 import android.util.AttributeSet
 import android.view.View
 import org.codroid.body.R

@@ -2,8 +2,6 @@ package org.codroid.body.widgets
 
 import android.animation.ValueAnimator
 import android.content.Context
-import android.graphics.BitmapFactory
-import android.graphics.Color
 import android.graphics.Rect
 import android.util.AttributeSet
 import android.util.Log
@@ -13,11 +11,12 @@ import android.widget.LinearLayout
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.drawable.toBitmap
 import androidx.core.view.children
-import com.google.android.material.color.MaterialColors
 import com.google.android.material.elevation.SurfaceColors
 import org.codroid.body.R
 import org.codroid.body.databinding.ViewInfoBarBinding
 import org.codroid.body.ui.main.StatusInfoAdapter
+import org.codroid.body.ui.main.StatusTagData
+import org.codroid.body.ui.main.StatusTagLayoutManager
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -103,25 +102,25 @@ class InfoBar : LinearLayout {
         mBinding.infoBarStatusRv.adapter = mStatusRecyclerAdapter
         mBinding.infoBarRoot.setBackgroundColor(SurfaceColors.SURFACE_2.getColor(context))
 
-        mStatusRecyclerAdapter.addData(StatusTagData("UTF-8"))
-        mStatusRecyclerAdapter.addData(StatusTagData("LN2"))
-        mStatusRecyclerAdapter.addData(StatusTagData("Kotlin1"))
+        mStatusRecyclerAdapter.add(StatusTagData("UTF-8"))
+        mStatusRecyclerAdapter.add(StatusTagData("LN2"))
+        mStatusRecyclerAdapter.add(StatusTagData("Kotlin1"))
         val icon =
             ResourcesCompat.getDrawable(context.resources, R.drawable.ic_action_name, context.theme)
                 ?.toBitmap()
         Log.d("Zac", "Icon: ${icon}")
-        mStatusRecyclerAdapter.addData(
+        mStatusRecyclerAdapter.add(
             StatusTagData(
                 "Kotlin2", icon
             )
         )
-        mStatusRecyclerAdapter.addData(StatusTagData("Kotlin3"))
-        mStatusRecyclerAdapter.addData(StatusTagData("Kotlin4"))
-        mStatusRecyclerAdapter.addData(StatusTagData("Kotlin5"))
-        mStatusRecyclerAdapter.addData(StatusTagData("Kotlin6"))
-        mStatusRecyclerAdapter.addData(StatusTagData("Kotlin7"))
-        mStatusRecyclerAdapter.addData(StatusTagData("Kotlin8"))
-        mStatusRecyclerAdapter.addData(StatusTagData("Kotlin9"))
+        mStatusRecyclerAdapter.add(StatusTagData("Kotlin3"))
+        mStatusRecyclerAdapter.add(StatusTagData("Kotlin4"))
+        mStatusRecyclerAdapter.add(StatusTagData("Kotlin5"))
+        mStatusRecyclerAdapter.add(StatusTagData("Kotlin6"))
+        mStatusRecyclerAdapter.add(StatusTagData("Kotlin7"))
+        mStatusRecyclerAdapter.add(StatusTagData("Kotlin8"))
+        mStatusRecyclerAdapter.add(StatusTagData("Kotlin9"))
         mBinding.infoBarStatusRv.layoutManager = StatusTagLayoutManager(2, 10) {
 //            Log.d("Zac", "Overflowed ${it.size}")
         }
