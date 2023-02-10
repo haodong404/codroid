@@ -4,12 +4,13 @@ import android.content.Context
 import android.graphics.*
 import android.graphics.drawable.Drawable
 import android.util.AttributeSet
-import android.util.Log
 import android.view.View
+import android.view.View.MeasureSpec
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.drawable.toBitmap
 import androidx.core.graphics.drawable.toDrawable
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.color.MaterialColors
 import org.codroid.body.R
 import org.codroid.body.dip2px
 import kotlin.math.abs
@@ -30,9 +31,16 @@ class StatusTag : View {
 
     private var mTextLineHeight = 0
 
-    private var mDrawable: Drawable? = null
-    private var mDrawableRect: Rect = Rect()
+    private var mBitmap: Bitmap? = null
+    private var mIconRect: Rect = Rect()
     private var mGap = 0
+    private val mIconColorFilter = PorterDuffColorFilter(
+        MaterialColors.getColor(
+            context,
+            R.attr.colorOnSurfaceVariant,
+            Color.GRAY
+        ), PorterDuff.Mode.SRC_IN
+    )
 
     constructor(context: Context) : super(context) {
         initialize(context, null)
@@ -78,7 +86,8 @@ class StatusTag : View {
             ta.getColor(R.styleable.StatusTag_android_background, Color.TRANSPARENT)
         mBorderColor = ta.getColor(R.styleable.StatusTag_borderColor, Color.BLACK)
         mBorderWidth = ta.getDimension(R.styleable.StatusTag_borderWidth, 4f)
-        mDrawable = ta.getDrawable(R.styleable.StatusTag_android_drawable)
+        val drawable = ta.getDrawable(R.styleable.StatusTag_android_drawable)
+        mBitmap = drawable?.toBitmap()
 
         mBackgroundPaint = Paint()
         mBackgroundPaint.color = mBackgroundColor
@@ -95,20 +104,26 @@ class StatusTag : View {
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+
+        if (mText.isBlank()) {
+            setMeasuredDimension(0, 0)
+            return
+        }
+
         mPaint.fontMetrics.let {
             mTextLineHeight = abs(it.ascent + it.descent + it.leading).toInt()
-            if (mDrawable != null) {
+            if (mBitmap != null) {
                 val left = mPaddingHorizontal + mBorderWidth.toInt()
                 val top = mPaddingVertical + mBorderWidth.toInt()
-                mDrawableRect.left = left
-                mDrawableRect.right = left + mTextLineHeight
-                mDrawableRect.top = top
-                mDrawableRect.bottom = top + mTextLineHeight
+                mIconRect.left = left
+                mIconRect.right = left + mTextLineHeight
+                mIconRect.top = top
+                mIconRect.bottom = top + mTextLineHeight
             }
         }
 
         var width = (mPaddingHorizontal * 2 + mPaint.measureText(mText) + mBorderWidth * 2).toInt()
-        if (mDrawable != null) {
+        if (mBitmap != null) {
             width += mTextLineHeight + mGap
         }
         val height = mTextLineHeight + mPaddingVertical * 2 + mBorderWidth.toInt() * 2
@@ -147,14 +162,16 @@ class StatusTag : View {
 
             var offset = mPaddingHorizontal + mBorderWidth
 
-            mDrawable?.let {
+            mBitmap?.let {
                 offset += mTextLineHeight + mGap
+                mPaint.colorFilter = mIconColorFilter
                 drawBitmap(
-                    it.toBitmap(),
+                    it,
                     null,
-                    mDrawableRect,
+                    mIconRect,
                     mPaint
                 )
+                mPaint.colorFilter = null
             }
 
             drawText(
@@ -171,28 +188,29 @@ class StatusTag : View {
         requestLayout()
     }
 
-    fun setDrawable(drawable: Drawable) {
-        this.mDrawable = drawable
+    fun setDrawable(drawable: Drawable?) {
+        this.mBitmap = drawable?.toBitmap()
         requestLayout()
     }
 
     fun setBitmap(bitmap: Bitmap) {
-        this.mDrawable = bitmap.toDrawable(context.resources)
+        this.mBitmap = bitmap
         requestLayout()
     }
 }
 
 class StatusTagLayoutManager(
-    val maxLine: Int,
-    val gap: Int = 0,
-    val overflow: ((List<View>) -> Unit)? = null
+    private val maxLine: Int,
+    private val gap: Int = 0,
+    private val overflow: ((List<View>) -> Unit)? = null
 ) :
     RecyclerView.LayoutManager() {
     override fun generateDefaultLayoutParams(): RecyclerView.LayoutParams =
         RecyclerView.LayoutParams(
-            RecyclerView.LayoutParams.WRAP_CONTENT,
-            RecyclerView.LayoutParams.WRAP_CONTENT
+            RecyclerView.LayoutParams.MATCH_PARENT,
+            RecyclerView.LayoutParams.MATCH_PARENT
         )
+
 
     override fun onMeasure(
         recycler: RecyclerView.Recycler,
@@ -200,8 +218,19 @@ class StatusTagLayoutManager(
         widthSpec: Int,
         heightSpec: Int
     ) {
+        val widthMode = MeasureSpec.getMode(widthSpec)
+        val widthSize = MeasureSpec.getSize(widthSpec)
+        val heightMode = MeasureSpec.getMode(heightSpec)
+        val heightSize = MeasureSpec.getSize(heightSpec)
+        var height = heightSize
         super.onMeasure(recycler, state, widthSpec, heightSpec)
+        getChildAt(0)?.let {
+            height = it.measuredHeight * maxLine + gap * (maxLine - 1)
+        }
+        setMeasuredDimension(widthSize, height)
     }
+
+    override fun isAutoMeasureEnabled(): Boolean = true
 
     override fun onLayoutChildren(recycler: RecyclerView.Recycler?, state: RecyclerView.State?) {
         recycler?.let { detachAndScrapAttachedViews(it) }
@@ -215,7 +244,7 @@ class StatusTagLayoutManager(
                 val viewWidth = getDecoratedMeasuredWidth(view)
                 val viewHeight = getDecoratedMeasuredHeight(view)
                 var right = currentLeft + viewWidth
-                if (right <= width - 5) {
+                if (right <= width - 10) {
                     if (isFirstInALine) {
                         isFirstInALine = false
                     } else {
@@ -259,4 +288,4 @@ class StatusTagLayoutManager(
 
 }
 
-data class StatusTagData(val text: String? = null, val icon: Drawable? = null)
+data class StatusTagData(val text: String? = null, val icon: Bitmap? = null)

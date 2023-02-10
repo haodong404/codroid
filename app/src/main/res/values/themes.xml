@@ -8,14 +8,24 @@
     <style name="StatusInfo">
         <item name="android:fontFamily">?attr/font</item>
         <item name="android:textSize">10sp</item>
-        <item name="android:textStyle">bold</item>
+        <item name="android:textStyle">normal</item>
         <item name="android:textColor">?attr/colorOnSurface</item>
         <item name="borderWidth">1dp</item>
         <item name="borderColor">?attr/colorOutline</item>
     </style>
 
-    <style name="DividerDragHandle">
-        <item name="backgroundColor">?attr/colorPrimary</item>
-        <item name="lineSize">@dimen/dp_4</item>
+    <style name="FileNameTitle" parent="TextAppearance.Material3.ActionBar.Title">
+        <item name="android:textStyle">bold</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">?attr/colorOnSurface</item>
     </style>
+
+    <style name="FilePathSubtitle" parent="TextAppearance.Material3.ActionBar.Subtitle">
+        <item name="android:textStyle">italic</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:textColor">?attr/colorOnSurface</item>
+        <item name="android:alpha">0.56</item>
+        <item name="android:layout_marginTop">-2sp</item>
+    </style>
+
 </resources>

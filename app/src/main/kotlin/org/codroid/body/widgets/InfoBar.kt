@@ -2,12 +2,19 @@ package org.codroid.body.widgets
 
 import android.animation.ValueAnimator
 import android.content.Context
+import android.graphics.BitmapFactory
+import android.graphics.Color
 import android.graphics.Rect
 import android.util.AttributeSet
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.widget.LinearLayout
+import androidx.core.content.res.ResourcesCompat
+import androidx.core.graphics.drawable.toBitmap
 import androidx.core.view.children
+import com.google.android.material.color.MaterialColors
+import com.google.android.material.elevation.SurfaceColors
 import org.codroid.body.R
 import org.codroid.body.databinding.ViewInfoBarBinding
 import org.codroid.body.ui.main.StatusInfoAdapter
@@ -94,10 +101,20 @@ class InfoBar : LinearLayout {
         mBinding.title = tv.getString(R.styleable.InfoBar_android_title) ?: "Title"
         mBinding.subtitle = tv.getString(R.styleable.InfoBar_android_subtitle) ?: "Subtitle"
         mBinding.infoBarStatusRv.adapter = mStatusRecyclerAdapter
+        mBinding.infoBarRoot.setBackgroundColor(SurfaceColors.SURFACE_2.getColor(context))
+
         mStatusRecyclerAdapter.addData(StatusTagData("UTF-8"))
         mStatusRecyclerAdapter.addData(StatusTagData("LN2"))
         mStatusRecyclerAdapter.addData(StatusTagData("Kotlin1"))
-        mStatusRecyclerAdapter.addData(StatusTagData("Kotlin2"))
+        val icon =
+            ResourcesCompat.getDrawable(context.resources, R.drawable.ic_action_name, context.theme)
+                ?.toBitmap()
+        Log.d("Zac", "Icon: ${icon}")
+        mStatusRecyclerAdapter.addData(
+            StatusTagData(
+                "Kotlin2", icon
+            )
+        )
         mStatusRecyclerAdapter.addData(StatusTagData("Kotlin3"))
         mStatusRecyclerAdapter.addData(StatusTagData("Kotlin4"))
         mStatusRecyclerAdapter.addData(StatusTagData("Kotlin5"))
@@ -189,8 +206,6 @@ class InfoBar : LinearLayout {
             }
         }
         mBinding.infoBarTitleRoot.layoutParams = params
-
-//        Log.d("Zac", "width: ${params.width}")
     }
 
     private fun isHitDividerHandle(x: Int, y: Int): Boolean {

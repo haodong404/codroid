@@ -14,11 +14,14 @@ class StatusInfoAdapter :
         holder: BaseDataBindingHolder<ItemStatusInfoBinding>,
         item: StatusTagData
     ) {
-        item.text?.let {
-            holder.dataBinding?.text = it
-        }
-        item.icon?.let {
-            holder.dataBinding?.icon = it
+        holder.dataBinding?.run {
+            val tag = itemStatusInfoTag
+            item.text?.let {
+                tag.setText(it)
+            }
+            item.icon?.let {
+                tag.setBitmap(it)
+            }
         }
     }
 }

@@ -31,6 +31,7 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.material.elevation.SurfaceColors
 import com.google.android.material.snackbar.Snackbar
 import com.permissionx.guolindev.PermissionX
 import kotlinx.coroutines.launch
@@ -62,6 +63,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
+        initBarColor()
         setContentView(binding.root)
 
         editorWindow()
@@ -166,6 +168,12 @@ class MainActivity : AppCompatActivity() {
             Snackbar.LENGTH_SHORT
         ).show()
 
+    }
+
+    private fun initBarColor() {
+        val barColor = SurfaceColors.SURFACE_2.getColor(this)
+        window.statusBarColor = barColor
+        window.navigationBarColor = barColor
     }
 
     override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
