@@ -24,8 +24,8 @@ class Badge : View {
         initialize(context, attrs)
     }
 
-    private val mPaddingVertical = context.dip2px(2f)
-    private val mPaddingHorizontal = context.dip2px(4f)
+    private val mPaddingVertical = context.dip2px(4f)
+    private val mPaddingHorizontal = context.dip2px(6f)
     private var mTextLineHeight: Int = 0
     private val mTextPaint = Paint().apply {
         isAntiAlias = true
@@ -61,8 +61,7 @@ class Badge : View {
 
         mText = (ta.getString(R.styleable.Badge_android_text) ?: "0").toInt()
 
-        mBackgroundPaint.color =
-            ta.getColor(R.styleable.Badge_android_background, Color.TRANSPARENT)
+        mBackgroundPaint.color = ta.getColor(R.styleable.Badge_backgroundColor, Color.TRANSPARENT)
 
         ta.recycle()
     }
@@ -93,7 +92,7 @@ class Badge : View {
 
     override fun onDraw(canvas: Canvas?) {
         canvas?.run {
-            drawRoundRect(mRect, Float.MAX_VALUE, Float.MAX_VALUE, mBackgroundPaint)
+            drawRoundRect(mRect, 100f, 100f, mBackgroundPaint)
             drawText(
                 mText.toString(),
                 mPaddingHorizontal,

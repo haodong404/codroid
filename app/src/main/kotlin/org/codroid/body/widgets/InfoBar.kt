@@ -14,6 +14,7 @@ import androidx.core.view.children
 import com.google.android.material.elevation.SurfaceColors
 import org.codroid.body.R
 import org.codroid.body.databinding.ViewInfoBarBinding
+import org.codroid.body.dip2px
 import org.codroid.body.ui.main.StatusInfoAdapter
 import org.codroid.body.ui.main.StatusTagData
 import org.codroid.body.ui.main.StatusTagLayoutManager
@@ -21,7 +22,7 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 
-private class BalancingLayout : LinearLayout {
+internal class BalancingLayout : LinearLayout {
     constructor(context: Context?) : super(context)
     constructor(context: Context, attrs: AttributeSet?) : super(context, attrs)
     constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : super(
@@ -95,6 +96,12 @@ class InfoBar : LinearLayout {
         }
     }
 
+    private val mLeftBound: Int
+        get() = width / 6
+
+    private val mRightBound: Int
+        get() = 3 * width / 5
+
     private fun initialize(context: Context, attrs: AttributeSet?) {
         val tv = context.obtainStyledAttributes(attrs, R.styleable.InfoBar)
         mBinding.title = tv.getString(R.styleable.InfoBar_android_title) ?: "Title"
@@ -118,12 +125,11 @@ class InfoBar : LinearLayout {
         mStatusRecyclerAdapter.add(StatusTagData("Kotlin4"))
         mStatusRecyclerAdapter.add(StatusTagData("Kotlin5"))
         mStatusRecyclerAdapter.add(StatusTagData("Kotlin6"))
-        mStatusRecyclerAdapter.add(StatusTagData("Kotlin7"))
-        mStatusRecyclerAdapter.add(StatusTagData("Kotlin8"))
-        mStatusRecyclerAdapter.add(StatusTagData("Kotlin9"))
-        mBinding.infoBarStatusRv.layoutManager = StatusTagLayoutManager(2, 10) {
-//            Log.d("Zac", "Overflowed ${it.size}")
-        }
+        mBinding.infoBarStatusRv.layoutManager =
+            StatusTagLayoutManager(2, context.dip2px(2f).toInt(), mBinding.infoBarOverflowedBadge) {
+                mBinding.infoBarOverflowedBadge.setNumber(it.size)
+            }
+
         mBinding.infoBarStatusRv.itemAnimator = null
         mBinding.infoBarStatusRv.stopScroll()
         tv.recycle()
@@ -196,11 +202,11 @@ class InfoBar : LinearLayout {
         val params = mBinding.infoBarTitleRoot.layoutParams
         params.width = mBinding.infoBarTitleRoot.width + diff
         if (diff < 0) {
-            if (params.width < width / 6) {
+            if (params.width < mLeftBound) {
                 return
             }
         } else if (diff > 0) {
-            if (params.width > 2 * width / 3) {
+            if (params.width > mRightBound) {
                 return
             }
         }

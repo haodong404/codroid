@@ -58,7 +58,6 @@
         <attr name="android:fontFamily" />
         <attr name="android:textSize" />
         <attr name="android:textStyle" />
-        <attr name="android:background" />
     </declare-styleable>
 
 </resources>

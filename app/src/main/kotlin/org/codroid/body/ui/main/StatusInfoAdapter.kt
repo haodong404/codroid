@@ -44,11 +44,15 @@ class StatusInfoAdapter :
 class StatusTagLayoutManager(
     private val maxLine: Int,
     private val gap: Int = 0,
+    private val badge: Badge? = null,
     private val overflow: ((List<View>) -> Unit)? = null
 ) :
     RecyclerView.LayoutManager() {
 
-    private var mOverflowedBadgeView: Badge? = null
+    init {
+        badge?.setMaxNumber(99)
+    }
+
     override fun generateDefaultLayoutParams(): RecyclerView.LayoutParams =
         RecyclerView.LayoutParams(
             RecyclerView.LayoutParams.MATCH_PARENT,
@@ -66,13 +70,21 @@ class StatusTagLayoutManager(
         var currentLeft = 0
         var currentTop = 0
         var isFirstInALine = true
+        badge?.visibility = View.GONE
         for (i in 0 until itemCount) {
             recycler?.getViewForPosition(i)?.let { view ->
                 measureChildWithMargins(view, 0, 0)
                 val viewWidth = getDecoratedMeasuredWidth(view)
                 val viewHeight = getDecoratedMeasuredHeight(view)
                 var right = currentLeft + viewWidth
-                if (right <= width - 10) {
+
+                var rightBound = width - 10
+                // If current is the last view, we don't need to hide it.
+                if (lineCount == maxLine && i + 1 < itemCount) {
+                    rightBound -= badge?.measuredWidth ?: 0
+                }
+                // Place it if the space is enough.
+                if (right < rightBound) {
                     if (isFirstInALine) {
                         isFirstInALine = false
                     } else {
@@ -99,6 +111,7 @@ class StatusTagLayoutManager(
                                     overflowedViews.add(it)
                                 }
                             }
+                            onOverflowed(overflowedViews.size)
                             overflow.invoke(overflowedViews)
                         }
                         return
@@ -117,6 +130,13 @@ class StatusTagLayoutManager(
                     }
                 }
             }
+        }
+    }
+
+    private fun onOverflowed(size: Int) {
+        badge?.run {
+            visibility = View.VISIBLE
+            setNumber(size)
         }
     }
 
