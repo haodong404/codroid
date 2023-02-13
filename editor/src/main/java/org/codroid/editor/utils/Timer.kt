@@ -21,7 +21,7 @@ object Timer {
     ): TimerTask = TimerTask(duration, doing, context)
 
     /**
-     * Create a [TimerTask] with milliseconds.l
+     * Create a [TimerTask] with milliseconds.
      */
     fun create(
         duration: Long,

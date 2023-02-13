@@ -115,7 +115,6 @@ class InfoBar : LinearLayout {
         val icon =
             ResourcesCompat.getDrawable(context.resources, R.drawable.ic_action_name, context.theme)
                 ?.toBitmap()
-        Log.d("Zac", "Icon: ${icon}")
         mStatusRecyclerAdapter.add(
             StatusTagData(
                 "Kotlin2", icon
@@ -125,8 +124,11 @@ class InfoBar : LinearLayout {
         mStatusRecyclerAdapter.add(StatusTagData("Kotlin4"))
         mStatusRecyclerAdapter.add(StatusTagData("Kotlin5"))
         mStatusRecyclerAdapter.add(StatusTagData("Kotlin6"))
+        mStatusRecyclerAdapter.add(StatusTagData("Kotlin7"))
+        mStatusRecyclerAdapter.add(StatusTagData("Kotlin8"))
+        mStatusRecyclerAdapter.add(StatusTagData("Kotlin9"))
         mBinding.infoBarStatusRv.layoutManager =
-            StatusTagLayoutManager(2, context.dip2px(2f).toInt(), mBinding.infoBarOverflowedBadge) {
+            StatusTagLayoutManager(2, context.dip2px(4f).toInt(), mBinding.infoBarOverflowedBadge) {
                 mBinding.infoBarOverflowedBadge.setNumber(it.size)
             }
 

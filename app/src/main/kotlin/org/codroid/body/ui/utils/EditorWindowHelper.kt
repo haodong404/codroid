@@ -19,6 +19,8 @@
 
 package org.codroid.body.ui.utils
 
+import android.view.View
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
 import org.codroid.body.ui.main.EditorWindowAdapter
@@ -79,7 +81,7 @@ class EditorWindowHelper(private val viewpager: ViewPager2, private val tab: Rec
 
     private fun changePage() {
         if (viewpager.currentItem != mCurrentPosition)
-            viewpager.currentItem = mCurrentPosition
+            viewpager.setCurrentItem(mCurrentPosition, false)
 
         if (tabAdapter.currentPosition != mCurrentPosition) {
             var position = mCurrentPosition + (mCurrentPosition - tabAdapter.currentPosition)
@@ -101,6 +103,7 @@ class EditorWindowHelper(private val viewpager: ViewPager2, private val tab: Rec
         if (!isExists(path)) {
             getWindowAdapter().addFragments(listOf(EditorWindowFragment(path)))
             tabAdapter.add(path)
+            shouldHidTabView()
         }
     }
 
@@ -110,6 +113,19 @@ class EditorWindowHelper(private val viewpager: ViewPager2, private val tab: Rec
     fun removeWindow(position: Int) {
         tabAdapter.removeAt(position)
         (viewpager.adapter as EditorWindowAdapter).removeAt(position)
+        shouldHidTabView()
+    }
+
+    fun shouldHidTabView() {
+        if (tabAdapter.itemCount > 1) {
+            if (!tab.isVisible) {
+                tab.visibility = View.VISIBLE
+            }
+        } else {
+            if (tab.isVisible) {
+                tab.visibility = View.GONE
+            }
+        }
     }
 
     fun isExists(path: Path): Boolean {

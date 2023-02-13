@@ -28,7 +28,9 @@ import android.view.Menu
 import android.view.MenuItem
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.res.ResourcesCompat
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.elevation.SurfaceColors
 import com.google.android.material.snackbar.Snackbar
@@ -75,6 +77,13 @@ class MainActivity : AppCompatActivity() {
     private fun editorWindow() {
         val adapter = EditorWindowAdapter(supportFragmentManager, lifecycle)
         binding.activityMainEditorWindow.adapter = adapter
+        val itemDecoration = DividerItemDecoration(this, DividerItemDecoration.HORIZONTAL)
+        ResourcesCompat.getDrawable(
+            this.resources,
+            R.drawable.gap_divider_horizontal, this.theme
+        )?.let { itemDecoration.setDrawable(it) }
+        binding.activityMainTabRv.addItemDecoration(itemDecoration)
+
         val windowTagAdapter = WindowTabAdapter()
         binding.activityMainTabRv.adapter = windowTagAdapter
         binding.activityMainTabRv.itemAnimator = null

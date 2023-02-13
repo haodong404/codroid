@@ -19,28 +19,33 @@
 
 package org.codroid.body.widgets
 
+import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.*
 import android.util.AttributeSet
+import android.util.Log
 import android.view.MotionEvent
 import android.view.View
+import android.widget.Toast
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.drawable.toBitmap
+import com.google.android.material.color.MaterialColors
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.codroid.body.R
 import org.codroid.body.dip2px
-import org.codroid.body.getAttrColor
+import org.codroid.editor.utils.Timer
+import kotlin.math.abs
 
 
 class WindowTab : View {
 
-    constructor(context: Context) : super(context) {
-        init()
-    }
+    constructor(context: Context) : super(context)
 
     constructor(context: Context, attrs: AttributeSet?) : super(context, attrs) {
-        init()
+        init(context, attrs)
         val typeArr = context.obtainStyledAttributes(attrs, R.styleable.WindowTab)
-        mTitle = typeArr.getString(R.styleable.WindowTab_name) ?: "None"
+        mTitle = typeArr.getString(R.styleable.WindowTab_android_text) ?: "None"
         typeArr.recycle()
     }
 
@@ -49,67 +54,127 @@ class WindowTab : View {
         attrs,
         defStyleAttr
     ) {
-        init()
+        init(context, attrs)
     }
 
     companion object {
-        var mCloseBitmap: Bitmap? = null
-    }
+        private var mCloseBitmap: Bitmap? = null
+        private var mTitleColor = 0
+        private var mBackgroundColor = 0
 
-    private val mCloseRectF: RectF by lazy {
-        RectF()
+        private var mTitleColorSelected = 0
+        private var mBackgroundColorSelected = 0
+        private var mRadius = 0f
+        private var mGap = 0f
+
+        private var mMinTitleWidth = -1F
+        private var mMaxTitleLength = -1F
     }
 
     private val mIconRectF: RectF by lazy {
         RectF()
     }
 
-    private lateinit var mTitlePaint: Paint
+    private val mRectF = RectF()
 
-    private var titleLeft = 0F
+    private val mTitlePaint: Paint = Paint().apply {
+        isAntiAlias = true
+        style = Paint.Style.FILL
+        textSize = context.dip2px(12F)
+    }
+    private val mBackgroundPaint: Paint = Paint().apply {
+        isAntiAlias = false
+        style = Paint.Style.FILL
+    }
 
     private var mTitle = ""
-    private var mTitleSize = 0F
-    private var mTitleColor = 0
-
-    private var mTitleHalfHeight = 0F
-    private var mTitleTop = 0F
+    private var mTitleHeight = 0
 
     private var mIconBitmap: Bitmap? = null
     private var mIsSelect: Boolean = false
-    private var mSelectedColor: Int = Color.CYAN
 
-    private var mCloseListener: OnClickListener? = null
+    private var mCurrentTitleColor = mTitleColor
+    private var mCurrentBackgroundColor = mBackgroundColor
 
-    private var isClickOnClose = false
+    private var mTitleLeft = 0F
+    private var mCloseIconLeft = 0F
+    private var mCloseIconTop = 0F
 
-    private fun init() {
-        mTitleSize = context.dip2px(12F)
-        mTitleColor = context.getAttrColor(android.R.attr.textColorPrimary)
-        mTitlePaint = Paint().apply {
-            style = Paint.Style.FILL
-            textSize = mTitleSize
-            color = mTitleColor
-            strokeWidth = context.dip2px(1F)
+    private var mCloseColorFilter: PorterDuffColorFilter? = null
+
+    private val mTitleColorAnimator: ValueAnimator by lazy {
+        ValueAnimator.ofArgb(mTitleColor, mTitleColorSelected).apply {
+            duration = 150
+            addUpdateListener {
+                mCurrentTitleColor = it.animatedValue as Int
+                mCloseColorFilter =
+                    PorterDuffColorFilter(it.animatedValue as Int, PorterDuff.Mode.SRC_IN)
+            }
         }
+    }
 
+    private val mBackgroundAnimator: ValueAnimator by lazy {
+        ValueAnimator.ofArgb(mBackgroundColor, mBackgroundColorSelected).apply {
+            duration = 150
+            addUpdateListener {
+                mCurrentBackgroundColor = it.animatedValue as Int
+                postInvalidateOnAnimation()
+            }
+        }
+    }
+
+
+    private var mOnCloseListener: OnClickListener? = null
+
+    init {
+        if (mTitleColor == 0) {
+            mTitleColor =
+                MaterialColors.getColor(context, R.attr.colorOnTertiaryContainer, Color.BLACK)
+            mBackgroundColor =
+                MaterialColors.getColor(context, R.attr.colorTertiaryContainer, Color.WHITE)
+
+            mTitleColorSelected =
+                MaterialColors.getColor(context, R.attr.colorOnTertiary, Color.BLACK)
+            mBackgroundColorSelected =
+                MaterialColors.getColor(context, R.attr.colorTertiary, Color.CYAN)
+            mRadius = context.dip2px(4f)
+            mGap = context.dip2px(4f)
+        }
+    }
+
+    private fun init(context: Context, attrs: AttributeSet?) {
+        val ta = context.obtainStyledAttributes(attrs, R.styleable.WindowTab)
+        ta.getResourceId(R.styleable.WindowTab_android_fontFamily, 0).let {
+            if (it != 0) {
+                mTitlePaint.typeface = Typeface.create(
+                    ResourcesCompat.getFont(context, it),
+                    ta.getInt(R.styleable.WindowTab_android_textStyle, 0)
+                )
+            } else {
+                ta.getInt(R.styleable.WindowTab_android_textStyle, 0).let { i ->
+                    if (i != 0) {
+                        mTitlePaint.typeface = Typeface.create(Typeface.DEFAULT, i)
+                    }
+                }
+            }
+        }
         if (mCloseBitmap == null) {
             mCloseBitmap = ResourcesCompat.getDrawable(
                 resources,
                 R.drawable.ic_baseline_close_24,
                 context.theme
-            )?.toBitmap()
+            )?.apply {
+                setTint(MaterialColors.getColor(context, R.attr.colorError, Color.BLACK))
+            }?.toBitmap()
         }
-
-        mTitleHalfHeight =
-            (mTitlePaint.fontMetrics.bottom - mTitlePaint.fontMetrics.top) / 2 - mTitlePaint.fontMetrics.bottom
+        ta.recycle()
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec)
-        var measuredWidth = paddingLeft.toFloat()
+        var width = paddingLeft.toFloat()
+        var height = 0f
         mIconBitmap?.let {
-            measuredWidth += it.width
+            width += it.width
             val top = measuredHeight / 2F - it.height / 2F
             mIconRectF.set(
                 paddingLeft.toFloat(),
@@ -117,79 +182,93 @@ class WindowTab : View {
                 it.width.toFloat() + paddingLeft,
                 top + it.height
             )
+            width += mGap
         }
 
-        measuredWidth += context.dip2px(4F) // margin left
-
-        titleLeft = measuredWidth
-
-        measuredWidth += mTitlePaint.measureText(mTitle)
+        mTitleHeight = mTitlePaint.fontMetrics.let {
+            return@let abs(it.ascent + it.descent + it.leading).toInt()
+        }
+        mTitleLeft = width
+        width += mTitlePaint.measureText(mTitle)
+        height += mTitleHeight + paddingTop + paddingBottom
 
         mCloseBitmap?.let {
-            val top = measuredHeight / 2F - it.height / 2F
-            mCloseRectF.set(
-                measuredWidth + context.dip2px(4F),
-                top,
-                measuredWidth + it.width + context.dip2px(4F),
-                top + it.height
-            )
-            measuredWidth = mCloseRectF.right
+            mCloseIconLeft = width + mGap
+            width += it.width + mGap
+            mCloseIconTop = height / 2 - it.height / 2
         }
-        mTitleTop = measuredHeight / 2F + mTitleHalfHeight
-        measuredWidth += paddingLeft + paddingRight
-        setMeasuredDimension(measuredWidth.toInt(), this.measuredHeight)
+
+        width += paddingRight
+
+        mRectF.left = 0f
+        mRectF.top = 0f
+        mRectF.right = width
+        mRectF.bottom = height
+
+        setMeasuredDimension(width.toInt(), height.toInt())
     }
 
     override fun onDraw(canvas: Canvas?) {
-        super.onDraw(canvas)
-        mIconBitmap?.let {
-            canvas?.drawBitmap(it, null, mIconRectF, null)
-        }
-        canvas?.drawText(mTitle, titleLeft, mTitleTop, mTitlePaint)
+        canvas?.run {
+            drawRoundRect(mRectF, mRadius, mRadius, getBackgroundPaint())
+            mIconBitmap?.let {
+                drawBitmap(it, null, mIconRectF, null)
+            }
+            drawText(
+                mTitle,
+                mTitleLeft,
+                paddingTop + mTitleHeight.toFloat(),
+                getTitlePaint()
+            )
 
-        mCloseBitmap?.let {
-            canvas?.drawBitmap(it, null, mCloseRectF, null)
+            mCloseBitmap?.let {
+                mTitlePaint.colorFilter = mCloseColorFilter
+                drawBitmap(it, mCloseIconLeft, mCloseIconTop, mTitlePaint)
+                mTitlePaint.colorFilter = null
+            }
         }
-
     }
 
-    override fun dispatchTouchEvent(event: MotionEvent?): Boolean {
-        if (event?.action == MotionEvent.ACTION_DOWN) {
-            isClickOnClose = isInRect(mCloseRectF, event.x, event.y)
-            return true
-        } else if (event?.action == MotionEvent.ACTION_UP) {
-            return if (isClickOnClose && isInRect(mCloseRectF, event.x, event.y)) {
-                onTouchEvent(event)
-            } else {
-                performClick()
+    override fun onTouchEvent(event: MotionEvent?): Boolean {
+        event?.run {
+            when (event.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    return true
+                }
+                MotionEvent.ACTION_UP -> {
+                    if (hitCloseButton(event)) {
+                        mOnCloseListener?.onClick(this@WindowTab)
+                    } else {
+                        return performClick()
+                    }
+                    return true
+                }
+                else -> {}
             }
         }
         return false
     }
 
-    override fun onTouchEvent(event: MotionEvent?): Boolean {
-        return when (event?.action) {
-            MotionEvent.ACTION_UP -> {
-                if (isInRect(mCloseRectF, event.x, event.y)) {
-                    mCloseListener?.let {
-                        mCloseListener?.onClick(this)
-                    }
-                    true
-                } else {
-                    false
-                }
-            }
-            else -> {
-                false
-            }
-        }
+    private fun hitCloseButton(event: MotionEvent): Boolean {
+        val leftBound = (mCloseIconLeft - mGap).toInt()
+        return event.x.toInt() in leftBound..measuredWidth
+    }
+
+    private fun getTitlePaint(): Paint {
+        mTitlePaint.color = mCurrentTitleColor
+        return mTitlePaint
+    }
+
+    private fun getBackgroundPaint(): Paint {
+        mBackgroundPaint.color = mCurrentBackgroundColor
+        return mBackgroundPaint
     }
 
     fun setOnCloseListener(listener: OnClickListener) {
-        this.mCloseListener = listener
+        this.mOnCloseListener = listener
     }
 
-    fun setTitle(title: String) {
+    fun setText(title: String) {
         this.mTitle = title
         requestLayout()
     }
@@ -200,26 +279,16 @@ class WindowTab : View {
         invalidate()
     }
 
-    fun setIsSelected(isSelect: Boolean) {
-        if (mIsSelect != isSelect) {
-            this.mIsSelect = isSelect
-            if (isSelect)
-                setBackgroundColor(mSelectedColor)
-            else
-                setBackgroundColor(Color.TRANSPARENT)
-        }
-    }
-
-    fun setSelectColor(color: Int) {
-        this.mSelectedColor = color
-    }
-
-    fun isInRect(rect: RectF, x: Float, y: Float): Boolean {
-        if (x >= rect.left && x <= rect.right) {
-            if (y >= rect.top && y <= rect.bottom) {
-                return true
+    fun setIsSelected(isSelected: Boolean) {
+        if (mIsSelect != isSelected) {
+            mIsSelect = isSelected
+            if (!isSelected) {
+                mTitleColorAnimator.reverse()
+                mBackgroundAnimator.reverse()
+            } else {
+                mTitleColorAnimator.start()
+                mBackgroundAnimator.start()
             }
         }
-        return false
     }
 }

@@ -32,7 +32,9 @@
     </declare-styleable>
 
     <declare-styleable name="WindowTab">
-        <attr name="name" format="string" />
+        <attr name="android:text" />
+        <attr name="android:fontFamily" />
+        <attr name="android:textStyle" />
     </declare-styleable>
 
     <declare-styleable name="InfoBar">

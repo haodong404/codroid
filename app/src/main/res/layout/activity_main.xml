@@ -36,7 +36,10 @@
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/activity_main_tab_rv"
         android:layout_width="match_parent"
-        android:layout_height="30dp"
+        android:layout_height="wrap_content"
+        android:paddingVertical="@dimen/material_8dp"
+        android:paddingHorizontal="@dimen/material_16dp"
+        app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toBottomOf="@id/activity_main_app_bar_layout" />
 
     <androidx.drawerlayout.widget.DrawerLayout

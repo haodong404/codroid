@@ -20,6 +20,7 @@
 package org.codroid.body.ui.main
 
 import android.content.Context
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import com.chad.library.adapter.base.BaseQuickAdapter
