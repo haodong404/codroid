@@ -20,7 +20,7 @@
 plugins {
     id 'com.android.library'
     id 'kotlin-android'
-    id 'org.jetbrains.kotlin.plugin.serialization' version '1.7.10'
+    id 'org.jetbrains.kotlin.plugin.serialization' version '1.8.10'
 }
 
 android {
@@ -41,12 +41,12 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_11
-        targetCompatibility JavaVersion.VERSION_11
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
 
     kotlinOptions {
-        jvmTarget = '11'
+        jvmTarget = '17'
     }
     sourceSets {
         main {
@@ -64,10 +64,10 @@ android {
 dependencies {
     implementation 'cc.ekblad:4koma:1.0.2'
     implementation 'com.tencent:mmkv:1.2.14'
-    implementation 'androidx.room:room-runtime:2.5.0'
-    implementation 'androidx.core:core-ktx:1.9.0'
-    implementation 'org.jetbrains.kotlin:kotlin-stdlib:1.7.21'
-    implementation 'org.jetbrains.kotlin:kotlin-reflect:1.7.21'
+    implementation 'androidx.room:room-runtime:2.5.2'
+    implementation 'androidx.core:core-ktx:1.10.1'
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib:1.8.10'
+    implementation 'org.jetbrains.kotlin:kotlin-reflect:1.8.10'
     implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.0"
     androidTestImplementation "androidx.test:runner:1.5.2"
     androidTestImplementation "androidx.test:rules:1.5.0"
@@ -77,5 +77,5 @@ dependencies {
     testImplementation 'org.mockito:mockito-core:4.7.0'
     // Optional -- mockito-kotlin
     testImplementation 'org.mockito.kotlin:mockito-kotlin:4.0.0'
-    annotationProcessor 'androidx.room:room-compiler:2.5.0'
+    annotationProcessor 'androidx.room:room-compiler:2.5.2'
 }

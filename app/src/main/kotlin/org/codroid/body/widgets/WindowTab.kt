@@ -21,20 +21,22 @@ package org.codroid.body.widgets
 
 import android.animation.ValueAnimator
 import android.content.Context
-import android.graphics.*
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffColorFilter
+import android.graphics.RectF
+import android.graphics.Typeface
 import android.util.AttributeSet
-import android.util.Log
 import android.view.MotionEvent
 import android.view.View
-import android.widget.Toast
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.drawable.toBitmap
 import com.google.android.material.color.MaterialColors
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import org.codroid.body.R
 import org.codroid.body.dip2px
-import org.codroid.editor.utils.Timer
 import kotlin.math.abs
 
 
@@ -129,14 +131,14 @@ class WindowTab : View {
     init {
         if (mTitleColor == 0) {
             mTitleColor =
-                MaterialColors.getColor(context, R.attr.colorOnTertiaryContainer, Color.BLACK)
+                MaterialColors.getColor(context, com.google.android.material.R.attr.colorOnTertiaryContainer, Color.BLACK)
             mBackgroundColor =
-                MaterialColors.getColor(context, R.attr.colorTertiaryContainer, Color.WHITE)
+                MaterialColors.getColor(context, com.google.android.material.R.attr.colorTertiaryContainer, Color.WHITE)
 
             mTitleColorSelected =
-                MaterialColors.getColor(context, R.attr.colorOnTertiary, Color.BLACK)
+                MaterialColors.getColor(context, com.google.android.material.R.attr.colorOnTertiary, Color.BLACK)
             mBackgroundColorSelected =
-                MaterialColors.getColor(context, R.attr.colorTertiary, Color.CYAN)
+                MaterialColors.getColor(context, com.google.android.material.R.attr.colorTertiary, Color.CYAN)
             mRadius = context.dip2px(4f)
             mGap = context.dip2px(4f)
         }
@@ -164,7 +166,7 @@ class WindowTab : View {
                 R.drawable.ic_baseline_close_24,
                 context.theme
             )?.apply {
-                setTint(MaterialColors.getColor(context, R.attr.colorError, Color.BLACK))
+                setTint(MaterialColors.getColor(context, com.google.android.material.R.attr.colorError, Color.BLACK))
             }?.toBitmap()
         }
         ta.recycle()
@@ -208,8 +210,8 @@ class WindowTab : View {
         setMeasuredDimension(width.toInt(), height.toInt())
     }
 
-    override fun onDraw(canvas: Canvas?) {
-        canvas?.run {
+    override fun onDraw(canvas: Canvas) {
+        canvas.run {
             drawRoundRect(mRectF, mRadius, mRadius, getBackgroundPaint())
             mIconBitmap?.let {
                 drawBitmap(it, null, mIconRectF, null)

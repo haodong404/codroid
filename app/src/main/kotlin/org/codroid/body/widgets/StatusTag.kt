@@ -34,7 +34,7 @@ class StatusTag : View {
     private val mIconColorFilter = PorterDuffColorFilter(
         MaterialColors.getColor(
             context,
-            R.attr.colorOnSurfaceVariant,
+            com.google.android.material.R.attr.colorOnSurfaceVariant,
             Color.GRAY
         ), PorterDuff.Mode.SRC_IN
     )

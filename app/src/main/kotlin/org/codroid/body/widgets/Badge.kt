@@ -61,7 +61,7 @@ class Badge : View {
 
         mText = (ta.getString(R.styleable.Badge_android_text) ?: "0").toInt()
 
-        mBackgroundPaint.color = ta.getColor(R.styleable.Badge_backgroundColor, Color.TRANSPARENT)
+        mBackgroundPaint.color = ta.getColor(com.google.android.material.R.styleable.Badge_backgroundColor, Color.TRANSPARENT)
 
         ta.recycle()
     }

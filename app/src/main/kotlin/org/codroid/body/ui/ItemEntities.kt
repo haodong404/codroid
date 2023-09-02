@@ -36,4 +36,13 @@ data class AddonItem(
     val version: String,
     val description: String,
     val author: String,
-    val link: String)
+    val link: String
+)
+
+data class SymbolItem(val value: String, var label: String? = null) {
+    init {
+        if (label == null) {
+            this.label = value
+        }
+    }
+}

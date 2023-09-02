@@ -502,5 +502,6 @@ class CodroidEditor : View, LifecycleOwner {
         mLifecycleRegistry.currentState = Lifecycle.State.DESTROYED
     }
 
-    override fun getLifecycle(): Lifecycle = this.mLifecycleRegistry
+    override val lifecycle: Lifecycle
+        get() = this.mLifecycleRegistry
 }

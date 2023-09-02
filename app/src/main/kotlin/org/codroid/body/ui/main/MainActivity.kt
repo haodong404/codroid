@@ -21,6 +21,7 @@ package org.codroid.body.ui.main
 
 import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
@@ -32,6 +33,7 @@ import androidx.core.content.res.ResourcesCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.elevation.SurfaceColors
 import com.google.android.material.snackbar.Snackbar
 import com.permissionx.guolindev.PermissionX
@@ -39,7 +41,9 @@ import kotlinx.coroutines.launch
 import org.codroid.body.Codroid
 import org.codroid.body.R
 import org.codroid.body.databinding.ActivityMainBinding
+import org.codroid.body.ui.SymbolItem
 import org.codroid.body.ui.addonmanager.AddonManagerActivity
+import org.codroid.body.ui.buttompannel.ConvinientSymbolsAdapter
 import org.codroid.body.ui.dirtree.DirTreeAdapter
 import org.codroid.body.ui.dirtree.FileTreeNode
 import org.codroid.body.ui.preferences.PreferencesActivity
@@ -66,12 +70,53 @@ class MainActivity : AppCompatActivity() {
         initBarColor()
         setContentView(binding.root)
 
+        var version = ""
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            version = packageManager.getPackageInfo(
+                packageName,
+                PackageManager.PackageInfoFlags.of(0)
+            ).versionName
+        } else {
+            version = packageManager.getPackageInfo(packageName, 0).versionName
+        }
+        binding.info = "Codroid ${version}"
+
         editorWindow()
 
         dirTreeWindow()
 
         permissionApply()
 
+        convinientSymbols()
+    }
+
+    private fun convinientSymbols() {
+        val adapter = ConvinientSymbolsAdapter()
+        binding.activityMainConvinientSymbolsRv.adapter = adapter
+        binding.activityMainConvinientSymbolsRv.layoutManager = LinearLayoutManager(this).apply {
+            orientation = RecyclerView.HORIZONTAL
+        }
+
+        adapter.addAll(
+            listOf(
+                SymbolItem("/"),
+                SymbolItem("*"),
+                SymbolItem("&"),
+                SymbolItem("@"),
+                SymbolItem("$"),
+                SymbolItem("%"),
+                SymbolItem("("),
+                SymbolItem(")"),
+                SymbolItem("{"),
+                SymbolItem("}"),
+                SymbolItem("["),
+                SymbolItem("]"),
+                SymbolItem(":"),
+                SymbolItem(";"),
+            )
+        )
+        binding.activityMainConvinientSymbolsRv.stopNestedScroll()
     }
 
     private fun editorWindow() {

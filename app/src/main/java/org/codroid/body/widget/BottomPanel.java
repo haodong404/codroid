@@ -70,8 +70,9 @@ public class BottomPanel extends FrameLayout {
             return;
         }
 
-        View childView = getChildAt(0);
-        childView.layout(left, behavior.getPeekHeight(), right, bottom);
+        // Layout the peek
+        getChildAt(0).layout(left, top, right, bottom);
+        getChildAt(1).layout(left, behavior.getPeekHeight(), right, bottom);
     }
 
     public void show() {
