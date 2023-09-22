@@ -63,8 +63,8 @@ class Divider : View {
         setMeasuredDimension(width, height)
     }
 
-    override fun onDraw(canvas: Canvas?) {
-        canvas?.run {
+    override fun onDraw(canvas: Canvas) {
+        canvas.run {
             drawRoundRect(mRect, 10f, 10f, mPaint)
         }
     }

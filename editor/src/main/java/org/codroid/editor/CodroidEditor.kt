@@ -231,11 +231,9 @@ class CodroidEditor : View, LifecycleOwner {
         super.onLayout(changed, left, top, right, bottom)
     }
 
-    override fun onDraw(canvas: Canvas?) {
-        canvas?.let {
-            mRowsRender.drawRows(canvas)
-            mCursor.drawCursor(canvas)
-        }
+    override fun onDraw(canvas: Canvas) {
+        mRowsRender.drawRows(canvas)
+        mCursor.drawCursor(canvas)
     }
 
     private var mActionDownStartTime = 0L
@@ -262,6 +260,7 @@ class CodroidEditor : View, LifecycleOwner {
                         }
                     }
                 }
+
                 MotionEvent.ACTION_MOVE -> {
                     if (isCursorIntercepted) {
                         mLongPressJob?.cancel()
@@ -274,6 +273,7 @@ class CodroidEditor : View, LifecycleOwner {
                     mLongPressJob?.cancel()
                     mLongPressJob = null
                 }
+
                 MotionEvent.ACTION_UP -> {
                     mLongPressJob?.cancel()
                     mLongPressJob = null
@@ -420,6 +420,10 @@ class CodroidEditor : View, LifecycleOwner {
     fun getEditContent() = mEditContent
 
     fun getCursor() = mCursor
+
+    fun insertText(text: CharSequence) {
+        getEditContent()?.insert(text)
+    }
 
     fun interceptParentScroll(absoluteX: Float, absoluteY: Float): Boolean {
         isCursorIntercepted = if (getCursor().isSelecting()) {

@@ -69,18 +69,13 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         initBarColor()
         setContentView(binding.root)
-
-        var version = ""
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            version = packageManager.getPackageInfo(
-                packageName,
-                PackageManager.PackageInfoFlags.of(0)
-            ).versionName
+        val version = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            packageManager.getPackageInfo(packageName, PackageManager.PackageInfoFlags.of(0)).versionName
         } else {
-            version = packageManager.getPackageInfo(packageName, 0).versionName
+            packageManager.getPackageInfo(packageName, 0).versionName
         }
-        binding.info = "Codroid ${version}"
+
+        binding.info = "Codroid $version"
 
         editorWindow()
 
@@ -98,13 +93,12 @@ class MainActivity : AppCompatActivity() {
             orientation = RecyclerView.HORIZONTAL
         }
 
-        adapter.addAll(
-            listOf(
-                SymbolItem("/"),
-                SymbolItem("*"),
+        adapter.addAll(listOf(
                 SymbolItem("&"),
                 SymbolItem("@"),
                 SymbolItem("$"),
+                SymbolItem("/"),
+                SymbolItem("*"),
                 SymbolItem("%"),
                 SymbolItem("("),
                 SymbolItem(")"),
@@ -114,28 +108,27 @@ class MainActivity : AppCompatActivity() {
                 SymbolItem("]"),
                 SymbolItem(":"),
                 SymbolItem(";"),
-            )
-        )
+        ))
         binding.activityMainConvinientSymbolsRv.stopNestedScroll()
+        adapter.setOnItemClickListener { a, _, position ->
+            a.getItem(position)?.let {
+                mWindowHelper.getCurrentPage().insetText(it.value)
+            }
+        }
     }
 
     private fun editorWindow() {
         val adapter = EditorWindowAdapter(supportFragmentManager, lifecycle)
         binding.activityMainEditorWindow.adapter = adapter
         val itemDecoration = DividerItemDecoration(this, DividerItemDecoration.HORIZONTAL)
-        ResourcesCompat.getDrawable(
-            this.resources,
-            R.drawable.gap_divider_horizontal, this.theme
-        )?.let { itemDecoration.setDrawable(it) }
+        ResourcesCompat.getDrawable(this.resources, R.drawable.gap_divider_horizontal, this.theme)?.let { itemDecoration.setDrawable(it) }
         binding.activityMainTabRv.addItemDecoration(itemDecoration)
 
         val windowTagAdapter = WindowTabAdapter()
         binding.activityMainTabRv.adapter = windowTagAdapter
         binding.activityMainTabRv.itemAnimator = null
-        binding.activityMainTabRv.layoutManager =
-            LinearLayoutManager(this).apply { orientation = LinearLayoutManager.HORIZONTAL }
-        mWindowHelper =
-            EditorWindowHelper(binding.activityMainEditorWindow, binding.activityMainTabRv)
+        binding.activityMainTabRv.layoutManager = LinearLayoutManager(this).apply { orientation = LinearLayoutManager.HORIZONTAL }
+        mWindowHelper = EditorWindowHelper(binding.activityMainEditorWindow, binding.activityMainTabRv)
     }
 
     private fun dirTreeWindow() {
@@ -165,46 +158,28 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-
     private fun permissionApply() {
-        var permissions = listOf(
-            Manifest.permission.READ_EXTERNAL_STORAGE,
-            Manifest.permission.WRITE_EXTERNAL_STORAGE
-        )
+        var permissions = listOf(Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE)
 
         if (Build.VERSION.SDK_INT >= 30) {
             permissions = listOf(Manifest.permission.MANAGE_EXTERNAL_STORAGE)
         }
 
-        PermissionX.init(this)
-            .permissions(permissions)
-            .onExplainRequestReason { scope, deniedList ->
-                scope.showRequestReasonDialog(
-                    deniedList,
-                    getString(R.string.permission_dialog_message),
-                    getString(R.string.dialog_accept),
-                    getString(R.string.dialog_cancel)
-                )
-            }
-            .request { allGranted, _, _ ->
-                if (allGranted) {
-                    viewModel.openDir(Codroid.SDCARD_ROOT_DIR)
-                        .observe(this@MainActivity) { response ->
-                            response?.let {
-                                mDirTreeAdapter.addAll(response)
-                            }
-                        }
-                    mWindowHelper.newWindow(
-                        File(
-                            Environment.getExternalStorageDirectory(),
-                            "TokenizeString.kt"
-                        ).toPath()
-                    )
-                } else {
-                    permissionApply()
-                    onPermissionDenied()
+        PermissionX.init(this).permissions(permissions).onExplainRequestReason { scope, deniedList ->
+            scope.showRequestReasonDialog(deniedList, getString(R.string.permission_dialog_message), getString(R.string.dialog_accept), getString(R.string.dialog_cancel))
+        }.request { allGranted, _, _ ->
+            if (allGranted) {
+                viewModel.openDir(Codroid.SDCARD_ROOT_DIR).observe(this@MainActivity) { response ->
+                    response?.let {
+                        mDirTreeAdapter.addAll(response)
+                    }
                 }
+                mWindowHelper.newWindow(File(Environment.getExternalStorageDirectory(), "TokenizeString.kt").toPath())
+            } else {
+                permissionApply()
+                onPermissionDenied()
             }
+        }
     }
 
 
@@ -214,11 +189,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun onPermissionDenied() {
-        Snackbar.make(
-            binding.root,
-            getString(R.string.storage_permission_denied),
-            Snackbar.LENGTH_SHORT
-        ).show()
+        Snackbar.make(binding.root, getString(R.string.storage_permission_denied), Snackbar.LENGTH_SHORT).show()
 
     }
 

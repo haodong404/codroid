@@ -187,28 +187,28 @@ class DirTreeItemView : View {
         }
     }
 
-    override fun onDraw(canvas: Canvas?) {
+    override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         if (!isInit) return
 
         mExpandMoreBitmap?.let { // Draw the expand icon if it is a directory
             if (isDir()) {
-                canvas?.drawBitmap(it, mExpandMoreMatrix, alphaPaint)
+                canvas.drawBitmap(it, mExpandMoreMatrix, alphaPaint)
             }
         }
         mIconBitmap?.let {
             if (!mIconBitmap?.isRecycled!!) {
-                canvas?.drawBitmap(mIconBitmap!!, null, mIconRectF, null)
+                canvas.drawBitmap(mIconBitmap!!, null, mIconRectF, null)
             }
         }
 
         mTagBitmap?.let {
             if (!mTagBitmap?.isRecycled!!) {
-                canvas?.drawBitmap(mTagBitmap!!, null, mTagRectF, null)
+                canvas.drawBitmap(mTagBitmap!!, null, mTagRectF, null)
             }
         }
 
-        canvas?.drawText(
+        canvas.drawText(
             configure.title,
             mTitleMarginLeft + configure.leftPadding,
             mTitleTopSpace,

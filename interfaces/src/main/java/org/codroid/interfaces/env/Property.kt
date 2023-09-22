@@ -16,7 +16,9 @@ import kotlin.reflect.full.createType
 
 @OptIn(InternalAPI::class)
 open class Property<T> : Resource {
-    var entity: T? = null
+    protected var entity: T? = null
+
+    constructor(path: Path?) : super(path)
 
     constructor(path: Path?, kType: KType) : super(path) {
         if (path != null) {

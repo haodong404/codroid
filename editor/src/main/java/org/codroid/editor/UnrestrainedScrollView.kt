@@ -314,8 +314,8 @@ class UnrestrainedScrollView : FrameLayout {
         return true
     }
 
-    override fun onDrawForeground(canvas: Canvas?) {
-        canvas?.run {
+    override fun onDrawForeground(canvas: Canvas) {
+        canvas.run {
             mOverlayCanvas.bindBaseCanvas(canvas)
 
             // Draw the scroll bars.

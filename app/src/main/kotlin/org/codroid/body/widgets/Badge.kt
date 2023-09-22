@@ -90,8 +90,8 @@ class Badge : View {
         setMeasuredDimension(width.toInt(), height.toInt())
     }
 
-    override fun onDraw(canvas: Canvas?) {
-        canvas?.run {
+    override fun onDraw(canvas: Canvas) {
+        canvas.run {
             drawRoundRect(mRect, 100f, 100f, mBackgroundPaint)
             drawText(
                 mText.toString(),

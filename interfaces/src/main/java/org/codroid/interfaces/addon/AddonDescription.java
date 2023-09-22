@@ -19,7 +19,10 @@
 
 package org.codroid.interfaces.addon;
 
+import androidx.annotation.NonNull;
+
 import org.codroid.interfaces.env.Property;
+import org.codroid.interfaces.utils.Description;
 import org.codroid.interfaces.utils.TomlKt;
 
 import java.io.ByteArrayInputStream;
@@ -31,20 +34,22 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
+import cc.ekblad.toml.TomlMapper;
+
 
 /**
  * This class manages the property file of addons.
  * Serializing and defining
  */
-public final class AddonDescription extends Property<AddonDescription.Addon> {
+public final class AddonDescription extends Property<Description> {
     public static String ADDON_DESCRIPTION_FILE_NAME = "addon-des.toml";
 
     public AddonDescription(byte[] bytes) {
-        super(new ByteArrayInputStream(bytes), Addon.class);
+        super(new ByteArrayInputStream(bytes), Description.class);
     }
 
     public AddonDescription(Path file) {
-        super(file, Addon.class);
+        super(file, Description.class);
     }
 
     /**
@@ -53,7 +58,7 @@ public final class AddonDescription extends Property<AddonDescription.Addon> {
      * @return empty set if it's not broken.
      */
     public Set<String> checkIntegrity() {
-        Class<? extends Addon> entityClass = getEntity().getClass();
+        Class<? extends Description> entityClass = getEntity().getClass();
         Set<String> brokenField = new HashSet<>();
         for (Field field : entityClass.getDeclaredFields()) {
             try {
@@ -70,8 +75,7 @@ public final class AddonDescription extends Property<AddonDescription.Addon> {
         return brokenField;
     }
 
-
-    public Addon get() {
+    public Description get() {
         return getEntity();
     }
 

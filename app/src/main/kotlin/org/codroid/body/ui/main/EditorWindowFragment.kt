@@ -58,4 +58,8 @@ class EditorWindowFragment(var path: Path) : Fragment() {
             }
         }
     }
+
+    fun insetText(text: CharSequence) {
+        binding.editorWindowCodroidEditor.insertText(text)
+    }
 }

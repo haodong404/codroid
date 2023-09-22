@@ -17,7 +17,7 @@ class PreferencesTest {
                 "input-type" to InputSetting(
                     category = "input",
                     title = "This is an input box.",
-                    subtitle = "Subtitle",
+                    summary = "summary",
                     valueType = "STRING",
                     defaultValue = "Text value",
                     placeholder = "Please enter..."
@@ -36,9 +36,9 @@ class PreferencesTest {
                 "input-type" to InputSetting(
                     category = "input",
                     title = "This is an input box.",
-                    subtitle = "Subtitle",
+                    summary = "summary",
                     valueType = "NUMBER",
-                    defaultValue = 100L,
+                    defaultValue = "100",
                     placeholder = "Please enter..."
                 )
             )
@@ -56,7 +56,7 @@ class PreferencesTest {
                 "switch-type" to SwitchSetting(
                     category = "switch",
                     title = "This is a switch button.",
-                    subtitle = "Subtitle",
+                    summary = "summary",
                     defaultValue = false
                 )
             )
@@ -73,7 +73,7 @@ class PreferencesTest {
                 "switch-type" to TextareaSetting(
                     category = "textarea",
                     title = "This is a switch button.",
-                    subtitle = "Subtitle",
+                    summary = "summary",
                     placeholder = "placeholder",
                     defaultValue = "Content"
                 )
@@ -91,7 +91,7 @@ class PreferencesTest {
                 "switch-type" to SelectSetting(
                     category = "select",
                     title = "This is a switch button.",
-                    subtitle = "Subtitle",
+                    summary = "summary",
                     options = listOf("Aa", "Bb", "Cc"),
                     defaultValue = 2
                 )
@@ -109,7 +109,7 @@ class PreferencesTest {
                 "switch-type" to SelectSetting(
                     category = "select",
                     title = "This is a switch button.",
-                    subtitle = null,
+                    summary = null,
                     options = listOf("Aa", "Bb", "Cc"),
                     defaultValue = 2
                 )
@@ -134,7 +134,7 @@ class PreferencesTest {
         val toml = """
             [settings."missing-type"]
             title = "This is an input"
-            subtitle = ""
+            summary = ""
             valueType = "STRING"  # STRING, NUMBER
             defaultValue = "1234"
             placeholder = "Please enter..."
@@ -150,7 +150,7 @@ class PreferencesTest {
             [settings."missing-type"]
             type = "unknown"
             title = "This is an input"
-            subtitle = ""
+            summary = ""
             valueType = "STRING"  # STRING, NUMBER
             defaultValue = "1234"
             placeholder = "Please enter..."

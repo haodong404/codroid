@@ -143,14 +143,14 @@ class CodroidEditor : AppCompatEditText {
 //        if (event?.action == MotionEvent.ACTION_MOVE) return false
 //        return super.onTouchEvent(event)
 //    }
-    override fun onDraw(canvas: Canvas?) {
+    override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         if (mConfigure.lineNumberEnable) {
             lineNumberBackRect.set(0, 0, mPaddingLeft.toInt(), MeasureSpec.getSize(measuredHeight))
-            canvas?.drawRect(lineNumberBackRect, mBackPaint)
+            canvas.drawRect(lineNumberBackRect, mBackPaint)
             for (i in 0 until lineCount) {
                 val baseLine = getLineBounds(i, null)
-                canvas?.drawText(
+                canvas.drawText(
                     (i + 1).toString(),
                     mGap,
                     baseLine.toFloat(),

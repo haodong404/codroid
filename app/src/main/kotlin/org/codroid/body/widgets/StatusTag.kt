@@ -127,8 +127,8 @@ class StatusTag : View {
         setMeasuredDimension(width, height)
     }
 
-    override fun onDraw(canvas: Canvas?) {
-        canvas?.run {
+    override fun onDraw(canvas: Canvas) {
+        canvas.run {
             if (mText.isBlank()) {
                 return
             }

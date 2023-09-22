@@ -22,6 +22,7 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <data>
+
         <variable
             name="info"
             type="java.lang.String" />
@@ -70,32 +71,33 @@
                     android:layout_height="300dp"
                     android:orientation="horizontal"
                     app:behavior_hideable="false"
-                    app:behavior_peekHeight="65dp"
+                    app:behavior_peekHeight="60dp"
                     app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:background="?attr/colorSurfaceContainer"
                         android:orientation="vertical">
 
                         <androidx.recyclerview.widget.RecyclerView
                             android:id="@+id/activity_main_convinient_symbols_rv"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            android:background="?attr/colorSurfaceContainer"
                             android:nestedScrollingEnabled="false" />
 
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            android:background="?attr/colorSurfaceContainer"
                             android:gravity="center_horizontal">
 
                             <TextView
-                                android:fontFamily="@font/poppins_regular"
-                                android:textSize="12sp"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="@{info}" />
+                                android:fontFamily="@font/poppins_regular"
+                                android:text="@{info}"
+                                android:textSize="12sp" />
 
                         </LinearLayout>
 
