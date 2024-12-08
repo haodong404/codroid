@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <data>
+
+        <variable
+            name="item"
+            type="org.codroid.body.ui.SymbolItem" />
+    </data>
+
+    <TextView
+        android:paddingHorizontal="14dp"
+        android:paddingVertical="8dp"
+        android:layout_width="wrap_content"
+        android:foreground="?android:attr/selectableItemBackground"
+        android:clickable="true"
+        android:layout_height="wrap_content"
+        android:textSize="20sp"
+        android:text="@{item.label}" />
+</layout>

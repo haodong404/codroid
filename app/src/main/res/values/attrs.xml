@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?><!--
+  ~     Copyright (c) 2021 Zachary. All rights reserved.
+  ~
+  ~     This file is part of Codroid.
+  ~
+  ~     Codroid is free software: you can redistribute it and/or modify
+  ~     it under the terms of the GNU General Public License as published by
+  ~     the Free Software Foundation, either version 3 of the License, or
+  ~     (at your option) any later version.
+  ~
+  ~     Codroid is distributed in the hope that it will be useful,
+  ~     but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~     GNU General Public License for more details.
+  ~
+  ~     You should have received a copy of the GNU General Public License
+  ~     along with Codroid.  If not, see <https://www.gnu.org/licenses/>.
+  -->
+<resources>
+    <declare-styleable name="Divider">
+        <attr name="backgroundColor" format="color" />
+        <attr name="lineSize" format="dimension" />
+    </declare-styleable>
+
+    <declare-styleable name="DirTreeItemView">
+        <attr name="title" format="string" />
+        <attr name="titleColor" format="color" />
+        <attr name="level" format="integer" />
+        <attr name="isExpanded" format="boolean" />
+        <attr name="type" format="string" />
+
+    </declare-styleable>
+
+    <declare-styleable name="WindowTab">
+        <attr name="android:text" />
+        <attr name="android:fontFamily" />
+        <attr name="android:textStyle" />
+    </declare-styleable>
+
+    <declare-styleable name="InfoBar">
+        <attr name="android:title" />
+        <attr name="android:subtitle" />
+    </declare-styleable>
+
+    <declare-styleable name="StatusTag">
+        <attr name="android:text" />
+        <attr name="android:textColor" />
+        <attr name="android:fontFamily" />
+        <attr name="android:textSize" />
+        <attr name="android:textStyle" />
+        <attr name="android:drawable" />
+        <attr name="borderWidth" format="dimension" />
+        <attr name="borderColor" format="color" />
+        <attr name="android:background" />
+    </declare-styleable>
+
+    <declare-styleable name="Badge">
+        <attr name="android:text" />
+        <attr name="android:textColor" />
+        <attr name="android:fontFamily" />
+        <attr name="android:textSize" />
+        <attr name="android:textStyle" />
+    </declare-styleable>
+
+</resources>

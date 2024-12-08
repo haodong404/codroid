@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="grammar_analysis_channel">Grammar Analysis</string>
+    <string name="grammar_analysis_channel_desc">Notification for grammar analysis</string>
+    <string name="grammar_analysing">Syntax analyzing…</string>
+</resources>

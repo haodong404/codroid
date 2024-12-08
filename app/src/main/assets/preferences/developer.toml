@@ -1,0 +1,21 @@
+title = "Developer"
+
+[settings."editor_info"]
+category = "switch"
+title = "Display debug infomation."
+defaultValue = false
+
+[settings."font_size"]
+category = "input"
+title = "Font Size"
+summary = "Controls the font size in pixels."
+valueType = "NUMBER"  # STRING, NUMBER
+defaultValue = "14"
+placeholder = "An integer allowed."
+
+[settings."auto_indent"]
+category = "select"
+title = "Auto Indent"
+summary = "Controls whether the editor should automatically adjust the indentation when users type, paste, move or indent lines."
+options = ["None", "Keep", "Brackets", "Full"]
+defaultValue = 3

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?><!--
+  ~     Copyright (c) 2021 Zachary. All rights reserved.
+  ~
+  ~     This file is part of Codroid.
+  ~
+  ~     Codroid is free software: you can redistribute it and/or modify
+  ~     it under the terms of the GNU General Public License as published by
+  ~     the Free Software Foundation, either version 3 of the License, or
+  ~     (at your option) any later version.
+  ~
+  ~     Codroid is distributed in the hope that it will be useful,
+  ~     but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~     GNU General Public License for more details.
+  ~
+  ~     You should have received a copy of the GNU General Public License
+  ~     along with Codroid.  If not, see <https://www.gnu.org/licenses/>.
+  -->
+
+<resources>
+    <dimen name="dp_4">4dp</dimen>
+    <dimen name="sp_14">14sp</dimen>
+    <dimen name="material_list_single_height">56dp</dimen>
+    <dimen name="material_16dp">16dp</dimen>
+    <dimen name="material_8dp">8dp</dimen>
+    <dimen name="material_32dp">32dp</dimen>
+    <dimen name="material_icon_standard_40">40dp</dimen>
+    <dimen name="material_subtitle1_16sp">20sp</dimen>
+    <dimen name="material_text_small">12sp</dimen>
+    <dimen name="material_list_single_height_48dp">48dp</dimen>
+    <dimen name="material_icon_small">18dp</dimen>
+    <dimen name="material_list_height_narrow">24dp</dimen>
+</resources>

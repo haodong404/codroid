@@ -3,8 +3,10 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
-        mavenCentral()
+        maven { url 'https://jitpack.io' }
     }
 }
 rootProject.name = "Codroid"
 include ':app'
+include ':interfaces'
+include ':editor'
